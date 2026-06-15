@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_answer_video.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_answer_video.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_answer_video_low.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_answer_video_low.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_answer_low.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_answer_low.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_answer.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_answer.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_decline.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_decline.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/drawable-anydpi-v21/ic_call_decline_low.xml",
+        "source": "com.sdk.core.mobileSDK-core-1.10.1-9:/drawable-anydpi-v21/ic_call_decline_low.xml"
+    }
+]

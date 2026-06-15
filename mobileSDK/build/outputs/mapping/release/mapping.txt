@@ -1,0 +1,2181 @@
+# compiler: R8
+# compiler_version: 8.2.47
+# common_typos_disable
+# {"id":"com.android.tools.r8.mapping","version":"2.2"}
+# pg_map_id: b05d36d
+# pg_map_hash: SHA-256 b05d36decbfce73fa3ab5e97ba3e82e1ab36946ca2d0353509cdf2ff67278ea6
+com.aeye.aeyelib.AEyeLightAlive -> com.aeye.aeyelib.AEyeLightAlive:
+# {"id":"sourceFile","fileName":"AEyeLightAlive.java"}
+    1:6:void <init>():12:17 -> <init>
+    1:6:int AEYE_AliveDestroy():76:81 -> AEYE_AliveDestroy
+    1:16:int AEYE_AliveInit(android.content.Context,android.graphics.Bitmap):54:69 -> AEYE_AliveInit
+    1:4:int[] AEYE_CurrentPix(int):147:150 -> AEYE_CurrentPix
+    1:4:android.graphics.Bitmap AEYE_CurrentSetImageData(int):138:141 -> AEYE_CurrentSetImageData
+    1:6:int AEYE_GetImageData():188:193 -> AEYE_GetImageData
+    7:7:int AEYE_GetImageData():190:190 -> AEYE_GetImageData
+    1:1:java.lang.String AEYE_GetVersion():91:91 -> AEYE_GetVersion
+    1:2:int AEYE_InsertKeyPoints(int[],int[],int):181:182 -> AEYE_InsertKeyPoints
+    1:21:int AEYE_SetImageData(byte[],int,int,boolean,int[],int,int):112:132 -> AEYE_SetImageData
+    22:22:int AEYE_SetImageData(byte[],int,int,boolean,int[],int,int):114:114 -> AEYE_SetImageData
+    1:7:android.graphics.Bitmap BGRtoBitmap(byte[],int,int):158:164 -> BGRtoBitmap
+    1:1:android.graphics.Bitmap getAlignBitmap():225:225 -> getAlignBitmap
+    1:1:byte[] getAlignData():206:206 -> getAlignData
+    1:2:float[] getBestBitLocation(android.graphics.Rect[],android.graphics.Bitmap):253:254 -> getBestBitLocation
+    1:1:int[] getInsertBestBGR(byte[]):248:248 -> getInsertBestBGR
+    1:1:android.graphics.Bitmap getInsertBestBitmap(byte[]):244:244 -> getInsertBestBitmap
+    1:8:com.aeye.aeyelib.AEyeLightAlive getInstance():22:29 -> getInstance
+    1:1:android.graphics.Bitmap getNormalCuesBitmap():234:234 -> getNormalCuesBitmap
+    1:1:byte[] getNormalCuesData():216:216 -> getNormalCuesData
+    1:8:void insetKeyPoints(int,float[]):260:267 -> insetKeyPoints
+    1:1:int rgb2intColor(int[]):97:97 -> rgb2intColor
+com.aeye.aeyelib.ALightNative -> com.aeye.aeyelib.ALightNative:
+# {"id":"sourceFile","fileName":"ALightNative.java"}
+    1:1:void <clinit>():5:5 -> <clinit>
+    1:8:com.aeye.aeyelib.ALightNative getInstance():11:18 -> getInstance
+com.aeye.aeyelib.RGBUtil -> com.aeye.aeyelib.RGBUtil:
+# {"id":"sourceFile","fileName":"RGBUtil.java"}
+    1:8:int[] BGR2Pixel(byte[]):115:122 -> BGR2Pixel
+    1:8:byte[] RGB2BGR(byte[]):15:22 -> RGB2BGR
+    1:7:byte[] RGBA2RGB(byte[]):88:94 -> RGBA2RGB
+    1:3:android.graphics.Bitmap RGBToBitmap(byte[],int,int):100:102 -> RGBToBitmap
+    1:3:android.graphics.Bitmap bestBGRToBitmap(byte[],int,int):108:110 -> bestBGRToBitmap
+    1:14:byte[] bitmap2BGR(android.graphics.Bitmap):69:82 -> bitmap2BGR
+    1:15:byte[] bitmap2RGB(android.graphics.Bitmap):49:63 -> bitmap2RGB
+    1:33:int[] convertByteToColor(byte[]):155:187 -> convertByteToColor
+    1:15:byte[] pixelToBGR(int[],int,int):28:42 -> pixelToBGR
+    1:6:android.graphics.Bitmap rgb2Bitmap(byte[],int,int):132:137 -> rgb2Bitmap
+com.aeye.android.config.AEModelMgr -> com.aeye.android.config.AEModelMgr:
+# {"id":"sourceFile","fileName":"AEModelMgr.java"}
+    1:1:void <init>():24:24 -> <init>
+    1:4:void afterInit(android.content.Context):80:83 -> afterInit
+    1:2:void beforeInit(android.content.Context):75:76 -> beforeInit
+    1:6:void checkVersion(android.content.Context,java.lang.String):94:99 -> checkVersion
+    1:6:void copyModelFromRaw(android.content.Context,int,java.io.File):41:46 -> copyModelFromRaw
+    7:14:void copyModelFromRaw(android.content.Context,int,java.io.File):45:52 -> copyModelFromRaw
+    1:4:void flushData(android.content.Context):87:90 -> flushData
+    1:1:java.lang.String getModelDir(android.content.Context):28:28 -> getModelDir
+    1:1:java.io.File getModelFile(android.content.Context,java.lang.String):32:32 -> getModelFile
+    1:1:java.lang.String getModelFilePath(android.content.Context,java.lang.String):36:36 -> getModelFilePath
+    1:4:java.lang.String loadModelData(android.content.Context,java.lang.String,java.lang.String):58:61 -> loadModelData
+    5:16:java.lang.String loadModelData(android.content.Context,java.lang.String,java.lang.String):60:71 -> loadModelData
+com.aeye.android.config.ConfigData -> com.aeye.android.config.ConfigData:
+# {"id":"sourceFile","fileName":"ConfigData.java"}
+    1:1:void <init>():53:53 -> <init>
+    1:6:void checkUpdated(android.content.Context,java.lang.String):506:511 -> checkUpdated
+    1:7:java.lang.String copyAssetFileToDest(android.content.Context,java.lang.String):422:428 -> copyAssetFileToDest
+    1:7:void copyModelFromAssets(android.content.Context,java.lang.String):469:475 -> copyModelFromAssets
+    8:15:void copyModelFromAssets(android.content.Context,java.lang.String):474:481 -> copyModelFromAssets
+    1:6:void copyModelFromRaw(android.content.Context,int,java.lang.String):451:456 -> copyModelFromRaw
+    7:14:void copyModelFromRaw(android.content.Context,int,java.lang.String):455:462 -> copyModelFromRaw
+    1:9:java.lang.String copyRawFileToDest(android.content.Context,java.lang.String,java.lang.String):435:443 -> copyRawFileToDest
+    1:44:boolean deleteIfExit(java.lang.String):211:254 -> deleteIfExit
+    45:45:boolean deleteIfExit(java.lang.String):251:251 -> deleteIfExit
+    46:46:boolean deleteIfExit(java.lang.String):212:212 -> deleteIfExit
+    1:5:java.io.File getBaseDirectory(android.content.Context):319:323 -> getBaseDirectory
+    1:8:java.lang.String getDestDir(android.content.Context):66:73 -> getDestDir
+    9:9:java.lang.String getDestDir(android.content.Context,java.lang.String):77:77 -> getDestDir
+    1:6:java.lang.String getDestPath(android.content.Context,java.lang.String):87:92 -> getDestPath
+    1:41:java.lang.String getSafeDestDir(android.content.Context):267:307 -> getSafeDestDir
+    1:2:java.lang.String getVideoDir():81:82 -> getVideoDir
+    1:28:boolean isFileExist(java.lang.String):172:199 -> isFileExist
+    29:29:boolean isFileExist(java.lang.String):196:196 -> isFileExist
+    30:30:boolean isFileExist(java.lang.String):173:173 -> isFileExist
+    1:26:boolean isPathSafe(java.lang.String):334:359 -> isPathSafe
+    1:27:boolean isPathSafeForDeletion(java.lang.String):372:398 -> isPathSafeForDeletion
+    1:4:void lockInit(android.content.Context):492:495 -> lockInit
+    1:52:void makeDestDir(android.content.Context):110:161 -> makeDestDir
+    53:53:void makeDestDir(android.content.Context):159:159 -> makeDestDir
+    54:54:void makeDestDir(android.content.Context):157:157 -> makeDestDir
+    1:3:void setDirectoryPermissions(java.io.File):416:418 -> setDirectoryPermissions
+    1:2:void unlockInit(android.content.Context):487:488 -> unlockInit
+    1:4:void unlockModel(android.content.Context):499:502 -> unlockModel
+com.aeye.android.constant.AEReturnCode -> com.aeye.android.constant.AEReturnCode:
+# {"id":"sourceFile","fileName":"AEReturnCode.java"}
+    1:1:void <init>():360:360 -> <init>
+com.aeye.android.data.AEFaceInfo -> com.aeye.android.data.AEFaceInfo:
+# {"id":"sourceFile","fileName":"AEFaceInfo.java"}
+    1:1:void <init>():41:41 -> <init>
+    2:24:void <init>():17:39 -> <init>
+    1:1:java.lang.Object clone():16:16 -> clone
+    2:57:com.aeye.android.data.AEFaceInfo clone():45:100 -> clone
+    1:9:void cutFaceImage():131:139 -> cutFaceImage
+    1:11:void cutFaceImageNir():143:153 -> cutFaceImageNir
+    1:11:void cutFaceImageNir2():157:167 -> cutFaceImageNir2
+    1:21:void recycle(boolean):107:127 -> recycle
+com.aeye.android.face.UtilAEFaceAlive -> com.aeye.android.face.UtilAEFaceAlive:
+# {"id":"sourceFile","fileName":"UtilAEFaceAlive.java"}
+    1:4:void <clinit>():6:9 -> <clinit>
+    1:7:void <init>():4:10 -> <init>
+    1:4:com.aeye.android.face.UtilAEFaceAlive getInstance():19:22 -> getInstance
+    1:1:java.lang.String getVersion():15:15 -> getVersion
+com.aeye.android.face.UtilFacePre -> com.aeye.android.face.UtilFacePre:
+# {"id":"sourceFile","fileName":"UtilFacePre.java"}
+    1:9:void <clinit>():7:15 -> <clinit>
+    1:10:void <init>():5:14 -> <init>
+    1:4:com.aeye.android.face.UtilFacePre getInstance():25:28 -> getInstance
+    1:1:java.lang.String getVersion():21:21 -> getVersion
+com.aeye.android.face.UtilMtcnn -> com.aeye.android.face.UtilMtcnn:
+# {"id":"sourceFile","fileName":"UtilMtcnn.java"}
+    1:2:void <clinit>():29:30 -> <clinit>
+    1:1:void <init>():33:33 -> <init>
+    2:3:void <init>():24:25 -> <init>
+    1:13:void copyModel(android.content.Context,android.os.Bundle):49:61 -> copyModel
+    1:3:int destroy():87:89 -> destroy
+    1:8:android.graphics.Rect[] faceDetect(int[],int,int):94:101 -> faceDetect
+    9:12:android.graphics.Rect[] faceDetect(android.graphics.Bitmap):113:116 -> faceDetect
+    1:5:com.aeye.android.face.UtilMtcnn getInstance():41:45 -> getInstance
+    1:1:java.lang.String getVersion():37:37 -> getVersion
+    1:2:int init(android.content.Context,android.os.Bundle):82:83 -> init
+    1:12:int initAlg(android.content.Context,android.os.Bundle):65:76 -> initAlg
+com.aeye.android.face.UtilMtcnn$1 -> com.aeye.android.face.UtilMtcnn$1:
+# {"id":"sourceFile","fileName":"UtilMtcnn.java"}
+    1:1:void <init>(com.aeye.android.face.UtilMtcnn):101:101 -> <init>
+    1:1:int compare(java.lang.Object,java.lang.Object):101:101 -> compare
+    2:2:int compare(android.graphics.Rect,android.graphics.Rect):103:103 -> compare
+com.aeye.android.libutils.ComplexUtil -> com.aeye.android.libutils.ComplexUtil:
+# {"id":"sourceFile","fileName":"ComplexUtil.java"}
+    1:2:void <clinit>():12:13 -> <clinit>
+    1:1:void <init>():16:16 -> <init>
+    1:5:com.aeye.android.libutils.ComplexUtil getInstance():42:46 -> getInstance
+com.aeye.android.uitls.AudioUtils -> com.aeye.android.uitls.AudioUtils:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:1:void <init>():19:19 -> <init>
+    1:24:java.util.Map playMusic(android.content.res.AssetFileDescriptor):23:46 -> playMusic
+    25:39:java.util.Map playMusic(java.lang.String):53:67 -> playMusic
+com.aeye.android.uitls.AudioUtils$1 -> com.aeye.android.uitls.AudioUtils$1:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:3:void onCompletion(android.media.MediaPlayer):38:40 -> onCompletion
+com.aeye.android.uitls.BitmapUtils -> com.aeye.android.uitls.BitmapUtils:
+# {"id":"sourceFile","fileName":"BitmapUtils.java"}
+    1:1:void <init>():30:30 -> <init>
+    1:1:android.graphics.Bitmap AEYE_Base64Decode(java.lang.String):51:51 -> AEYE_Base64Decode
+    1:1:java.lang.String AEYE_Base64Encode(android.graphics.Bitmap):62:62 -> AEYE_Base64Encode
+    1:1:java.lang.String AEYE_FaceTool_GetVersion():34:34 -> AEYE_FaceTool_GetVersion
+    1:7:void closeStreams(java.io.BufferedOutputStream,java.io.FileOutputStream):528:534 -> closeStreams
+    1:14:android.graphics.Bitmap compressImage(android.graphics.Bitmap):276:289 -> compressImage
+    1:4:java.lang.String convertIconToString(android.graphics.Bitmap):55:58 -> convertIconToString
+    1:4:android.graphics.Bitmap convertStringToBitmap(java.lang.String):41:44 -> convertStringToBitmap
+    1:9:int[] cvtSpace(byte[],int,int,int):216:224 -> cvtSpace
+    1:13:java.io.File getBaseStorageDirectory():487:499 -> getBaseStorageDirectory
+    1:4:int[] getBitmapData(android.graphics.Bitmap):255:258 -> getBitmapData
+    1:5:byte[] getImageGrayData(android.graphics.Bitmap):294:298 -> getImageGrayData
+    1:9:android.graphics.Bitmap getOptimizeBitmap(android.graphics.Bitmap):263:271 -> getOptimizeBitmap
+    1:57:java.io.File getSafeDirectory():420:476 -> getSafeDirectory
+    1:24:android.graphics.Bitmap rawByteArray2RGBABitmap2(byte[],int,int,int):70:93 -> rawByteArray2RGBABitmap2
+    1:8:byte[] rawByteArray2Y(byte[],int,int,int):155:162 -> rawByteArray2Y
+    1:13:android.graphics.Bitmap revitionImageSize(java.io.InputStream,int):238:250 -> revitionImageSize
+    1:10:byte[] rotateArray(byte[],int,int,int):170:179 -> rotateArray
+    11:20:int[] rotateArray(int[],int,int,int):192:201 -> rotateArray
+    1:75:void saveBitmap(android.graphics.Bitmap,java.lang.String):550:624 -> saveBitmap
+    76:146:void saveBitmap(android.graphics.Bitmap,java.lang.String):554:624 -> saveBitmap
+    147:204:void saveBitmap(android.graphics.Bitmap,java.lang.String):567:624 -> saveBitmap
+    205:255:void saveBitmap(android.graphics.Bitmap,java.lang.String):574:624 -> saveBitmap
+    256:297:void saveBitmap(android.graphics.Bitmap,java.lang.String):583:624 -> saveBitmap
+    298:328:void saveBitmap(android.graphics.Bitmap,java.lang.String):594:624 -> saveBitmap
+    329:353:void saveBitmap(android.graphics.Bitmap,java.lang.String):600:624 -> saveBitmap
+    354:423:void saveBitmap(android.graphics.Bitmap,java.lang.String):555:624 -> saveBitmap
+    424:424:void saveBitmap(android.graphics.Bitmap,java.lang.String):621:621 -> saveBitmap
+    425:425:void saveBitmap(android.graphics.Bitmap,java.lang.String):619:619 -> saveBitmap
+    426:434:void saveBitmap(android.graphics.Bitmap,java.lang.String):617:625 -> saveBitmap
+    1:11:void saveUserPicture(byte[],int,int,java.lang.String):303:313 -> saveUserPicture
+    12:88:void saveUserPicture(android.graphics.Bitmap,java.lang.String):333:409 -> saveUserPicture
+    89:161:void saveUserPicture(android.graphics.Bitmap,java.lang.String):337:409 -> saveUserPicture
+    162:221:void saveUserPicture(android.graphics.Bitmap,java.lang.String):350:409 -> saveUserPicture
+    222:274:void saveUserPicture(android.graphics.Bitmap,java.lang.String):357:409 -> saveUserPicture
+    275:316:void saveUserPicture(android.graphics.Bitmap,java.lang.String):368:409 -> saveUserPicture
+    317:347:void saveUserPicture(android.graphics.Bitmap,java.lang.String):379:409 -> saveUserPicture
+    348:372:void saveUserPicture(android.graphics.Bitmap,java.lang.String):385:409 -> saveUserPicture
+    373:444:void saveUserPicture(android.graphics.Bitmap,java.lang.String):338:409 -> saveUserPicture
+    445:445:void saveUserPicture(android.graphics.Bitmap,java.lang.String):406:406 -> saveUserPicture
+    446:446:void saveUserPicture(android.graphics.Bitmap,java.lang.String):404:404 -> saveUserPicture
+    447:455:void saveUserPicture(android.graphics.Bitmap,java.lang.String):402:410 -> saveUserPicture
+    1:7:android.graphics.Bitmap scaleBitmap(android.graphics.Bitmap,int,int):228:234 -> scaleBitmap
+    1:3:void setDirectoryPermissions(java.io.File):507:509 -> setDirectoryPermissions
+    1:3:void setFilePermissions(java.io.File):517:519 -> setFilePermissions
+    1:2:byte[] yuv2Array2V(byte[],int,int):127:128 -> yuv2Array2V
+    1:8:byte[] yuv2Array2Y(byte[],int,int,int):138:145 -> yuv2Array2Y
+    1:15:android.graphics.Bitmap yuy2Array2RGBABitmap(byte[],int,int):106:120 -> yuy2Array2RGBABitmap
+com.aeye.android.uitls.CommonUtils -> com.aeye.android.uitls.CommonUtils:
+# {"id":"sourceFile","fileName":"CommonUtils.java"}
+    1:1:void <init>():28:28 -> <init>
+    1:2:float[] arrayByteToFloat(byte[]):132:133 -> arrayByteToFloat
+    1:2:byte[] arrayFloatToByte(float[]):138:139 -> arrayFloatToByte
+    1:3:java.lang.String getDate():39:41 -> getDate
+    1:3:java.lang.String getFloatToString(float[]):151:153 -> getFloatToString
+    1:23:java.lang.String getNetIpAddress(android.content.Context):91:113 -> getNetIpAddress
+    1:2:java.lang.String getPhoneImei(android.content.Context):79:80 -> getPhoneImei
+    1:3:float[] getStringToFloat(java.lang.String):144:146 -> getStringToFloat
+    1:1:java.lang.String intToIp(int):120:120 -> intToIp
+    1:3:boolean isEmail(java.lang.String):67:69 -> isEmail
+    1:3:boolean isIPLegal(java.lang.String):54:56 -> isIPLegal
+    1:3:boolean isLegal(java.lang.String):47:49 -> isLegal
+    1:2:boolean isMobileNO(java.lang.String):85:86 -> isMobileNO
+    1:3:boolean isSFZ(java.lang.String):60:62 -> isSFZ
+    1:3:boolean isValidEmail(java.lang.String):73:75 -> isValidEmail
+    1:3:java.lang.String longToString(long):32:34 -> longToString
+    1:5:void showInputMethod(android.content.Context,android.widget.EditText):124:128 -> showInputMethod
+com.aeye.android.uitls.FileUtils -> com.aeye.android.uitls.FileUtils:
+# {"id":"sourceFile","fileName":"FileUtils.java"}
+    1:1:void <init>():34:34 -> <init>
+    1:7:void closeStreams(java.io.BufferedOutputStream,java.io.FileOutputStream):471:477 -> closeStreams
+    1:2:java.io.File getSafeDirectory():376:377 -> getSafeDirectory
+    3:68:java.io.File getSafeDirectory():376:441 -> getSafeDirectory
+    1:81:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):286:366 -> saveBitmapToFile
+    82:93:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):294:305 -> saveBitmapToFile
+    94:94:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):302:302 -> saveBitmapToFile
+    95:95:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):299:299 -> saveBitmapToFile
+    96:166:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):296:366 -> saveBitmapToFile
+    167:214:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):319:366 -> saveBitmapToFile
+    215:251:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):330:366 -> saveBitmapToFile
+    252:282:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):336:366 -> saveBitmapToFile
+    283:283:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):364:364 -> saveBitmapToFile
+    284:284:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):362:362 -> saveBitmapToFile
+    285:292:void saveBitmapToFile(android.graphics.Bitmap,java.lang.String,android.graphics.Bitmap$CompressFormat,int):360:367 -> saveBitmapToFile
+    1:3:void setDirectoryPermissions(java.io.File):450:452 -> setDirectoryPermissions
+    1:3:void setFilePermissions(java.io.File):459:461 -> setFilePermissions
+    1:4:void writeFile(java.lang.String,java.lang.String):44:47 -> writeFile
+    5:76:void writeFile(byte[],java.lang.String):62:133 -> writeFile
+    77:144:void writeFile(byte[],java.lang.String):66:133 -> writeFile
+    145:200:void writeFile(byte[],java.lang.String):78:133 -> writeFile
+    201:249:void writeFile(byte[],java.lang.String):85:133 -> writeFile
+    250:289:void writeFile(byte[],java.lang.String):94:133 -> writeFile
+    290:318:void writeFile(byte[],java.lang.String):105:133 -> writeFile
+    319:341:void writeFile(byte[],java.lang.String):111:133 -> writeFile
+    342:408:void writeFile(byte[],java.lang.String):67:133 -> writeFile
+    409:409:void writeFile(byte[],java.lang.String):130:130 -> writeFile
+    410:410:void writeFile(byte[],java.lang.String):128:128 -> writeFile
+    411:419:void writeFile(byte[],java.lang.String):126:134 -> writeFile
+    1:30:void writeJPG(int[],int,int,java.lang.String):204:233 -> writeJPG
+    31:58:void writeJPG(int[],int,int,java.lang.String):209:236 -> writeJPG
+    59:75:void writeJPG(android.graphics.Bitmap,java.lang.String):249:265 -> writeJPG
+    76:90:void writeJPG(android.graphics.Bitmap,java.lang.String):254:268 -> writeJPG
+    1:39:void writeJPGGray(byte[],int,int,java.lang.String):148:186 -> writeJPGGray
+    40:76:void writeJPGGray(byte[],int,int,java.lang.String):153:189 -> writeJPGGray
+com.aeye.android.uitls.FileUtils$1 -> com.aeye.android.uitls.FileUtils$1:
+# {"id":"sourceFile","fileName":"FileUtils.java"}
+    1:1:void <clinit>():294:294 -> <clinit>
+com.aeye.android.uitls.ImageUtils -> com.aeye.android.uitls.ImageUtils:
+# {"id":"sourceFile","fileName":"ImageUtils.java"}
+    1:1:void <init>():19:19 -> <init>
+    1:22:int[] GetEyePosition(android.graphics.Rect,android.graphics.Rect,float[]):97:118 -> GetEyePosition
+    1:7:com.aeye.android.data.AEFaceInfo cutoutImage(android.graphics.Bitmap,android.graphics.Rect):131:137 -> cutoutImage
+    1:4:android.graphics.Bitmap enlarge(android.graphics.Bitmap):123:126 -> enlarge
+    1:19:android.graphics.Rect getFaceRect(android.graphics.Rect,android.graphics.Rect):74:92 -> getFaceRect
+    1:48:android.graphics.Rect resize(android.graphics.Rect,int,int,boolean[]):23:70 -> resize
+com.aeye.android.uitls.LicenseUtils -> com.aeye.android.uitls.LicenseUtils:
+# {"id":"sourceFile","fileName":"LicenseUtils.java"}
+    1:1:void <clinit>():10:10 -> <clinit>
+    1:1:void <init>():13:13 -> <init>
+    1:1:java.lang.String getDeviceId():23:23 -> getDeviceId
+    1:1:java.lang.String getDeviceId2():27:27 -> getDeviceId2
+com.aeye.android.uitls.MResource -> com.aeye.android.uitls.MResource:
+# {"id":"sourceFile","fileName":"MResource.java"}
+    1:1:void <init>():16:16 -> <init>
+    1:5:int getIdByName(android.content.Context,java.lang.String,java.lang.String):20:24 -> getIdByName
+    1:1:void setPackageName(java.lang.String):29:29 -> setPackageName
+com.aeye.android.uitls.VoicePlayer -> com.aeye.android.uitls.VoicePlayer:
+# {"id":"sourceFile","fileName":"VoicePlayer.java"}
+    1:3:void <init>(android.content.Context):19:21 -> <init>
+    1:9:void destroyPlayer():95:103 -> destroyPlayer
+    1:27:void playVoice(android.content.Context,int):25:51 -> playVoice
+    28:28:void playVoice(android.content.Context,int):49:49 -> playVoice
+    29:36:void playVoice(android.content.Context,int):47:54 -> playVoice
+    37:63:void playVoice(int):60:86 -> playVoice
+    64:64:void playVoice(int):84:84 -> playVoice
+    65:72:void playVoice(int):82:89 -> playVoice
+com.aeye.android.uitls.VoicePlayer$1 -> com.aeye.android.uitls.VoicePlayer$1:
+# {"id":"sourceFile","fileName":"VoicePlayer.java"}
+    1:1:void onPrepared(android.media.MediaPlayer):42:42 -> onPrepared
+com.aeye.android.uitls.VoicePlayer$2 -> com.aeye.android.uitls.VoicePlayer$2:
+# {"id":"sourceFile","fileName":"VoicePlayer.java"}
+    1:1:void onPrepared(android.media.MediaPlayer):77:77 -> onPrepared
+com.aeye.android.util.recog.QualityAssessmentUtil -> com.aeye.android.util.recog.QualityAssessmentUtil:
+# {"id":"sourceFile","fileName":"QualityAssessmentUtil.java"}
+    1:102:void <clinit>():10:111 -> <clinit>
+    1:4:com.aeye.android.util.recog.QualityAssessmentUtil getInstance():114:117 -> getInstance
+    1:1:java.lang.String getVersion():16:16 -> getVersion
+com.aeye.face.AEFaceBean -> com.aeye.face.AEFaceBean:
+# {"id":"sourceFile","fileName":"AEFaceBean.java"}
+    1:6:android.graphics.Bitmap String2Bitmap(java.lang.String):146:151 -> String2Bitmap
+    1:4:java.lang.String getAlive(int):124:127 -> getAlive
+    1:6:android.graphics.Bitmap getAliveBitmap(int):72:77 -> getAliveBitmap
+    1:5:android.graphics.Bitmap getBitmap(int):92:96 -> getBitmap
+    1:5:android.graphics.Bitmap getCompressBitmap(int):44:48 -> getCompressBitmap
+    1:9:android.graphics.Bitmap getFaceImage(int):57:65 -> getFaceImage
+    1:5:android.graphics.Bitmap getFrontFaceBitmap():84:88 -> getFrontFaceBitmap
+    1:3:java.lang.String getLightAlive(int):134:136 -> getLightAlive
+    1:5:android.graphics.Bitmap getLightBitmap(int):100:104 -> getLightBitmap
+    1:4:android.graphics.Rect getRect(int):32:35 -> getRect
+    1:5:java.lang.String getStrImage(int):112:116 -> getStrImage
+com.aeye.face.AEFaceInterface -> com.aeye.face.AEFaceInterface:
+# {"id":"sourceFile","fileName":"AEFaceInterface.java"}
+com.aeye.face.AEFacePack -> com.aeye.face.AEFacePack:
+# {"id":"sourceFile","fileName":"AEFacePack.java"}
+    1:1:void <init>():119:119 -> <init>
+    2:74:void <init>():45:117 -> <init>
+    1:28:int AEYE_BeginRecog(android.content.Context):685:712 -> AEYE_BeginRecog
+    29:46:int AEYE_BeginRecog(android.app.Activity,int):726:743 -> AEYE_BeginRecog
+    1:8:int AEYE_Destory(android.content.Context):818:825 -> AEYE_Destory
+    1:32:boolean AEYE_EnvCheck(android.content.Context,int):850:881 -> AEYE_EnvCheck
+    1:1:java.lang.String AEYE_GetVersion():123:123 -> AEYE_GetVersion
+    1:41:int AEYE_Init(android.content.Context):769:809 -> AEYE_Init
+    1:1:int AEYE_SetListener(com.aeye.face.AEFaceInterface):138:138 -> AEYE_SetListener
+    1:201:int AEYE_SetParameter(android.os.Bundle):395:595 -> AEYE_SetParameter
+    1:2:void checkParam():603:604 -> checkParam
+    1:13:void closeAndroidPDialog():748:760 -> closeAndroidPDialog
+    1:9:void finishAllFaceFlowActivities():244:252 -> finishAllFaceFlowActivities
+    10:10:void finishAllFaceFlowActivities():252:252 -> finishAllFaceFlowActivities
+    1:1:int getAliveFirstMotion():187:187 -> getAliveFirstMotion
+    1:1:int getAliveLevel():678:678 -> getAliveLevel
+    1:1:int getAliveMotions():288:288 -> getAliveMotions
+    1:1:int[] getAlivePose():300:300 -> getAlivePose
+    1:6:java.lang.String getAvailMemory(android.content.Context):889:894 -> getAvailMemory
+    1:1:int getBottomColor():183:183 -> getBottomColor
+    1:1:int getCameraId():292:292 -> getCameraId
+    1:1:int getCaptureFace():674:674 -> getCaptureFace
+    1:1:int getCaptureOrientation():655:655 -> getCaptureOrientation
+    1:1:java.lang.String getColorSeq():335:335 -> getColorSeq
+    1:1:int getDisplayOrientation():644:644 -> getDisplayOrientation
+    1:1:int getEncryptType():308:308 -> getEncryptType
+    1:4:com.aeye.face.AEFacePack getInstance():127:130 -> getInstance
+    1:1:com.aeye.face.AEFaceInterface getInterface():134:134 -> getInterface
+    1:1:int getLoseFaceNum():670:670 -> getLoseFaceNum
+    1:1:int getMotionPicNum():296:296 -> getMotionPicNum
+    1:1:long getMotionTime():834:834 -> getMotionTime
+    1:1:java.lang.String getPendingFailDetail():207:207 -> getPendingFailDetail
+    1:1:int getPictureNumber():666:666 -> getPictureNumber
+    1:1:long getRecogTime():830:830 -> getRecogTime
+    1:1:int getTheme():191:191 -> getTheme
+    1:1:java.lang.String getTitle():199:199 -> getTitle
+    1:1:int getTopColor():195:195 -> getTopColor
+    1:22:java.lang.String getTotalMemory(android.content.Context):898:919 -> getTotalMemory
+    1:1:com.aeye.face.uitls.ColorInfo getmColor1():311:311 -> getmColor1
+    1:1:com.aeye.face.uitls.ColorInfo getmColor2():319:319 -> getmColor2
+    1:1:com.aeye.face.uitls.ColorInfo getmColor3():327:327 -> getmColor3
+    1:1:boolean isAliveMask():304:304 -> isAliveMask
+    1:1:boolean isAliveOff():613:613 -> isAliveOff
+    1:1:boolean isAlivePose():609:609 -> isAlivePose
+    1:1:boolean isCaptureStraight():175:175 -> isCaptureStraight
+    1:1:boolean isFaceAppearStartMode():842:842 -> isFaceAppearStartMode
+    1:1:boolean isFixMotion():633:633 -> isFixMotion
+    1:1:boolean isLand():179:179 -> isLand
+    1:1:boolean isMaxBrightness():171:171 -> isMaxBrightness
+    1:1:boolean isModelAllSide():625:625 -> isModelAllSide
+    1:1:boolean isNoticeTimeout():147:147 -> isNoticeTimeout
+    1:1:boolean isOpenReturnButton():143:143 -> isOpenReturnButton
+    1:1:boolean isQualityOff():621:621 -> isQualityOff
+    1:1:boolean isSetCaptureOrientation():648:648 -> isSetCaptureOrientation
+    1:1:boolean isSetDisplayOrientation():637:637 -> isSetDisplayOrientation
+    1:1:boolean isShowFaceRect():629:629 -> isShowFaceRect
+    1:1:boolean isShowIntroduce():159:159 -> isShowIntroduce
+    1:1:boolean isShowPrepare():155:155 -> isShowPrepare
+    1:1:boolean isSimpleAnim():151:151 -> isSimpleAnim
+    1:1:boolean isStrictMode():163:163 -> isStrictMode
+    1:1:boolean isUseGlobalTime():838:838 -> isUseGlobalTime
+    1:1:boolean isVoiceOff():617:617 -> isVoiceOff
+    1:1:boolean isWhiteBackgroud():167:167 -> isWhiteBackgroud
+    1:1:boolean ismRoiCenterSwitch():343:343 -> ismRoiCenterSwitch
+    1:10:void registerFaceFlowActivity(android.app.Activity):215:224 -> registerFaceFlowActivity
+    11:11:void registerFaceFlowActivity(android.app.Activity):224:224 -> registerFaceFlowActivity
+    1:40:void resetData():351:390 -> resetData
+    1:7:java.lang.Class resolveHostHomeClass():276:282 -> resolveHostHomeClass
+    1:13:void returnToHostAuthHome():259:271 -> returnToHostAuthHome
+    1:1:void setColorSeq(java.lang.String):339:339 -> setColorSeq
+    1:1:void setPendingFailDetail(java.lang.String):203:203 -> setPendingFailDetail
+    1:3:void setPictureNumber(int):660:662 -> setPictureNumber
+    1:1:void setmColor1(com.aeye.face.uitls.ColorInfo):315:315 -> setmColor1
+    1:1:void setmColor2(com.aeye.face.uitls.ColorInfo):323:323 -> setmColor2
+    1:1:void setmColor3(com.aeye.face.uitls.ColorInfo):331:331 -> setmColor3
+    1:1:void setmRoiCenterSwitch(boolean):347:347 -> setmRoiCenterSwitch
+    1:9:void unregisterFaceFlowActivity(android.app.Activity):231:239 -> unregisterFaceFlowActivity
+    10:10:void unregisterFaceFlowActivity(android.app.Activity):239:239 -> unregisterFaceFlowActivity
+com.aeye.face.AEFaceParam -> com.aeye.face.AEFaceParam:
+# {"id":"sourceFile","fileName":"AEFaceParam.java"}
+    1:3:java.lang.String getCodeStr(int):255:257 -> getCodeStr
+    1:11:java.lang.String getPoseStr(int):287:297 -> getPoseStr
+    1:10:java.lang.String getReasonStr(int):262:271 -> getReasonStr
+    11:11:java.lang.String getReasonStr(int):268:268 -> getReasonStr
+    12:24:java.lang.String getReasonStr(int):265:277 -> getReasonStr
+    25:25:java.lang.String getReasonStr(int):274:274 -> getReasonStr
+com.aeye.face.AEFaceSdk -> com.aeye.face.AEFaceSdk:
+# {"id":"sourceFile","fileName":"AEFaceSdk.java"}
+    1:1:void <init>():17:17 -> <init>
+    1:2:void ensureInitialized():69:70 -> ensureInitialized
+    1:1:java.lang.String getApiBaseUrl():37:37 -> getApiBaseUrl
+    1:1:java.lang.String getLogSource():65:65 -> getLogSource
+    1:1:void init(java.lang.String):24:24 -> init
+    2:3:void init(java.lang.String,boolean):32:33 -> init
+    1:1:boolean isHttpLogEnabled():50:50 -> isHttpLogEnabled
+    1:1:boolean isUseMockOnError():41:41 -> isUseMockOnError
+    1:1:void setHttpLogEnabled(boolean):46:46 -> setHttpLogEnabled
+    1:2:void setLogSource(java.lang.String):59:60 -> setLogSource
+com.aeye.face.AEFaceVerifyFlow -> com.aeye.face.AEFaceVerifyFlow:
+# {"id":"sourceFile","fileName":"AEFaceVerifyFlow.java"}
+    1:1:void <init>():28:28 -> <init>
+    1:1:boolean access$000(android.app.Activity,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback):19:19 -> access$000
+    1:13:boolean prepareSdk(android.app.Activity,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback):107:119 -> prepareSdk
+    1:1:void start(android.app.Activity,java.lang.String,java.lang.String,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback):43:43 -> start
+    2:15:void start(android.app.Activity,java.lang.String,java.lang.String,java.lang.String,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback):56:69 -> start
+    16:16:void start(android.app.Activity,java.lang.String,java.lang.String,java.lang.String,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback):64:64 -> start
+com.aeye.face.AEFaceVerifyFlow$1 -> com.aeye.face.AEFaceVerifyFlow$1:
+# {"id":"sourceFile","fileName":"AEFaceVerifyFlow.java"}
+    1:1:void <init>(android.app.Activity,java.lang.String,com.aeye.face.AEFaceInterface,com.aeye.face.AEFaceVerifyFlow$Callback,java.lang.String):69:69 -> <init>
+    1:2:void onError(java.lang.String):98:99 -> onError
+    1:4:void onSuccess(com.aeye.face.config.FaceActionConfig,boolean):72:75 -> onSuccess
+com.aeye.face.AEFaceVerifyFlow$1$1 -> com.aeye.face.AEFaceVerifyFlow$1$1:
+# {"id":"sourceFile","fileName":"AEFaceVerifyFlow.java"}
+    1:1:void <init>(com.aeye.face.AEFaceVerifyFlow$1):76:76 -> <init>
+    1:3:void onError(java.lang.String):88:90 -> onError
+    4:4:void onError(java.lang.String):89:89 -> onError
+    1:2:void onSuccess(com.aeye.face.confirm.InfoConfirmPayload,boolean):81:82 -> onSuccess
+com.aeye.face.AEFaceVerifyFlow$Callback -> com.aeye.face.AEFaceVerifyFlow$Callback:
+# {"id":"sourceFile","fileName":"AEFaceVerifyFlow.java"}
+com.aeye.face.api.ApiLogger -> com.aeye.face.api.ApiLogger:
+# {"id":"sourceFile","fileName":"ApiLogger.java"}
+    1:1:void <init>():20:20 -> <init>
+    1:13:java.lang.String formatParams(java.util.Map):69:81 -> formatParams
+    14:14:java.lang.String formatParams(java.util.Map):70:70 -> formatParams
+    1:10:void logError(java.lang.String,java.lang.Throwable):56:65 -> logError
+    1:10:void logLong(java.lang.String,java.lang.String):86:95 -> logLong
+    1:7:void logPostRequest(java.lang.String,java.lang.String):34:40 -> logPostRequest
+    1:7:void logRequest(java.lang.String,java.lang.String,java.util.Map):24:30 -> logRequest
+    1:9:void logResponse(java.lang.String,int,java.lang.String,long):44:52 -> logResponse
+com.aeye.face.api.ApiResponseParser -> com.aeye.face.api.ApiResponseParser:
+# {"id":"sourceFile","fileName":"ApiResponseParser.java"}
+    1:1:void <init>():15:15 -> <init>
+    1:5:org.json.JSONObject extractBusinessData(org.json.JSONObject):58:62 -> extractBusinessData
+    1:8:java.lang.String firstNonEmpty(java.lang.String[]):68:75 -> firstNonEmpty
+    1:10:com.aeye.face.api.model.ApiResult parse(java.lang.String):19:28 -> parse
+    11:11:com.aeye.face.api.model.ApiResult parse(java.lang.String):26:26 -> parse
+    12:12:com.aeye.face.api.model.ApiResult parse(java.lang.String):20:20 -> parse
+    13:31:com.aeye.face.api.model.ApiResult parse(org.json.JSONObject):35:53 -> parse
+    32:32:com.aeye.face.api.model.ApiResult parse(org.json.JSONObject):45:45 -> parse
+    33:35:com.aeye.face.api.model.ApiResult parse(org.json.JSONObject):37:39 -> parse
+    36:40:com.aeye.face.api.model.ApiResult parse(org.json.JSONObject):37:41 -> parse
+    41:41:com.aeye.face.api.model.ApiResult parse(org.json.JSONObject):33:33 -> parse
+com.aeye.face.api.FaceApiPaths -> com.aeye.face.api.FaceApiPaths:
+# {"id":"sourceFile","fileName":"FaceApiPaths.java"}
+com.aeye.face.api.FaceApiService -> com.aeye.face.api.FaceApiService:
+# {"id":"sourceFile","fileName":"FaceApiService.java"}
+    1:1:void <init>():23:23 -> <init>
+    1:21:java.lang.String buildFaceIdentRequestJson(java.lang.String,java.lang.String,java.lang.String):105:125 -> buildFaceIdentRequestJson
+    22:22:java.lang.String buildFaceIdentRequestJson(java.lang.String,java.lang.String,java.lang.String):108:108 -> buildFaceIdentRequestJson
+    1:7:java.lang.String fetchActionConfigJson(java.lang.String,java.lang.String):29:35 -> fetchActionConfigJson
+    8:8:java.lang.String fetchActionConfigJson(java.lang.String,java.lang.String):32:32 -> fetchActionConfigJson
+    1:6:java.lang.String fetchUserPreviewJson(java.lang.String,java.lang.String):48:53 -> fetchUserPreviewJson
+    7:7:java.lang.String fetchUserPreviewJson(java.lang.String,java.lang.String):51:51 -> fetchUserPreviewJson
+    8:8:java.lang.String fetchUserPreviewJson(java.lang.String,java.lang.String):49:49 -> fetchUserPreviewJson
+    1:7:com.aeye.face.api.model.FaceIdentResult fromFaceIdentJson(org.json.JSONObject):145:151 -> fromFaceIdentJson
+    1:1:com.aeye.face.config.FaceActionConfig mockActionConfig():43:43 -> mockActionConfig
+    1:12:com.aeye.face.api.model.FaceIdentResult mockFaceIdentPass(java.lang.String,java.lang.String):84:95 -> mockFaceIdentPass
+    13:13:com.aeye.face.api.model.FaceIdentResult mockFaceIdentPass(java.lang.String,java.lang.String):87:87 -> mockFaceIdentPass
+    1:1:com.aeye.face.confirm.InfoConfirmPayload mockUserPreview():61:61 -> mockUserPreview
+    1:1:com.aeye.face.config.FaceActionConfig parseActionConfig(java.lang.String):39:39 -> parseActionConfig
+    1:3:long parseAuthRecordId(java.lang.String):156:158 -> parseAuthRecordId
+    1:11:com.aeye.face.api.model.FaceIdentResult parseFaceIdentResponse(java.lang.String):129:139 -> parseFaceIdentResponse
+    12:16:com.aeye.face.api.model.FaceIdentResult parseFaceIdentResponse(java.lang.String):137:141 -> parseFaceIdentResponse
+    1:1:com.aeye.face.confirm.InfoConfirmPayload parseUserPreview(java.lang.String):57:57 -> parseUserPreview
+    1:2:void saveFaceVerifyLog(java.lang.String,java.lang.String):168:169 -> saveFaceVerifyLog
+    1:6:com.aeye.face.api.model.FaceIdentResult submitFaceIdent(java.lang.String,java.lang.String,java.lang.String,java.lang.String):75:80 -> submitFaceIdent
+    7:7:com.aeye.face.api.model.FaceIdentResult submitFaceIdent(java.lang.String,java.lang.String,java.lang.String,java.lang.String):76:76 -> submitFaceIdent
+    1:2:void updateQrCodeRecord(java.lang.String,java.lang.String):176:177 -> updateQrCodeRecord
+com.aeye.face.api.FaceIdentDefaults -> com.aeye.face.api.FaceIdentDefaults:
+# {"id":"sourceFile","fileName":"FaceIdentDefaults.java"}
+    1:1:void <init>():25:25 -> <init>
+com.aeye.face.api.SdkHttpClient -> com.aeye.face.api.SdkHttpClient:
+# {"id":"sourceFile","fileName":"SdkHttpClient.java"}
+    1:1:void <init>():24:24 -> <init>
+    1:4:java.lang.String encodePathSegment(java.lang.String):113:116 -> encodePathSegment
+    1:1:java.lang.String get(java.lang.String,java.lang.String):28:28 -> get
+    2:2:java.lang.String get(java.lang.String,java.lang.String,java.util.Map):32:32 -> get
+    1:52:java.lang.String getInternal(java.lang.String,java.lang.String,java.util.Map):123:174 -> getInternal
+    53:61:java.lang.String getInternal(java.lang.String,java.lang.String,java.util.Map):162:170 -> getInternal
+    62:86:java.lang.String getInternal(java.lang.String,java.lang.String,java.util.Map):157:181 -> getInternal
+    87:87:java.lang.String getInternal(java.lang.String,java.lang.String,java.util.Map):124:124 -> getInternal
+    1:18:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):36:53 -> postJson
+    19:45:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):53:79 -> postJson
+    46:54:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):67:75 -> postJson
+    55:57:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):62:64 -> postJson
+    58:59:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):54:54 -> postJson
+    88:91:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):83:86 -> postJson
+    92:92:java.lang.String postJson(java.lang.String,java.lang.String,java.lang.String):37:37 -> postJson
+    1:2:java.util.Map query(java.lang.String,java.lang.String):186:187 -> query
+    1:15:java.lang.String summarizeJsonBody(java.lang.String):92:106 -> summarizeJsonBody
+com.aeye.face.api.model.ApiResult -> com.aeye.face.api.model.ApiResult:
+# {"id":"sourceFile","fileName":"ApiResult.java"}
+    1:7:void <init>(boolean,java.lang.String,java.lang.String,org.json.JSONObject,java.lang.String,java.lang.String):29:35 -> <init>
+    1:1:org.json.JSONObject getBusinessData():52:52 -> getBusinessData
+    1:1:java.lang.String getErrorCode():43:43 -> getErrorCode
+    1:1:java.lang.String getErrors():56:56 -> getErrors
+    1:1:java.lang.String getMessageType():60:60 -> getMessageType
+    1:1:java.lang.String getMygType():47:47 -> getMygType
+    1:1:boolean isOk():39:39 -> isOk
+com.aeye.face.api.model.FaceIdentResult -> com.aeye.face.api.model.FaceIdentResult:
+# {"id":"sourceFile","fileName":"FaceIdentResult.java"}
+    1:6:void <init>(boolean,java.lang.String,long,java.lang.String,int):14:19 -> <init>
+    1:1:long getAuthRecordId():31:31 -> getAuthRecordId
+    1:1:int getCode():39:39 -> getCode
+    1:1:java.lang.String getIsPass():35:35 -> getIsPass
+    1:1:java.lang.String getUserId():27:27 -> getUserId
+    1:1:boolean isPass():23:23 -> isPass
+com.aeye.face.camera.AccShakeDetect -> com.aeye.face.camera.AccShakeDetect:
+# {"id":"sourceFile","fileName":"AccShakeDetect.java"}
+    1:14:void <init>():11:24 -> <init>
+    1:4:void addData(boolean):30:33 -> addData
+    1:26:void onSensorChanged(android.hardware.SensorEvent):82:107 -> onSensorChanged
+    1:8:void registerSensor(android.content.Context,com.aeye.face.camera.AccShakeDetect$OnShakeListener):62:69 -> registerSensor
+    1:14:boolean statusFresh(boolean):37:50 -> statusFresh
+    1:1:void unregisterSensor():73:73 -> unregisterSensor
+com.aeye.face.camera.AccShakeDetect$OnShakeListener -> com.aeye.face.camera.AccShakeDetect$OnShakeListener:
+# {"id":"sourceFile","fileName":"AccShakeDetect.java"}
+com.aeye.face.camera.AndroidCameraManager -> com.aeye.face.camera.AndroidCameraManager:
+# {"id":"sourceFile","fileName":"AndroidCameraManager.java"}
+    1:1:void <init>(android.content.Context):29:29 -> <init>
+    2:12:void <init>(android.content.Context):20:30 -> <init>
+    13:13:void <init>(android.content.Context,android.util.AttributeSet):33:33 -> <init>
+    14:28:void <init>(android.content.Context,android.util.AttributeSet):20:34 -> <init>
+    29:29:void <init>(android.content.Context,android.util.AttributeSet,int):38:38 -> <init>
+    30:49:void <init>(android.content.Context,android.util.AttributeSet,int):20:39 -> <init>
+    1:11:android.hardware.Camera$Size CheckPreviewSize():189:199 -> CheckPreviewSize
+    1:6:boolean RecordMedia(int,java.lang.String,java.lang.String):173:178 -> RecordMedia
+    1:8:void ReleaseDevices():56:63 -> ReleaseDevices
+    1:19:void SetCameraDisplayOrientation():121:139 -> SetCameraDisplayOrientation
+    1:4:void StopRecord():182:185 -> StopRecord
+    1:25:void SwapCamera():144:168 -> SwapCamera
+    1:9:void init(android.content.Context,int):44:52 -> init
+    1:14:void surfaceChanged(android.view.SurfaceHolder,int,int,int):103:116 -> surfaceChanged
+    1:20:void surfaceCreated(android.view.SurfaceHolder):71:90 -> surfaceCreated
+    21:21:void surfaceCreated(android.view.SurfaceHolder):88:88 -> surfaceCreated
+    1:2:void surfaceDestroyed(android.view.SurfaceHolder):96:97 -> surfaceDestroyed
+com.aeye.face.camera.AndroidMediaRecorder -> com.aeye.face.camera.AndroidMediaRecorder:
+# {"id":"sourceFile","fileName":"AndroidMediaRecorder.java"}
+    1:1:void <init>(android.hardware.Camera,android.view.Surface):27:27 -> <init>
+    2:12:void <init>(android.hardware.Camera,android.view.Surface):21:31 -> <init>
+    1:11:java.lang.String GenerateAudioFilePath(java.lang.String,java.lang.String):168:178 -> GenerateAudioFilePath
+    1:7:void ReleaseMediaRecorder():157:163 -> ReleaseMediaRecorder
+    1:94:boolean StartRecord(java.lang.String,int):35:128 -> StartRecord
+    95:103:boolean StartRecord(java.lang.String,int):115:123 -> StartRecord
+    104:112:boolean StartRecord(java.lang.String,int):101:109 -> StartRecord
+    113:115:boolean StartRecord(java.lang.String,int):62:64 -> StartRecord
+    116:116:boolean StartRecord(java.lang.String,int):42:42 -> StartRecord
+    1:19:void StopRecorder():133:151 -> StopRecorder
+com.aeye.face.camera.AutoFocusCallback -> com.aeye.face.camera.AutoFocusCallback:
+# {"id":"sourceFile","fileName":"AutoFocusCallback.java"}
+    1:6:void onAutoFocus(boolean,android.hardware.Camera):39:44 -> onAutoFocus
+    1:2:void setHandler(android.os.Handler,int):34:35 -> setHandler
+com.aeye.face.camera.AutoFocusCallbackLight -> com.aeye.face.camera.AutoFocusCallbackLight:
+# {"id":"sourceFile","fileName":"AutoFocusCallbackLight.java"}
+    1:6:void onAutoFocus(boolean,android.hardware.Camera):39:44 -> onAutoFocus
+    1:2:void setHandler(android.os.Handler,int):34:35 -> setHandler
+com.aeye.face.camera.CameraConfig -> com.aeye.face.camera.CameraConfig:
+# {"id":"sourceFile","fileName":"CameraConfig.java"}
+    1:1:int getHeight():26:26 -> getHeight
+    1:8:com.aeye.face.camera.CameraConfig getInstance():7:14 -> getInstance
+    1:1:int getWidth():30:30 -> getWidth
+    1:2:void setSurfaceSize(int,int):21:22 -> setSurfaceSize
+com.aeye.face.camera.CameraConfigurationManager -> com.aeye.face.camera.CameraConfigurationManager:
+# {"id":"sourceFile","fileName":"CameraConfigurationManager.java"}
+    1:1:void <clinit>():41:41 -> <clinit>
+    1:2:void <init>(android.content.Context):49:50 -> <init>
+    1:10:int findBestMotZoomValue(java.lang.CharSequence,int):241:250 -> findBestMotZoomValue
+    1:57:android.graphics.Point findBestPreviewSizeValue(java.lang.CharSequence,android.graphics.Point):176:232 -> findBestPreviewSizeValue
+    1:1:android.graphics.Point getCameraResolution():121:121 -> getCameraResolution
+    2:20:android.graphics.Point getCameraResolution(android.hardware.Camera$Parameters,android.graphics.Point):139:157 -> getCameraResolution
+    1:1:int getPreviewFormat():129:129 -> getPreviewFormat
+    1:1:java.lang.String getPreviewFormatString():133:133 -> getPreviewFormatString
+    1:1:android.graphics.Point getScreenResolution():125:125 -> getScreenResolution
+    1:33:void initFromCameraParameters(android.hardware.Camera):57:89 -> initFromCameraParameters
+    1:13:void setDesiredCameraParameters(android.hardware.Camera,int):105:117 -> setDesiredCameraParameters
+    1:12:void setFlash(android.hardware.Camera$Parameters):265:276 -> setFlash
+    1:46:void setZoom(android.hardware.Camera$Parameters):281:326 -> setZoom
+    47:67:void setZoom(android.hardware.Camera$Parameters):325:345 -> setZoom
+com.aeye.face.camera.CameraConfigurationManager$1 -> com.aeye.face.camera.CameraConfigurationManager$1:
+# {"id":"sourceFile","fileName":"CameraConfigurationManager.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManager,float,android.graphics.Point):196:198 -> <init>
+    1:1:int compare(java.lang.Object,java.lang.Object):196:196 -> compare
+    2:8:int compare(com.aeye.face.camera.CameraConfigurationManager$PreviewSize,com.aeye.face.camera.CameraConfigurationManager$PreviewSize):202:208 -> compare
+com.aeye.face.camera.CameraConfigurationManager$PreviewSize -> com.aeye.face.camera.CameraConfigurationManager$PreviewSize:
+# {"id":"sourceFile","fileName":"CameraConfigurationManager.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManager,int,int):168:170 -> <init>
+com.aeye.face.camera.CameraConfigurationManagerLight -> com.aeye.face.camera.CameraConfigurationManagerLight:
+# {"id":"sourceFile","fileName":"CameraConfigurationManagerLight.java"}
+    1:6:void <clinit>():38:43 -> <clinit>
+    1:2:void <init>(android.content.Context):51:52 -> <init>
+    1:8:void clearCameraFocus(android.hardware.Camera,android.hardware.Camera$Parameters):179:186 -> clearCameraFocus
+    1:10:int findBestMotZoomValue(java.lang.CharSequence,int):298:307 -> findBestMotZoomValue
+    1:45:android.graphics.Point findBestPreviewSizeValue(java.lang.CharSequence,android.graphics.Point):245:289 -> findBestPreviewSizeValue
+    1:1:android.graphics.Point getCameraResolution():190:190 -> getCameraResolution
+    2:23:android.graphics.Point getCameraResolution(android.hardware.Camera$Parameters,android.graphics.Point):208:229 -> getCameraResolution
+    1:1:int getPreviewFormat():198:198 -> getPreviewFormat
+    1:1:java.lang.String getPreviewFormatString():202:202 -> getPreviewFormatString
+    1:1:android.graphics.Point getScreenResolution():194:194 -> getScreenResolution
+    1:23:void initFromCameraParameters(android.hardware.Camera):59:81 -> initFromCameraParameters
+    1:77:void setDesiredCameraParameters(android.hardware.Camera,int):96:172 -> setDesiredCameraParameters
+    1:12:void setFlash(android.hardware.Camera$Parameters):322:333 -> setFlash
+    1:46:void setZoom(android.hardware.Camera$Parameters):338:383 -> setZoom
+    47:67:void setZoom(android.hardware.Camera$Parameters):382:402 -> setZoom
+com.aeye.face.camera.CameraConfigurationManagerLight$1 -> com.aeye.face.camera.CameraConfigurationManagerLight$1:
+# {"id":"sourceFile","fileName":"CameraConfigurationManagerLight.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManagerLight,float,android.graphics.Point):265:267 -> <init>
+    1:1:int compare(java.lang.Object,java.lang.Object):265:265 -> compare
+    2:8:int compare(com.aeye.face.camera.CameraConfigurationManagerLight$PreviewSize,com.aeye.face.camera.CameraConfigurationManagerLight$PreviewSize):271:277 -> compare
+com.aeye.face.camera.CameraConfigurationManagerLight$PreviewSize -> com.aeye.face.camera.CameraConfigurationManagerLight$PreviewSize:
+# {"id":"sourceFile","fileName":"CameraConfigurationManagerLight.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManagerLight,int,int):237:239 -> <init>
+com.aeye.face.camera.CameraManager -> com.aeye.face.camera.CameraManager:
+# {"id":"sourceFile","fileName":"CameraManager.java"}
+    1:6:void <clinit>():57:62 -> <clinit>
+    1:22:void <init>(android.content.Context):111:132 -> <init>
+    1:3:void closeDriver():242:244 -> closeDriver
+    1:2:com.aeye.face.camera.CameraManager get(android.content.Context):107:108 -> get
+    1:1:android.content.Context getContext():375:375 -> getContext
+    1:28:int getDisplayOrientation(int):136:163 -> getDisplayOrientation
+    1:24:android.graphics.Rect getFramingRect():323:346 -> getFramingRect
+    1:18:android.graphics.Rect getFramingRectInPreview():354:371 -> getFramingRectInPreview
+    1:23:int getOrientation(int):169:191 -> getOrientation
+    1:2:void init(android.content.Context):92:93 -> init
+    1:19:void openDriver(android.view.SurfaceHolder,int):208:226 -> openDriver
+    20:20:void openDriver(android.view.SurfaceHolder,int):225:225 -> openDriver
+    21:21:void openDriver(android.view.SurfaceHolder,int):211:211 -> openDriver
+    1:7:void requestAutoFocus(android.os.Handler,int):303:309 -> requestAutoFocus
+    1:6:void requestPreviewFrame(android.os.Handler,int):284:289 -> requestPreviewFrame
+    1:7:int setCameraDefaultId():381:387 -> setCameraDefaultId
+    1:3:void startPreview():252:254 -> startPreview
+    1:8:void stopPreview():262:269 -> stopPreview
+    1:1:void unInit():98:98 -> unInit
+com.aeye.face.camera.CameraManagerLight -> com.aeye.face.camera.CameraManagerLight:
+# {"id":"sourceFile","fileName":"CameraManagerLight.java"}
+    1:19:void <clinit>():44:62 -> <clinit>
+    1:22:void <init>(android.content.Context):121:142 -> <init>
+    1:3:void closeDriver():254:256 -> closeDriver
+    1:2:com.aeye.face.camera.CameraManagerLight get(android.content.Context):117:118 -> get
+    1:1:android.hardware.Camera getCamera():74:74 -> getCamera
+    1:1:com.aeye.face.camera.CameraConfigurationManagerLight getConfigManager():68:68 -> getConfigManager
+    1:1:android.content.Context getContext():387:387 -> getContext
+    1:28:int getDisplayOrientation(int):146:173 -> getDisplayOrientation
+    1:24:android.graphics.Rect getFramingRect():335:358 -> getFramingRect
+    1:18:android.graphics.Rect getFramingRectInPreview():366:383 -> getFramingRectInPreview
+    1:23:int getOrientation(int):179:201 -> getOrientation
+    1:2:void init(android.content.Context):102:103 -> init
+    1:19:void openDriver(android.view.SurfaceHolder,int):218:236 -> openDriver
+    20:20:void openDriver(android.view.SurfaceHolder,int):235:235 -> openDriver
+    21:21:void openDriver(android.view.SurfaceHolder,int):221:221 -> openDriver
+    1:7:void requestAutoFocus(android.os.Handler,int):315:321 -> requestAutoFocus
+    1:6:void requestPreviewFrame(android.os.Handler,int):296:301 -> requestPreviewFrame
+    1:7:int setCameraDefaultId():393:399 -> setCameraDefaultId
+    1:3:void startPreview():264:266 -> startPreview
+    1:8:void stopPreview():274:281 -> stopPreview
+    1:1:void unInit():108:108 -> unInit
+com.aeye.face.camera.CaptureActivityHandler -> com.aeye.face.camera.CaptureActivityHandler:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):90:90 -> <init>
+    2:59:void <init>(com.aeye.face.view.RecognizeActivity):52:109 -> <init>
+    1:1:com.aeye.face.camera.DecodeThread access$000(com.aeye.face.camera.CaptureActivityHandler):49:49 -> access$000
+    1:1:int access$100(com.aeye.face.camera.CaptureActivityHandler):49:49 -> access$100
+    1:1:com.aeye.face.view.RecognizeActivity access$200(com.aeye.face.camera.CaptureActivityHandler):49:49 -> access$200
+    1:1:boolean access$302(com.aeye.face.camera.CaptureActivityHandler,boolean):49:49 -> access$302
+    1:2:void addAliveImage(com.aeye.android.data.AEFaceInfo):471:472 -> addAliveImage
+    3:3:void addAliveImage(com.aeye.android.data.AEFaceInfo):471:471 -> addAliveImage
+    1:6:void cancelDecodeTask():294:299 -> cancelDecodeTask
+    1:7:int[] computeFixedSequenceArray(int):323:329 -> computeFixedSequenceArray
+    1:4:int[] computePoseArray(int):316:319 -> computePoseArray
+    1:30:int[] computeRandomArray(int):335:364 -> computeRandomArray
+    1:22:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):425:446 -> cutAliveImage
+    23:25:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):445:447 -> cutAliveImage
+    1:6:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):451:456 -> cutFaceImageWithAlive
+    7:11:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):455:459 -> cutFaceImageWithAlive
+    12:18:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):458:464 -> cutFaceImageWithAlive
+    1:3:void displayPoseChange(boolean):395:397 -> displayPoseChange
+    1:2:void flashDisplay(boolean,boolean):379:380 -> flashDisplay
+    1:1:int getCurPos():370:370 -> getCurPos
+    1:1:int getCurSide():286:286 -> getCurSide
+    1:1:int getNextSide():290:290 -> getNextSide
+    1:91:void handleMessage(android.os.Message):114:204 -> handleMessage
+    92:92:void handleMessage(android.os.Message):184:184 -> handleMessage
+    93:141:void handleMessage(android.os.Message):123:171 -> handleMessage
+    142:150:void handleMessage(android.os.Message):170:178 -> handleMessage
+    151:153:void handleMessage(android.os.Message):161:163 -> handleMessage
+    154:155:void handleMessage(android.os.Message) -> handleMessage
+    156:174:void handleMessage(android.os.Message):126:144 -> handleMessage
+    175:176:void handleMessage(android.os.Message):116:117 -> handleMessage
+    1:4:boolean imageCheck(android.graphics.Bitmap):543:546 -> imageCheck
+    1:13:com.aeye.android.data.AEFaceInfo infoFilter(int,double,com.aeye.android.data.AEFaceInfo):476:488 -> infoFilter
+    1:1:boolean isInPoseChange():391:391 -> isInPoseChange
+    1:1:boolean isSideFaceing():421:421 -> isSideFaceing
+    1:18:int onAliveFinish(int,java.lang.Object):561:578 -> onAliveFinish
+    1:2:void onAliveFrame(int,double,java.lang.Object):554:555 -> onAliveFrame
+    1:44:int onAlivePose(int,double,java.lang.Object):494:537 -> onAlivePose
+    1:1:void pauseDecode():305:305 -> pauseDecode
+    1:14:void quitSynchronously():238:251 -> quitSynchronously
+    1:16:void resetData():211:226 -> resetData
+    1:13:void restartPreviewAndDecode():258:270 -> restartPreviewAndDecode
+    1:2:void resumeDecode():309:310 -> resumeDecode
+    1:4:boolean startOneSide():275:278 -> startOneSide
+    1:2:void startPreview():230:231 -> startPreview
+    1:2:int updateToNextPose():374:375 -> updateToNextPose
+com.aeye.face.camera.CaptureActivityHandler$1 -> com.aeye.face.camera.CaptureActivityHandler$1:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:void <init>(com.aeye.face.camera.CaptureActivityHandler):93:93 -> <init>
+    1:3:void onShake(boolean):97:99 -> onShake
+    4:4:void onShake(boolean):98:98 -> onShake
+com.aeye.face.camera.CaptureActivityHandler$2 -> com.aeye.face.camera.CaptureActivityHandler$2:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:void <init>(com.aeye.face.camera.CaptureActivityHandler,boolean,boolean):380:380 -> <init>
+    1:2:void run():383:384 -> run
+com.aeye.face.camera.CaptureActivityHandler$3 -> com.aeye.face.camera.CaptureActivityHandler$3:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:void <init>(com.aeye.face.camera.CaptureActivityHandler):397:397 -> <init>
+    1:5:void run():400:404 -> run
+com.aeye.face.camera.CaptureActivityHandler$3$1 -> com.aeye.face.camera.CaptureActivityHandler$3$1:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:void <init>(com.aeye.face.camera.CaptureActivityHandler$3):404:404 -> <init>
+    1:6:void run():407:412 -> run
+com.aeye.face.camera.CaptureActivityHandler$State -> com.aeye.face.camera.CaptureActivityHandler$State:
+# {"id":"sourceFile","fileName":"CaptureActivityHandler.java"}
+    1:1:com.aeye.face.camera.CaptureActivityHandler$State[] $values():79:79 -> $values
+    1:1:void <clinit>():80:80 -> <clinit>
+    2:2:void <clinit>():79:79 -> <clinit>
+    1:1:void <init>(java.lang.String,int):79:79 -> <init>
+    1:1:com.aeye.face.camera.CaptureActivityHandler$State valueOf(java.lang.String):79:79 -> valueOf
+    1:1:com.aeye.face.camera.CaptureActivityHandler$State[] values():79:79 -> values
+com.aeye.face.camera.CaptureActivityHandlerLight -> com.aeye.face.camera.CaptureActivityHandlerLight:
+# {"id":"sourceFile","fileName":"CaptureActivityHandlerLight.java"}
+    1:1:void <clinit>():45:45 -> <clinit>
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):78:78 -> <init>
+    2:52:void <init>(com.aeye.face.lightView.RecognizeLightActivity):47:97 -> <init>
+    1:1:int access$000(com.aeye.face.camera.CaptureActivityHandlerLight):44:44 -> access$000
+    1:1:com.aeye.face.lightView.RecognizeLightActivity access$100(com.aeye.face.camera.CaptureActivityHandlerLight):44:44 -> access$100
+    1:2:void addAliveImage(com.aeye.android.data.AEFaceInfo):425:426 -> addAliveImage
+    3:3:void addAliveImage(com.aeye.android.data.AEFaceInfo):425:425 -> addAliveImage
+    1:6:void cancelDecodeTask():236:241 -> cancelDecodeTask
+    1:7:int[] computeFixedSequenceArray(int):268:274 -> computeFixedSequenceArray
+    1:4:int[] computePoseArray(int):261:264 -> computePoseArray
+    1:30:int[] computeRandomArray(int):280:309 -> computeRandomArray
+    1:22:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):382:403 -> cutAliveImage
+    23:25:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):402:404 -> cutAliveImage
+    1:6:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):408:413 -> cutFaceImageWithAlive
+    7:11:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):412:416 -> cutFaceImageWithAlive
+    12:18:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):415:421 -> cutFaceImageWithAlive
+    1:2:void flashDisplay(boolean,boolean):326:327 -> flashDisplay
+    1:1:int getCurPos():315:315 -> getCurPos
+    1:1:int getCurSide():228:228 -> getCurSide
+    1:1:int getNextSide():232:232 -> getNextSide
+    1:36:void handleMessage(android.os.Message):102:137 -> handleMessage
+    37:77:void handleMessage(android.os.Message):111:151 -> handleMessage
+    78:78:void handleMessage(android.os.Message):150:150 -> handleMessage
+    79:79:void handleMessage(android.os.Message):143:143 -> handleMessage
+    80:81:void handleMessage(android.os.Message):104:105 -> handleMessage
+    1:13:com.aeye.android.data.AEFaceInfo infoFilter(int,double,com.aeye.android.data.AEFaceInfo):430:442 -> infoFilter
+    1:1:boolean isInPoseChange():337:337 -> isInPoseChange
+    1:1:boolean isSideFaceing():378:378 -> isSideFaceing
+    1:14:int onAliveFinish(int,java.lang.Object):496:509 -> onAliveFinish
+    1:2:void onAliveFrame(int,double,java.lang.Object):489:490 -> onAliveFrame
+    1:34:int onAlivePose(int,double,java.lang.Object):448:481 -> onAlivePose
+    1:1:void pauseDecode():247:247 -> pauseDecode
+    1:13:void quitSynchronously():182:194 -> quitSynchronously
+    1:16:void resetData():156:171 -> resetData
+    1:1:void restartDecode():251:251 -> restartDecode
+    1:13:void restartPreviewAndDecode():200:212 -> restartPreviewAndDecode
+    1:3:void resumeDecode():254:256 -> resumeDecode
+    1:4:boolean startOneSide():217:220 -> startOneSide
+    1:3:void startPreview():175:177 -> startPreview
+    1:4:int updateToNextPose():319:322 -> updateToNextPose
+com.aeye.face.camera.CaptureActivityHandlerLight$1 -> com.aeye.face.camera.CaptureActivityHandlerLight$1:
+# {"id":"sourceFile","fileName":"CaptureActivityHandlerLight.java"}
+    1:1:void <init>(com.aeye.face.camera.CaptureActivityHandlerLight,boolean,boolean):327:327 -> <init>
+    1:1:void run():330:330 -> run
+com.aeye.face.camera.CaptureActivityHandlerLight$State -> com.aeye.face.camera.CaptureActivityHandlerLight$State:
+# {"id":"sourceFile","fileName":"CaptureActivityHandlerLight.java"}
+    1:1:com.aeye.face.camera.CaptureActivityHandlerLight$State[] $values():68:68 -> $values
+    1:1:void <clinit>():69:69 -> <clinit>
+    2:2:void <clinit>():68:68 -> <clinit>
+    1:1:void <init>(java.lang.String,int):68:68 -> <init>
+    1:1:com.aeye.face.camera.CaptureActivityHandlerLight$State valueOf(java.lang.String):68:68 -> valueOf
+    1:1:com.aeye.face.camera.CaptureActivityHandlerLight$State[] values():68:68 -> values
+com.aeye.face.camera.DecodeHandler -> com.aeye.face.camera.DecodeHandler:
+# {"id":"sourceFile","fileName":"DecodeHandler.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):97:97 -> <init>
+    2:58:void <init>(com.aeye.face.view.RecognizeActivity):48:104 -> <init>
+    1:4:void checkAgain():639:642 -> checkAgain
+    1:1:boolean checkFace(android.graphics.Bitmap,android.graphics.Rect,android.graphics.Bitmap):376:376 -> checkFace
+    1:1:int[] cvtSpace(byte[],int,int,int):430:430 -> cvtSpace
+    2:9:int[] cvtSpace(byte[],int,int,int):427:434 -> cvtSpace
+    1:61:void decode(byte[],int,int):163:223 -> decode
+    62:199:void decode(byte[],int,int):222:359 -> decode
+    200:217:void decode(byte[],int,int):255:272 -> decode
+    218:316:void decode(byte[],int,int):271:369 -> decode
+    1:5:void elseProcess(com.aeye.android.data.AEFaceInfo,boolean,int):398:402 -> elseProcess
+    6:20:void elseProcess(com.aeye.android.data.AEFaceInfo,boolean,int):401:415 -> elseProcess
+    1:7:boolean envDelay(int):440:446 -> envDelay
+    1:16:int facePosition(android.graphics.Rect,int,int):465:480 -> facePosition
+    17:98:int facePosition(android.graphics.Rect,int,int):475:556 -> facePosition
+    99:110:int facePosition(android.graphics.Rect,int,int):523:534 -> facePosition
+    111:123:int facePosition(android.graphics.Rect,int,int):529:541 -> facePosition
+    124:149:int facePosition(android.graphics.Rect,int,int):538:563 -> facePosition
+    1:16:void handleMessage(android.os.Message):135:150 -> handleMessage
+    17:26:void handleMessage(android.os.Message):145:154 -> handleMessage
+    27:27:void handleMessage(android.os.Message):137:137 -> handleMessage
+    1:20:void resetData():108:127 -> resetData
+com.aeye.face.camera.DecodeHandlerLight -> com.aeye.face.camera.DecodeHandlerLight:
+# {"id":"sourceFile","fileName":"DecodeHandlerLight.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):121:121 -> <init>
+    2:55:void <init>(com.aeye.face.lightView.RecognizeLightActivity):75:128 -> <init>
+    1:1:void access$000(com.aeye.face.camera.DecodeHandlerLight,int,android.graphics.Rect):61:61 -> access$000
+    1:1:int access$100(com.aeye.face.camera.DecodeHandlerLight):61:61 -> access$100
+    1:6:void checkAgain():906:911 -> checkAgain
+    1:16:android.graphics.Bitmap createBitmapMask(android.graphics.Bitmap,float[]):645:660 -> createBitmapMask
+    1:15:android.graphics.Bitmap createBitmapPoint(android.graphics.Bitmap,float[],float[],float[],float[],float[],float[],float[]):605:619 -> createBitmapPoint
+    16:24:android.graphics.Bitmap createBitmapPoint(android.graphics.Bitmap,float[],float[]):625:633 -> createBitmapPoint
+    1:1:int[] cvtSpace(byte[],int,int,int):813:813 -> cvtSpace
+    2:9:int[] cvtSpace(byte[],int,int,int):810:817 -> cvtSpace
+    1:202:void decode(com.aeye.face.lightView.DecodeData,int,int):309:510 -> decode
+    1:5:void elseProcess(com.aeye.android.data.AEFaceInfo,boolean):786:790 -> elseProcess
+    6:15:void elseProcess(com.aeye.android.data.AEFaceInfo,boolean):789:798 -> elseProcess
+    1:7:boolean envDelay(int):823:829 -> envDelay
+    1:46:int facePosition(android.graphics.Rect,int,int):836:881 -> facePosition
+    47:51:int facePosition(android.graphics.Rect,int,int):862:866 -> facePosition
+    52:58:int facePosition(android.graphics.Rect,int,int):864:870 -> facePosition
+    1:6:float[] getBestBitLocation(android.graphics.Rect,android.graphics.Bitmap):573:578 -> getBestBitLocation
+    1:4:float[] getBestBitLocation2(android.graphics.Rect[],int[]):277:280 -> getBestBitLocation2
+    1:16:float[] getFaceLocation(android.graphics.Rect[]):544:559 -> getFaceLocation
+    1:61:int getState(com.aeye.face.lightView.DecodeData):673:733 -> getState
+    1:40:void handleMessage(android.os.Message):170:209 -> handleMessage
+    41:83:void handleMessage(android.os.Message):179:221 -> handleMessage
+    84:85:void handleMessage(android.os.Message):187:188 -> handleMessage
+    86:99:void handleMessage(android.os.Message):183:196 -> handleMessage
+    100:102:void handleMessage(android.os.Message):172:174 -> handleMessage
+    1:25:void insertPoint(int,android.graphics.Rect):228:252 -> insertPoint
+    1:16:void insertPoint2(int):257:272 -> insertPoint2
+    1:5:void insetPointMessage(int,android.graphics.Rect):518:522 -> insetPointMessage
+    1:1:boolean isChangeNextColor(com.aeye.face.lightView.DecodeData,com.aeye.face.lightView.LightCacheBean):536:536 -> isChangeNextColor
+    1:16:android.graphics.Bitmap rawByteArray2RGBABitmap2(byte[],int,int,int):756:771 -> rawByteArray2RGBABitmap2
+    1:1:void removeCurrentMessage():668:668 -> removeCurrentMessage
+    1:33:void resetData():132:164 -> resetData
+    1:24:void saveBitmap(android.graphics.Bitmap,java.lang.String):921:944 -> saveBitmap
+    25:33:void saveBitmap(android.graphics.Bitmap,java.lang.String):942:950 -> saveBitmap
+    34:34:void saveBitmap(android.graphics.Bitmap,java.lang.String):942:942 -> saveBitmap
+    1:18:android.graphics.Bitmap scaleBitmap(android.graphics.Bitmap):285:302 -> scaleBitmap
+    1:8:void setPicReturn():741:748 -> setPicReturn
+com.aeye.face.camera.DecodeHandlerLight$1 -> com.aeye.face.camera.DecodeHandlerLight$1:
+# {"id":"sourceFile","fileName":"DecodeHandlerLight.java"}
+    1:1:void <init>(com.aeye.face.camera.DecodeHandlerLight,android.graphics.Bitmap,int,long):202:202 -> <init>
+    1:2:void run():206:207 -> run
+com.aeye.face.camera.DecodeHandlerLight$2 -> com.aeye.face.camera.DecodeHandlerLight$2:
+# {"id":"sourceFile","fileName":"DecodeHandlerLight.java"}
+    1:1:void <init>(com.aeye.face.camera.DecodeHandlerLight,int,android.graphics.Rect):214:214 -> <init>
+    1:1:void run():218:218 -> run
+com.aeye.face.camera.DecodeHandlerLight$3 -> com.aeye.face.camera.DecodeHandlerLight$3:
+# {"id":"sourceFile","fileName":"DecodeHandlerLight.java"}
+    1:1:void <init>(com.aeye.face.camera.DecodeHandlerLight):741:741 -> <init>
+    1:3:void run():744:746 -> run
+com.aeye.face.camera.DecodeThread -> com.aeye.face.camera.DecodeThread:
+# {"id":"sourceFile","fileName":"DecodeThread.java"}
+    1:4:void <init>(com.aeye.face.view.RecognizeActivity):33:36 -> <init>
+    1:6:void end():58:63 -> end
+    1:5:android.os.Handler getHandler():41:45 -> getHandler
+    1:4:void run():50:53 -> run
+com.aeye.face.camera.DecodeThreadLight -> com.aeye.face.camera.DecodeThreadLight:
+# {"id":"sourceFile","fileName":"DecodeThreadLight.java"}
+    1:4:void <init>(com.aeye.face.lightView.RecognizeLightActivity):33:36 -> <init>
+    1:6:void end():58:63 -> end
+    1:5:android.os.Handler getHandler():41:45 -> getHandler
+    1:4:void run():50:53 -> run
+com.aeye.face.camera.PreviewCallBackMotion -> com.aeye.face.camera.PreviewCallBackMotion:
+# {"id":"sourceFile","fileName":"PreviewCallBackMotion.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManager,boolean):34:36 -> <init>
+    1:11:void onPreviewFrame(byte[],android.hardware.Camera):45:55 -> onPreviewFrame
+    1:2:void setHandler(android.os.Handler,int):40:41 -> setHandler
+com.aeye.face.camera.PreviewCallbackLight -> com.aeye.face.camera.PreviewCallbackLight:
+# {"id":"sourceFile","fileName":"PreviewCallbackLight.java"}
+    1:3:void <init>(com.aeye.face.camera.CameraConfigurationManagerLight,boolean):45:47 -> <init>
+    1:29:void onPreviewFrame(byte[],android.hardware.Camera):59:87 -> onPreviewFrame
+    1:4:void setHandler(android.os.Handler,int):51:54 -> setHandler
+com.aeye.face.config.DefaultFaceActionConfigLoader -> com.aeye.face.config.DefaultFaceActionConfigLoader:
+# {"id":"sourceFile","fileName":"DefaultFaceActionConfigLoader.java"}
+    1:2:void <clinit>():17:18 -> <clinit>
+    1:1:void <init>(java.lang.String,java.lang.String):25:25 -> <init>
+    2:7:void <init>(java.lang.String,java.lang.String,boolean):29:34 -> <init>
+    1:2:void fetchByBusinessCode(java.lang.String,com.aeye.face.config.FaceActionConfigLoader$Callback):39:40 -> fetchByBusinessCode
+    1:1:void lambda$fetchByBusinessCode$0(com.aeye.face.config.FaceActionConfigLoader$Callback,com.aeye.face.config.FaceActionConfig,boolean):60:60 -> lambda$fetchByBusinessCode$0
+    1:2:void lambda$fetchByBusinessCode$1(java.lang.String,com.aeye.face.config.FaceActionConfigLoader$Callback):44:45 -> lambda$fetchByBusinessCode$1
+    3:17:void lambda$fetchByBusinessCode$1(java.lang.String,com.aeye.face.config.FaceActionConfigLoader$Callback):44:58 -> lambda$fetchByBusinessCode$1
+    1:1:void lambda$postError$2(com.aeye.face.config.FaceActionConfigLoader$Callback,java.lang.String):69:69 -> lambda$postError$2
+    1:1:void postError(com.aeye.face.config.FaceActionConfigLoader$Callback,java.lang.String):67:67 -> postError
+com.aeye.face.config.FaceActionConfig -> com.aeye.face.config.FaceActionConfig:
+# {"id":"sourceFile","fileName":"FaceActionConfig.java"}
+    1:18:void <init>():7:24 -> <init>
+    1:1:long getActionConfigId():28:28 -> getActionConfigId
+    1:1:int getActionCount():68:68 -> getActionCount
+    1:1:java.lang.String getActionType():60:60 -> getActionType
+    1:1:java.lang.String getBusinessCode():36:36 -> getBusinessCode
+    1:1:java.lang.String getBusinessName():44:44 -> getBusinessName
+    1:1:java.lang.String getDetectType():52:52 -> getDetectType
+    1:1:java.lang.String getMemo():116:116 -> getMemo
+    1:1:boolean isEnableBlink():108:108 -> isEnableBlink
+    1:1:boolean isEnableLookDown():84:84 -> isEnableLookDown
+    1:1:boolean isEnableLookUp():76:76 -> isEnableLookUp
+    1:1:boolean isEnableOpenMouth():100:100 -> isEnableOpenMouth
+    1:1:boolean isEnableShakeHead():92:92 -> isEnableShakeHead
+    1:1:boolean isRandomActionType():129:129 -> isRandomActionType
+    1:1:boolean isSequenceActionType():125:125 -> isSequenceActionType
+    1:1:void setActionConfigId(long):32:32 -> setActionConfigId
+    1:1:void setActionCount(int):72:72 -> setActionCount
+    1:1:void setActionType(java.lang.String):64:64 -> setActionType
+    1:1:void setBusinessCode(java.lang.String):40:40 -> setBusinessCode
+    1:1:void setBusinessName(java.lang.String):48:48 -> setBusinessName
+    1:1:void setDetectType(java.lang.String):56:56 -> setDetectType
+    1:1:void setEnableBlink(boolean):112:112 -> setEnableBlink
+    1:1:void setEnableLookDown(boolean):88:88 -> setEnableLookDown
+    1:1:void setEnableLookUp(boolean):80:80 -> setEnableLookUp
+    1:1:void setEnableOpenMouth(boolean):104:104 -> setEnableOpenMouth
+    1:1:void setEnableShakeHead(boolean):96:96 -> setEnableShakeHead
+    1:1:void setMemo(java.lang.String):120:120 -> setMemo
+    1:18:java.lang.String toSummaryText():133:150 -> toSummaryText
+com.aeye.face.config.FaceActionConfigDefaults -> com.aeye.face.config.FaceActionConfigDefaults:
+# {"id":"sourceFile","fileName":"FaceActionConfigDefaults.java"}
+    1:1:void <init>():38:38 -> <init>
+com.aeye.face.config.FaceActionConfigLoader -> com.aeye.face.config.FaceActionConfigLoader:
+# {"id":"sourceFile","fileName":"FaceActionConfigLoader.java"}
+com.aeye.face.config.FaceActionConfigLoader$Callback -> com.aeye.face.config.FaceActionConfigLoader$Callback:
+# {"id":"sourceFile","fileName":"FaceActionConfigLoader.java"}
+com.aeye.face.config.FaceActionConfigManager -> com.aeye.face.config.FaceActionConfigManager:
+# {"id":"sourceFile","fileName":"FaceActionConfigManager.java"}
+    1:1:void <init>():12:12 -> <init>
+    1:1:void applyCachedToSdkBundle(android.os.Bundle):43:43 -> applyCachedToSdkBundle
+    1:1:void applyToSdkBundle(android.os.Bundle,com.aeye.face.config.FaceActionConfig):39:39 -> applyToSdkBundle
+    1:5:void fetch(java.lang.String,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):17:21 -> fetch
+    6:6:void fetch(java.lang.String,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):18:18 -> fetch
+    7:7:void fetch(java.lang.String,java.lang.String,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):27:27 -> fetch
+    1:1:com.aeye.face.config.FaceActionConfig getCached():31:31 -> getCached
+    1:1:boolean isLastFetchFromRemote():35:35 -> isLastFetchFromRemote
+com.aeye.face.config.FaceActionConfigParser -> com.aeye.face.config.FaceActionConfigParser:
+# {"id":"sourceFile","fileName":"FaceActionConfigParser.java"}
+    1:1:void <init>():14:14 -> <init>
+    1:1:com.aeye.face.config.FaceActionConfig parse(java.lang.String):18:18 -> parse
+    1:14:com.aeye.face.config.FaceActionConfig parseBusinessData(org.json.JSONObject):25:38 -> parseBusinessData
+    15:15:com.aeye.face.config.FaceActionConfig parseBusinessData(org.json.JSONObject):23:23 -> parseBusinessData
+    1:15:boolean parseFlag(org.json.JSONObject,java.lang.String,boolean):43:57 -> parseFlag
+com.aeye.face.config.FaceActionConfigRepository -> com.aeye.face.config.FaceActionConfigRepository:
+# {"id":"sourceFile","fileName":"FaceActionConfigRepository.java"}
+    1:1:void <init>():18:18 -> <init>
+    1:1:com.aeye.face.config.FaceActionConfig access$002(com.aeye.face.config.FaceActionConfig):10:10 -> access$002
+    1:1:boolean access$102(boolean):10:10 -> access$102
+    1:1:void fetch(java.lang.String,java.lang.String,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):44:44 -> fetch
+    2:4:void fetch(java.lang.String,java.lang.String,boolean,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):49:51 -> fetch
+    5:9:void fetch(com.aeye.face.config.FaceActionConfigLoader,java.lang.String,com.aeye.face.config.FaceActionConfigRepository$FetchCallback):58:62 -> fetch
+    1:9:java.lang.String getCacheSummary(android.content.Context):91:99 -> getCacheSummary
+    1:1:com.aeye.face.config.FaceActionConfig getCached():29:29 -> getCached
+    1:1:boolean isLastFetchFromRemote():33:33 -> isLastFetchFromRemote
+    1:3:com.aeye.face.config.FaceActionConfig parseAndCache(java.lang.String):104:106 -> parseAndCache
+    1:3:void saveCacheSummary(android.content.Context,com.aeye.face.config.FaceActionConfig):85:87 -> saveCacheSummary
+    1:1:void setCached(com.aeye.face.config.FaceActionConfig):37:37 -> setCached
+com.aeye.face.config.FaceActionConfigRepository$1 -> com.aeye.face.config.FaceActionConfigRepository$1:
+# {"id":"sourceFile","fileName":"FaceActionConfigRepository.java"}
+    1:1:void <init>(com.aeye.face.config.FaceActionConfigRepository$FetchCallback):62:62 -> <init>
+    1:2:void onError(java.lang.String):74:75 -> onError
+    1:4:void onSuccess(com.aeye.face.config.FaceActionConfig,boolean):65:68 -> onSuccess
+com.aeye.face.config.FaceActionConfigRepository$FetchCallback -> com.aeye.face.config.FaceActionConfigRepository$FetchCallback:
+# {"id":"sourceFile","fileName":"FaceActionConfigRepository.java"}
+com.aeye.face.config.FaceActionConfigSdkMapper -> com.aeye.face.config.FaceActionConfigSdkMapper:
+# {"id":"sourceFile","fileName":"FaceActionConfigSdkMapper.java"}
+    1:1:void <clinit>():13:13 -> <clinit>
+    1:1:void <init>():21:21 -> <init>
+    1:10:void applyToBundle(android.os.Bundle,com.aeye.face.config.FaceActionConfig):31:40 -> applyToBundle
+    1:22:int[] buildFixedPoolMotionIds(com.aeye.face.config.FaceActionConfig):47:68 -> buildFixedPoolMotionIds
+com.aeye.face.config.FaceSdkHostParamBuilder -> com.aeye.face.config.FaceSdkHostParamBuilder:
+# {"id":"sourceFile","fileName":"FaceSdkHostParamBuilder.java"}
+    1:1:void <init>():17:17 -> <init>
+    1:23:android.os.Bundle buildBase(java.lang.String,boolean):25:47 -> buildBase
+com.aeye.face.config.IDConstants -> com.aeye.face.config.IDConstants:
+# {"id":"sourceFile","fileName":"IDConstants.java"}
+com.aeye.face.confirm.DefaultInfoConfirmLoader -> com.aeye.face.confirm.DefaultInfoConfirmLoader:
+# {"id":"sourceFile","fileName":"DefaultInfoConfirmLoader.java"}
+    1:2:void <clinit>():17:18 -> <clinit>
+    1:1:void <init>(java.lang.String,java.lang.String):25:25 -> <init>
+    2:5:void <init>(java.lang.String,java.lang.String,boolean):28:31 -> <init>
+    1:5:void fetch(com.aeye.face.confirm.InfoConfirmLoader$Callback):36:40 -> fetch
+    1:1:void lambda$fetch$0(com.aeye.face.confirm.InfoConfirmLoader$Callback,com.aeye.face.confirm.InfoConfirmPayload,boolean):60:60 -> lambda$fetch$0
+    1:2:void lambda$fetch$1(com.aeye.face.confirm.InfoConfirmLoader$Callback):44:45 -> lambda$fetch$1
+    3:17:void lambda$fetch$1(com.aeye.face.confirm.InfoConfirmLoader$Callback):44:58 -> lambda$fetch$1
+    1:1:void lambda$postError$2(com.aeye.face.confirm.InfoConfirmLoader$Callback,java.lang.String):69:69 -> lambda$postError$2
+    1:1:void postError(com.aeye.face.confirm.InfoConfirmLoader$Callback,java.lang.String):67:67 -> postError
+com.aeye.face.confirm.InfoConfirmActivity -> com.aeye.face.confirm.InfoConfirmActivity:
+# {"id":"sourceFile","fileName":"InfoConfirmActivity.java"}
+    1:1:void <init>():25:25 -> <init>
+    1:10:void applyCircleClip(android.widget.ImageView):79:88 -> applyCircleClip
+    1:1:void lambda$onCreate$0(android.widget.ImageView):59:59 -> lambda$onCreate$0
+    1:1:void lambda$onCreate$1(android.view.View):62:62 -> lambda$onCreate$1
+    1:4:void lambda$onCreate$2(android.content.Intent,android.view.View):66:69 -> lambda$onCreate$2
+    1:37:void onCreate(android.os.Bundle):29:65 -> onCreate
+    1:2:void onDestroy():93:94 -> onDestroy
+    1:1:java.lang.String safe(java.lang.String):74:74 -> safe
+com.aeye.face.confirm.InfoConfirmActivity$1 -> com.aeye.face.confirm.InfoConfirmActivity$1:
+# {"id":"sourceFile","fileName":"InfoConfirmActivity.java"}
+    1:1:void <init>():82:82 -> <init>
+    1:1:void getOutline(android.view.View,android.graphics.Outline):85:85 -> getOutline
+com.aeye.face.confirm.InfoConfirmDefaults -> com.aeye.face.confirm.InfoConfirmDefaults:
+# {"id":"sourceFile","fileName":"InfoConfirmDefaults.java"}
+    1:1:void <init>():28:28 -> <init>
+com.aeye.face.confirm.InfoConfirmExtras -> com.aeye.face.confirm.InfoConfirmExtras:
+# {"id":"sourceFile","fileName":"InfoConfirmExtras.java"}
+    1:1:void <init>():18:18 -> <init>
+com.aeye.face.confirm.InfoConfirmLoader -> com.aeye.face.confirm.InfoConfirmLoader:
+# {"id":"sourceFile","fileName":"InfoConfirmLoader.java"}
+com.aeye.face.confirm.InfoConfirmLoader$Callback -> com.aeye.face.confirm.InfoConfirmLoader$Callback:
+# {"id":"sourceFile","fileName":"InfoConfirmLoader.java"}
+com.aeye.face.confirm.InfoConfirmManager -> com.aeye.face.confirm.InfoConfirmManager:
+# {"id":"sourceFile","fileName":"InfoConfirmManager.java"}
+    1:1:void <init>():15:15 -> <init>
+    1:6:void fetch(java.lang.String,com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):20:25 -> fetch
+    7:7:void fetch(com.aeye.face.confirm.InfoConfirmLoader,com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):29:29 -> fetch
+    1:1:void fetchAndOpen(android.app.Activity,java.lang.String,com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):65:65 -> fetchAndOpen
+    1:1:com.aeye.face.confirm.InfoConfirmPayload getCached():33:33 -> getCached
+    1:4:void open(android.app.Activity,com.aeye.face.confirm.InfoConfirmPayload):56:59 -> open
+    1:14:android.content.Intent toIntent(android.content.Context,com.aeye.face.confirm.InfoConfirmPayload):37:50 -> toIntent
+com.aeye.face.confirm.InfoConfirmManager$1 -> com.aeye.face.confirm.InfoConfirmManager$1:
+# {"id":"sourceFile","fileName":"InfoConfirmManager.java"}
+    1:1:void <init>(android.app.Activity,com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):65:65 -> <init>
+    1:2:void onError(java.lang.String):76:77 -> onError
+    1:3:void onSuccess(com.aeye.face.confirm.InfoConfirmPayload,boolean):68:70 -> onSuccess
+com.aeye.face.confirm.InfoConfirmParser -> com.aeye.face.confirm.InfoConfirmParser:
+# {"id":"sourceFile","fileName":"InfoConfirmParser.java"}
+    1:1:void <init>():14:14 -> <init>
+    1:5:java.lang.String firstNonEmpty(org.json.JSONObject,java.lang.String,java.lang.String):22:26 -> firstNonEmpty
+    1:1:com.aeye.face.confirm.InfoConfirmPayload parse(java.lang.String):18:18 -> parse
+com.aeye.face.confirm.InfoConfirmPayload -> com.aeye.face.confirm.InfoConfirmPayload:
+# {"id":"sourceFile","fileName":"InfoConfirmPayload.java"}
+    1:16:com.aeye.face.confirm.InfoConfirmPayload fromApiData(org.json.JSONObject):24:39 -> fromApiData
+    1:1:java.lang.String getBirthDay():69:69 -> getBirthDay
+    1:1:java.lang.String getFailDetail():81:81 -> getFailDetail
+    1:1:java.lang.String getIdNumber():61:61 -> getIdNumber
+    1:1:java.lang.String getIdType():57:57 -> getIdType
+    1:1:java.lang.String getMainTitle():73:73 -> getMainTitle
+    1:1:java.lang.String getRealName():49:49 -> getRealName
+    1:1:java.lang.String getRegion():53:53 -> getRegion
+    1:1:java.lang.String getSubTitle():77:77 -> getSubTitle
+    1:1:java.lang.String getUserId():45:45 -> getUserId
+    1:1:java.lang.String getUserType():65:65 -> getUserType
+com.aeye.face.confirm.InfoConfirmRepository -> com.aeye.face.confirm.InfoConfirmRepository:
+# {"id":"sourceFile","fileName":"InfoConfirmRepository.java"}
+    1:1:void <init>():11:11 -> <init>
+    1:1:com.aeye.face.confirm.InfoConfirmPayload access$002(com.aeye.face.confirm.InfoConfirmPayload):6:6 -> access$002
+    1:1:boolean access$102(boolean):6:6 -> access$102
+    1:5:void fetch(com.aeye.face.confirm.InfoConfirmLoader,com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):35:39 -> fetch
+    1:1:com.aeye.face.confirm.InfoConfirmPayload getCached():21:21 -> getCached
+    1:1:boolean isLastFetchFromRemote():25:25 -> isLastFetchFromRemote
+    1:3:com.aeye.face.confirm.InfoConfirmPayload parseAndCache(java.lang.String):60:62 -> parseAndCache
+    1:1:void setCached(com.aeye.face.confirm.InfoConfirmPayload):29:29 -> setCached
+com.aeye.face.confirm.InfoConfirmRepository$1 -> com.aeye.face.confirm.InfoConfirmRepository$1:
+# {"id":"sourceFile","fileName":"InfoConfirmRepository.java"}
+    1:1:void <init>(com.aeye.face.confirm.InfoConfirmRepository$FetchCallback):39:39 -> <init>
+    1:2:void onError(java.lang.String):51:52 -> onError
+    1:4:void onSuccess(com.aeye.face.confirm.InfoConfirmPayload,boolean):42:45 -> onSuccess
+com.aeye.face.confirm.InfoConfirmRepository$FetchCallback -> com.aeye.face.confirm.InfoConfirmRepository$FetchCallback:
+# {"id":"sourceFile","fileName":"InfoConfirmRepository.java"}
+com.aeye.face.lightView.BitmapView -> com.aeye.face.lightView.BitmapView:
+# {"id":"sourceFile","fileName":"BitmapView.java"}
+    1:1:void <init>(int,int,android.graphics.RectF):22:22 -> <init>
+    2:22:void <init>(int,int,android.graphics.RectF):17:37 -> <init>
+    1:10:void SaveBitmap(android.graphics.Bitmap,java.lang.String):78:87 -> SaveBitmap
+    1:30:android.graphics.Bitmap onDraw():42:71 -> onDraw
+com.aeye.face.lightView.CheckFaceView -> com.aeye.face.lightView.CheckFaceView:
+# {"id":"sourceFile","fileName":"CheckFaceView.java"}
+    1:1:void <init>(android.content.Context):61:61 -> <init>
+    2:2:void <init>(android.content.Context,android.util.AttributeSet):65:65 -> <init>
+    3:3:void <init>(android.content.Context,android.util.AttributeSet,int):69:69 -> <init>
+    4:47:void <init>(android.content.Context,android.util.AttributeSet,int):27:70 -> <init>
+    1:22:void drawBitmapCircle(android.graphics.Canvas):244:265 -> drawBitmapCircle
+    1:48:void drawCircleMask(android.graphics.Canvas):190:237 -> drawCircleMask
+    1:1:int getCanvasHeight():53:53 -> getCanvasHeight
+    1:1:int getCanvasWidth():50:50 -> getCanvasWidth
+    1:1:android.graphics.RectF getOvalRect():57:57 -> getOvalRect
+    1:4:android.animation.ValueAnimator getValA(long):119:122 -> getValA
+    1:12:void hasFace(boolean):154:165 -> hasFace
+    1:25:void init():74:98 -> init
+    1:3:void onDetachedFromWindow():281:283 -> onDetachedFromWindow
+    1:10:void onDraw(android.graphics.Canvas):169:178 -> onDraw
+    1:1:void pauseAnim():288:288 -> pauseAnim
+    1:7:void resumeAnim():269:275 -> resumeAnim
+    1:15:void setOutColor(int,android.os.Handler):102:116 -> setOutColor
+    1:17:void startCountDown():129:145 -> startCountDown
+    1:2:void stopCountDown():149:150 -> stopCountDown
+com.aeye.face.lightView.CheckFaceView$1 -> com.aeye.face.lightView.CheckFaceView$1:
+# {"id":"sourceFile","fileName":"CheckFaceView.java"}
+    1:1:void <init>(com.aeye.face.lightView.CheckFaceView):133:133 -> <init>
+    1:7:void onAnimationUpdate(android.animation.ValueAnimator):136:142 -> onAnimationUpdate
+com.aeye.face.lightView.DecodeData -> com.aeye.face.lightView.DecodeData:
+# {"id":"sourceFile","fileName":"DecodeData.java"}
+    1:1:int getCurrentColor():27:27 -> getCurrentColor
+    1:1:int getCurrentColorIndex():19:19 -> getCurrentColorIndex
+    1:1:byte[] getData():11:11 -> getData
+    1:1:void setCurrentColor(int):31:31 -> setCurrentColor
+    1:1:void setCurrentColorIndex(int):23:23 -> setCurrentColorIndex
+    1:1:void setData(byte[]):15:15 -> setData
+com.aeye.face.lightView.LightCacheBean -> com.aeye.face.lightView.LightCacheBean:
+# {"id":"sourceFile","fileName":"LightCacheBean.java"}
+    1:5:void <init>(byte[],int,int,int):14:18 -> <init>
+    1:1:int getCurrentColor():38:38 -> getCurrentColor
+    1:1:int getPos():22:22 -> getPos
+    1:1:byte[] getRgbImg():30:30 -> getRgbImg
+    1:1:int getState():46:46 -> getState
+    1:1:void setCurrentColor(int):42:42 -> setCurrentColor
+    1:1:void setPos(int):26:26 -> setPos
+    1:1:void setRgbImg(byte[]):34:34 -> setRgbImg
+    1:1:void setState(int):50:50 -> setState
+com.aeye.face.lightView.RecognizeLightActivity -> com.aeye.face.lightView.RecognizeLightActivity:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <clinit>():240:240 -> <clinit>
+    1:1383:void <init>():89:1471 -> <init>
+    1:10:void SaveOvalMaskBitmap(android.graphics.Bitmap):1613:1622 -> SaveOvalMaskBitmap
+    1:7:boolean SupportAvcCodec():527:533 -> SupportAvcCodec
+    1:1:void access$000(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$000
+    1:1:android.widget.FrameLayout access$100(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$100
+    1:1:java.lang.String access$1000(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1000
+    1:1:java.lang.String access$1002(com.aeye.face.lightView.RecognizeLightActivity,java.lang.String):89:89 -> access$1002
+    1:1:void access$1100(com.aeye.face.lightView.RecognizeLightActivity,java.lang.String):89:89 -> access$1100
+    1:1:void access$1200(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1200
+    1:1:android.os.Handler access$1300(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1300
+    1:1:com.aeye.face.view.CountView access$1400(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1400
+    1:1:void access$1500(com.aeye.face.lightView.RecognizeLightActivity,boolean,boolean):89:89 -> access$1500
+    1:1:boolean access$1600(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1600
+    1:1:boolean access$1700(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1700
+    1:1:int access$1800(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$1800
+    1:1:long access$1902(com.aeye.face.lightView.RecognizeLightActivity,long):89:89 -> access$1902
+    1:1:boolean access$200(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$200
+    1:1:int access$2000():89:89 -> access$2000
+    1:1:boolean access$202(com.aeye.face.lightView.RecognizeLightActivity,boolean):89:89 -> access$202
+    1:1:boolean access$2102(com.aeye.face.lightView.RecognizeLightActivity,boolean):89:89 -> access$2102
+    1:1:void access$2200(com.aeye.face.lightView.RecognizeLightActivity,java.lang.String):89:89 -> access$2200
+    1:1:int access$2300(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$2300
+    1:1:int access$2400(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$2400
+    1:1:int access$2500(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$2500
+    1:1:void access$2600(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$2600
+    1:1:void access$300(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$300
+    1:1:android.widget.TextView access$400(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$400
+    1:1:android.widget.ImageView access$500(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$500
+    1:1:int access$600():89:89 -> access$600
+    1:1:int access$700():89:89 -> access$700
+    1:1:void access$800(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$800
+    1:1:android.widget.TextView access$900(com.aeye.face.lightView.RecognizeLightActivity):89:89 -> access$900
+    1:2:void addPicNumber(int,int):227:228 -> addPicNumber
+    1:3:void changeColor(int,android.os.Handler):1630:1632 -> changeColor
+    1:1:void clearPicNumber():236:236 -> clearPicNumber
+    1:3:void closeProgressDialog():1861:1863 -> closeProgressDialog
+    1:20:boolean delDir(java.lang.String):1763:1782 -> delDir
+    1:6:void deletePIcTempFile():409:414 -> deletePIcTempFile
+    1:1:void dismissHint():1029:1029 -> dismissHint
+    1:21:android.graphics.Bitmap drawOvalMask():1582:1602 -> drawOvalMask
+    1:12:void faceAppear():1056:1067 -> faceAppear
+    1:2:void finish():868:869 -> finish
+    1:11:void finishActivityByFail():1374:1384 -> finishActivityByFail
+    12:15:void finishActivityByFail():1383:1386 -> finishActivityByFail
+    1:6:void finishActivityByOther(int,java.lang.String):1266:1271 -> finishActivityByOther
+    7:12:void finishActivityByOther(int,java.lang.String):1270:1275 -> finishActivityByOther
+    1:25:void finishActivityBySuccessful():1309:1333 -> finishActivityBySuccessful
+    26:56:void finishActivityBySuccessful():1332:1362 -> finishActivityBySuccessful
+    57:64:void finishActivityBySuccessful():1361:1368 -> finishActivityBySuccessful
+    1:8:void finishActivityByTimeOut():1279:1286 -> finishActivityByTimeOut
+    9:14:void finishActivityByTimeOut():1285:1290 -> finishActivityByTimeOut
+    1:8:void finishActivityByUserCancel():1294:1301 -> finishActivityByUserCancel
+    9:13:void finishActivityByUserCancel():1300:1304 -> finishActivityByUserCancel
+    1:1:int getAliveMode():255:255 -> getAliveMode
+    1:1:int getColorForSo():182:182 -> getColorForSo
+    1:1:java.util.ArrayList getColorForSoList():186:186 -> getColorForSoList
+    1:1:int getCurrentIndex():173:173 -> getCurrentIndex
+    1:1:boolean getDecodeStatus():591:591 -> getDecodeStatus
+    1:1:com.aeye.face.camera.CaptureActivityHandlerLight getHandler():1251:1251 -> getHandler
+    1:4:int getOrientation():793:796 -> getOrientation
+    1:2:int getPicNumber(int):219:220 -> getPicNumber
+    1:1:int getPose():263:263 -> getPose
+    1:14:java.util.ArrayList getRandomList():509:522 -> getRandomList
+    1:4:java.lang.String getSDPath():1822:1825 -> getSDPath
+    1:1:int getSplitTime():167:167 -> getSplitTime
+    1:1:long getStartRecogTime():129:129 -> getStartRecogTime
+    1:1:int getmFaceOK():135:135 -> getmFaceOK
+    1:9:boolean hasSpace():1788:1796 -> hasSpace
+    1:10:void initCamera(android.view.SurfaceHolder):776:785 -> initCamera
+    11:13:void initCamera(android.view.SurfaceHolder):778:780 -> initCamera
+    1:30:void initColorFormServer():421:450 -> initColorFormServer
+    1:14:void initData():570:583 -> initData
+    1:5:void initFirstColor():761:765 -> initFirstColor
+    1:7:void initVoice():554:560 -> initVoice
+    1:1:boolean isIsFirstHasFace():243:243 -> isIsFirstHasFace
+    1:9:void lightInit():455:463 -> lightInit
+    1:8:void onCreate(android.os.Bundle):272:279 -> onCreate
+    9:134:void onCreate(android.os.Bundle):277:402 -> onCreate
+    1:18:void onDestroy():846:863 -> onDestroy
+    1:5:boolean onKeyUp(int,android.view.KeyEvent):1463:1467 -> onKeyUp
+    1:3:void onPause():822:824 -> onPause
+    1:10:void onResume():648:657 -> onResume
+    1:14:void onStart():803:816 -> onStart
+    1:11:void onStop():829:839 -> onStop
+    1:24:void prepareRecog():662:685 -> prepareRecog
+    25:60:void prepareRecog():683:718 -> prepareRecog
+    1:15:void randomThreeColor():483:497 -> randomThreeColor
+    1:11:void randomcolor():467:477 -> randomcolor
+    1:7:void releaseRecoder():1810:1816 -> releaseRecoder
+    1:6:void resetData():1255:1260 -> resetData
+    1:7:void saveLocalColor(java.util.ArrayList):500:506 -> saveLocalColor
+    1:1:void setAliveMode(int):259:259 -> setAliveMode
+    1:1:void setDecodeStatus(boolean):587:587 -> setDecodeStatus
+    1:1:void setIsFirstHasFace(boolean):247:247 -> setIsFirstHasFace
+    1:1:void setMotionAliveSuc():950:950 -> setMotionAliveSuc
+    1:1:void setPose(int):267:267 -> setPose
+    1:4:void setWindowBrightness(int):547:550 -> setWindowBrightness
+    1:19:void showAlivePose(int,boolean,boolean):595:613 -> showAlivePose
+    1:23:void showFaceFarBox():1160:1182 -> showFaceFarBox
+    1:21:void showFaceOut(boolean):1076:1096 -> showFaceOut
+    1:1:void showFaceRect(android.graphics.Rect,int,int,boolean):1223:1223 -> showFaceRect
+    1:11:void showFaceStatus(boolean,boolean):1040:1050 -> showFaceStatus
+    1:1:void showHint(java.lang.String,int):893:893 -> showHint
+    1:20:void showMessageBox():1137:1156 -> showMessageBox
+    1:4:void showNoFace():1109:1112 -> showNoFace
+    1:1:void showPoseSuccessMsg(boolean):1013:1013 -> showPoseSuccessMsg
+    1:1:void showProgressDialog(java.lang.String):1834:1834 -> showProgressDialog
+    1:1:void showQualityHint(int,boolean):953:953 -> showQualityHint
+    1:7:void showShortToast(java.lang.String):877:883 -> showShortToast
+    1:33:void showTimeOutBox():1186:1218 -> showTimeOutBox
+    1:7:void showTipAfterHasFace():1126:1132 -> showTipAfterHasFace
+    1:1:void showToast(java.lang.String):873:873 -> showToast
+    1:36:void startRecog():722:757 -> startRecog
+    1:48:void startRecord():1638:1685 -> startRecord
+    1:4:void stopRecord():1803:1806 -> stopRecord
+    1:2:void stopTimer():618:619 -> stopTimer
+    1:1:void surfaceChanged(android.view.SurfaceHolder,int,int,int):1241:1241 -> surfaceChanged
+    1:5:void surfaceCreated(android.view.SurfaceHolder):1230:1234 -> surfaceCreated
+    1:2:void surfaceDestroyed(android.view.SurfaceHolder):1246:1247 -> surfaceDestroyed
+    1:18:int upDataColor():1553:1570 -> upDataColor
+    1:1:void updateVoice():564:564 -> updateVoice
+    1:66:void videoPath():1691:1756 -> videoPath
+    67:67:void videoPath():1754:1754 -> videoPath
+com.aeye.face.lightView.RecognizeLightActivity$1 -> com.aeye.face.lightView.RecognizeLightActivity$1:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):296:296 -> <init>
+    1:2:void onClick(android.view.View):300:301 -> onClick
+com.aeye.face.lightView.RecognizeLightActivity$10 -> com.aeye.face.lightView.RecognizeLightActivity$10:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1029:1029 -> <init>
+    1:1:void run():1033:1033 -> run
+com.aeye.face.lightView.RecognizeLightActivity$11 -> com.aeye.face.lightView.RecognizeLightActivity$11:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1057:1057 -> <init>
+    1:2:void run():1061:1062 -> run
+com.aeye.face.lightView.RecognizeLightActivity$12 -> com.aeye.face.lightView.RecognizeLightActivity$12:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity,boolean):1096:1096 -> <init>
+    1:5:void run():1099:1103 -> run
+com.aeye.face.lightView.RecognizeLightActivity$13 -> com.aeye.face.lightView.RecognizeLightActivity$13:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1112:1112 -> <init>
+    1:3:void run():1115:1117 -> run
+com.aeye.face.lightView.RecognizeLightActivity$14 -> com.aeye.face.lightView.RecognizeLightActivity$14:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1141:1141 -> <init>
+    1:4:void onDismiss(android.content.DialogInterface):1144:1147 -> onDismiss
+com.aeye.face.lightView.RecognizeLightActivity$15 -> com.aeye.face.lightView.RecognizeLightActivity$15:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1171:1171 -> <init>
+    1:1:void onDismiss(android.content.DialogInterface):1174:1174 -> onDismiss
+com.aeye.face.lightView.RecognizeLightActivity$16 -> com.aeye.face.lightView.RecognizeLightActivity$16:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1189:1189 -> <init>
+    1:1:void onClick(android.content.DialogInterface,int):1193:1193 -> onClick
+com.aeye.face.lightView.RecognizeLightActivity$17 -> com.aeye.face.lightView.RecognizeLightActivity$17:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1196:1196 -> <init>
+    1:1:void onClick(android.content.DialogInterface,int):1200:1200 -> onClick
+com.aeye.face.lightView.RecognizeLightActivity$18 -> com.aeye.face.lightView.RecognizeLightActivity$18:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1203:1203 -> <init>
+    1:2:boolean onKey(android.content.DialogInterface,int,android.view.KeyEvent):1206:1207 -> onKey
+com.aeye.face.lightView.RecognizeLightActivity$19 -> com.aeye.face.lightView.RecognizeLightActivity$19:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):1471:1471 -> <init>
+    1:72:void handleMessage(android.os.Message):1474:1545 -> handleMessage
+    73:74:void handleMessage(android.os.Message):1541:1542 -> handleMessage
+    75:78:void handleMessage(android.os.Message):1535:1538 -> handleMessage
+    79:100:void handleMessage(android.os.Message):1478:1499 -> handleMessage
+    101:140:void handleMessage(android.os.Message):1492:1531 -> handleMessage
+    141:146:void handleMessage(android.os.Message):1483:1488 -> handleMessage
+com.aeye.face.lightView.RecognizeLightActivity$2 -> com.aeye.face.lightView.RecognizeLightActivity$2:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):348:348 -> <init>
+    1:1:void onClick(android.view.View):351:351 -> onClick
+com.aeye.face.lightView.RecognizeLightActivity$20 -> com.aeye.face.lightView.RecognizeLightActivity$20:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity,java.lang.String):1834:1834 -> <init>
+    1:13:void run():1837:1849 -> run
+com.aeye.face.lightView.RecognizeLightActivity$20$1 -> com.aeye.face.lightView.RecognizeLightActivity$20$1:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity$20):1841:1841 -> <init>
+    1:1:void onCancel(android.content.DialogInterface):1844:1844 -> onCancel
+com.aeye.face.lightView.RecognizeLightActivity$3 -> com.aeye.face.lightView.RecognizeLightActivity$3:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):355:355 -> <init>
+    1:6:void onClick(android.view.View):358:363 -> onClick
+com.aeye.face.lightView.RecognizeLightActivity$4 -> com.aeye.face.lightView.RecognizeLightActivity$4:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):601:601 -> <init>
+    1:2:void run():605:606 -> run
+com.aeye.face.lightView.RecognizeLightActivity$5 -> com.aeye.face.lightView.RecognizeLightActivity$5:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):669:669 -> <init>
+    1:6:void run():672:677 -> run
+com.aeye.face.lightView.RecognizeLightActivity$6 -> com.aeye.face.lightView.RecognizeLightActivity$6:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity):692:692 -> <init>
+    1:15:void run():697:711 -> run
+com.aeye.face.lightView.RecognizeLightActivity$7 -> com.aeye.face.lightView.RecognizeLightActivity$7:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity,java.lang.String):893:893 -> <init>
+    1:16:void run():896:911 -> run
+    17:32:void run():902:917 -> run
+    33:42:void run():905:914 -> run
+    43:86:void run():899:942 -> run
+com.aeye.face.lightView.RecognizeLightActivity$8 -> com.aeye.face.lightView.RecognizeLightActivity$8:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity,int,boolean):953:953 -> <init>
+    1:14:void run():958:971 -> run
+    15:31:void run():966:982 -> run
+    32:74:void run():963:1005 -> run
+com.aeye.face.lightView.RecognizeLightActivity$9 -> com.aeye.face.lightView.RecognizeLightActivity$9:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:1:void <init>(com.aeye.face.lightView.RecognizeLightActivity,boolean):1013:1013 -> <init>
+    1:6:void run():1016:1021 -> run
+com.aeye.face.lightView.RecognizeLightActivity$MyCount -> com.aeye.face.lightView.RecognizeLightActivity$MyCount:
+# {"id":"sourceFile","fileName":"RecognizeLightActivity.java"}
+    1:2:void <init>(com.aeye.face.lightView.RecognizeLightActivity,android.os.Handler):1393:1394 -> <init>
+    1:1:void cancel():1409:1409 -> cancel
+    1:25:void finish():1417:1441 -> finish
+    1:2:void init(int):1398:1399 -> init
+    1:1:void onTick():1413:1413 -> onTick
+    1:6:void run():1448:1453 -> run
+    1:3:void start():1403:1405 -> start
+com.aeye.face.service.InitService -> com.aeye.face.service.InitService:
+# {"id":"sourceFile","fileName":"InitService.java"}
+    1:2:void <init>():14:15 -> <init>
+    1:10:void initModel():44:53 -> initModel
+    1:2:void onDestroy():30:31 -> onDestroy
+    1:2:int onStartCommand(android.content.Intent,int,int):24:25 -> onStartCommand
+    1:6:void release():35:40 -> release
+com.aeye.face.ui.FaceImmersiveStatusBar -> com.aeye.face.ui.FaceImmersiveStatusBar:
+# {"id":"sourceFile","fileName":"FaceImmersiveStatusBar.java"}
+    1:1:void <init>():25:25 -> <init>
+    1:11:void bindBottomMargin(android.app.Activity,android.view.View,int):86:96 -> bindBottomMargin
+    1:21:void bindToolbar(android.app.Activity,android.view.View,android.view.View):58:78 -> bindToolbar
+    1:1:int dp(android.app.Activity,int):100:100 -> dp
+    1:14:void install(android.app.Activity):30:43 -> install
+    1:5:androidx.core.view.WindowInsetsCompat lambda$bindBottomMargin$1(int,android.view.View,androidx.core.view.WindowInsetsCompat):88:92 -> lambda$bindBottomMargin$1
+    1:14:androidx.core.view.WindowInsetsCompat lambda$bindToolbar$0(int,android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):60:73 -> lambda$bindToolbar$0
+com.aeye.face.uitls.AEFaceDataUtil -> com.aeye.face.uitls.AEFaceDataUtil:
+# {"id":"sourceFile","fileName":"AEFaceDataUtil.java"}
+    1:2:android.graphics.Bitmap AES2Bitmap(java.lang.String):18:19 -> AES2Bitmap
+    1:2:java.lang.String AESEnCode(android.graphics.Bitmap):23:24 -> AESEnCode
+    1:1:android.graphics.Bitmap SM42Bitmap(java.lang.String):14:14 -> SM42Bitmap
+com.aeye.face.uitls.AESUtil -> com.aeye.face.uitls.AESUtil:
+# {"id":"sourceFile","fileName":"AESUtil.java"}
+    1:13:java.lang.String decrypt(java.lang.String,java.lang.String):29:41 -> decrypt
+    1:10:java.lang.String encrypt(java.lang.String,java.lang.String):13:22 -> encrypt
+com.aeye.face.uitls.AudioUtils -> com.aeye.face.uitls.AudioUtils:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:9:void destroyPlayer():175:183 -> destroyPlayer
+    1:12:java.util.Map playMusic(android.content.res.AssetFileDescriptor):18:29 -> playMusic
+    13:29:java.util.Map playMusic(android.content.res.AssetFileDescriptor):28:44 -> playMusic
+    1:30:void playVoice(android.content.Context,int):50:79 -> playVoice
+    31:31:void playVoice(android.content.Context,int):76:76 -> playVoice
+    32:41:void playVoice(android.content.Context,int):73:82 -> playVoice
+    42:79:void playVoice(android.content.Context,int,android.media.MediaPlayer$OnCompletionListener):87:124 -> playVoice
+    80:80:void playVoice(android.content.Context,int,android.media.MediaPlayer$OnCompletionListener):121:121 -> playVoice
+    81:90:void playVoice(android.content.Context,int,android.media.MediaPlayer$OnCompletionListener):118:127 -> playVoice
+    1:34:boolean playVoiceIdle(android.content.Context,int):132:165 -> playVoiceIdle
+    35:35:boolean playVoiceIdle(android.content.Context,int):162:162 -> playVoiceIdle
+    36:45:boolean playVoiceIdle(android.content.Context,int):159:168 -> playVoiceIdle
+com.aeye.face.uitls.AudioUtils$1 -> com.aeye.face.uitls.AudioUtils$1:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:3:void onCompletion(android.media.MediaPlayer):36:38 -> onCompletion
+com.aeye.face.uitls.AudioUtils$2 -> com.aeye.face.uitls.AudioUtils$2:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:1:void onPrepared(android.media.MediaPlayer):66:66 -> onPrepared
+com.aeye.face.uitls.AudioUtils$3 -> com.aeye.face.uitls.AudioUtils$3:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:1:void onPrepared(android.media.MediaPlayer):103:103 -> onPrepared
+com.aeye.face.uitls.AudioUtils$4 -> com.aeye.face.uitls.AudioUtils$4:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:1:void <init>(android.media.MediaPlayer$OnCompletionListener):107:107 -> <init>
+    1:2:void onCompletion(android.media.MediaPlayer):111:112 -> onCompletion
+com.aeye.face.uitls.AudioUtils$5 -> com.aeye.face.uitls.AudioUtils$5:
+# {"id":"sourceFile","fileName":"AudioUtils.java"}
+    1:1:void onPrepared(android.media.MediaPlayer):152:152 -> onPrepared
+com.aeye.face.uitls.ColorInfo -> com.aeye.face.uitls.ColorInfo:
+# {"id":"sourceFile","fileName":"ColorInfo.java"}
+    1:1:int getB():29:29 -> getB
+    1:1:int getG():21:21 -> getG
+    1:1:int getLight():37:37 -> getLight
+    1:1:java.lang.String getName():45:45 -> getName
+    1:1:int getR():13:13 -> getR
+    1:1:void setB(int):33:33 -> setB
+    1:1:void setG(int):25:25 -> setG
+    1:1:void setLight(int):41:41 -> setLight
+    1:1:void setName(java.lang.String):49:49 -> setName
+    1:1:void setR(int):17:17 -> setR
+com.aeye.face.uitls.CommandUtil -> com.aeye.face.uitls.CommandUtil:
+# {"id":"sourceFile","fileName":"CommandUtil.java"}
+    1:1:void <init>(com.aeye.face.uitls.CommandUtil$1):16:16 -> <init>
+    2:2:void <init>():17:17 -> <init>
+    1:32:java.lang.String exec(java.lang.String):48:79 -> exec
+    33:48:java.lang.String exec(java.lang.String):66:81 -> exec
+    49:62:java.lang.String exec(java.lang.String):66:79 -> exec
+    1:4:java.lang.String getProperty(java.lang.String):32:35 -> getProperty
+    1:1:com.aeye.face.uitls.CommandUtil getSingleInstance():25:25 -> getSingleInstance
+    1:19:java.lang.String getStrFromBufferInputSteam(java.io.BufferedInputStream):86:104 -> getStrFromBufferInputSteam
+com.aeye.face.uitls.CommandUtil$1 -> com.aeye.face.uitls.CommandUtil$1:
+# {"id":"sourceFile","fileName":"CommandUtil.java"}
+com.aeye.face.uitls.CommandUtil$SingletonHolder -> com.aeye.face.uitls.CommandUtil$SingletonHolder:
+# {"id":"sourceFile","fileName":"CommandUtil.java"}
+    1:1:void <clinit>():21:21 -> <clinit>
+    1:1:com.aeye.face.uitls.CommandUtil access$100():20:20 -> access$100
+com.aeye.face.uitls.DataUtil -> com.aeye.face.uitls.DataUtil:
+# {"id":"sourceFile","fileName":"DataUtil.java"}
+    1:6:com.aeye.face.uitls.ColorInfo getColorInfo(int,int,int,java.lang.String):41:46 -> getColorInfo
+    1:7:java.util.List getRandomList(java.util.List):12:18 -> getRandomList
+    1:10:int[] getSequence(int):25:34 -> getSequence
+com.aeye.face.uitls.DeviceInfoCollector -> com.aeye.face.uitls.DeviceInfoCollector:
+# {"id":"sourceFile","fileName":"DeviceInfoCollector.java"}
+    1:1:void <init>():18:18 -> <init>
+    1:7:org.json.JSONObject collect(android.content.Context):22:28 -> collect
+    1:5:java.lang.String resolveDeviceId(android.content.Context):36:40 -> resolveDeviceId
+    6:10:java.lang.String resolveDeviceId(android.content.Context):39:43 -> resolveDeviceId
+    1:1:java.lang.String safe(java.lang.String):48:48 -> safe
+com.aeye.face.uitls.DeviceSafeCheckUtils -> com.aeye.face.uitls.DeviceSafeCheckUtils:
+# {"id":"sourceFile","fileName":"DeviceSafeCheckUtils.java"}
+    1:293:void <clinit>():374:666 -> <clinit>
+    1:20:boolean checkAccessRootData():177:196 -> checkAccessRootData
+    21:21:boolean checkAccessRootData():195:195 -> checkAccessRootData
+    1:14:boolean checkBusybox():155:168 -> checkBusybox
+    15:15:boolean checkBusybox():167:167 -> checkBusybox
+    1:3:boolean checkDeviceDebuggable():102:104 -> checkDeviceDebuggable
+    1:6:boolean checkForBinary(android.content.Context,java.lang.String):362:367 -> checkForBinary
+    1:32:boolean checkGetRootAuth():115:146 -> checkGetRootAuth
+    33:39:boolean checkGetRootAuth():140:146 -> checkGetRootAuth
+    40:41:boolean checkGetRootAuth():131:132 -> checkGetRootAuth
+    42:57:boolean checkGetRootAuth():131:146 -> checkGetRootAuth
+    58:66:boolean checkGetRootAuth():140:148 -> checkGetRootAuth
+    1:32:boolean checkMagisk():325:356 -> checkMagisk
+    33:39:boolean checkMagisk():350:356 -> checkMagisk
+    40:41:boolean checkMagisk():341:342 -> checkMagisk
+    42:57:boolean checkMagisk():341:356 -> checkMagisk
+    58:66:boolean checkMagisk():350:358 -> checkMagisk
+    1:14:boolean checkRootPathSU():275:288 -> checkRootPathSU
+    1:7:boolean checkRootWhichSU():261:267 -> checkRootWhichSU
+    1:3:boolean checkSuperuserApk():295:297 -> checkSuperuserApk
+    1:3:boolean checkSystemUser():94:96 -> checkSystemUser
+    1:3:boolean checkVPN(android.content.Context):68:70 -> checkVPN
+    1:19:java.util.ArrayList executeCommand(java.lang.String[]):238:256 -> executeCommand
+    1:23:boolean findHookAppFile():785:807 -> findHookAppFile
+    1:11:boolean findHookAppName(android.content.Context):766:776 -> findHookAppName
+    1:31:boolean findHookStack():814:844 -> findHookStack
+    1:16:java.lang.String[] getPaths():391:406 -> getPaths
+    17:17:java.lang.String[] getPaths():395:395 -> getPaths
+    1:4:int getroDebugProp():410:413 -> getroDebugProp
+    1:34:boolean hasAdbInEmulator():438:471 -> hasAdbInEmulator
+    35:37:boolean hasAdbInEmulator():469:471 -> hasAdbInEmulator
+    38:39:boolean hasAdbInEmulator():471:472 -> hasAdbInEmulator
+    1:1:boolean hasAppAnalysisPackage(android.content.Context):518:518 -> hasAppAnalysisPackage
+    1:3:boolean hasEmulatorAdb():422:424 -> hasEmulatorAdb
+    1:14:boolean hasEmulatorBuild(android.content.Context):599:612 -> hasEmulatorBuild
+    1:3:boolean hasGenyFiles():656:658 -> hasGenyFiles
+    1:10:boolean hasKnownDeviceId(android.content.Context):539:548 -> hasKnownDeviceId
+    1:10:boolean hasKnownImsi(android.content.Context):583:592 -> hasKnownImsi
+    1:12:boolean hasKnownPhoneNumber(android.content.Context):561:572 -> hasKnownPhoneNumber
+    1:5:boolean hasPackageNameInstalled(android.content.Context,java.lang.String):501:505 -> hasPackageNameInstalled
+    1:3:boolean hasPipes():673:675 -> hasPipes
+    1:15:boolean hasQEmuDrivers():626:640 -> hasQEmuDrivers
+    1:1:boolean hasTaintClass():522:522 -> hasTaintClass
+    1:8:boolean isDeviceUnSafe():53:60 -> isDeviceUnSafe
+    1:26:boolean isDualAppEx(java.lang.String):693:718 -> isDualAppEx
+    1:1:boolean isHook(android.content.Context):853:853 -> isHook
+    1:10:boolean isMockLocation(android.content.Context):731:740 -> isMockLocation
+    1:1:boolean isOpenDevelop(android.content.Context):305:305 -> isOpenDevelop
+    1:1:boolean isUsbAdbOpen(android.content.Context):311:311 -> isUsbAdbOpen
+    1:1:boolean isUserAMonkey():531:531 -> isUserAMonkey
+    1:12:boolean isWifiProxy(android.content.Context):79:90 -> isWifiProxy
+    1:14:java.lang.String readFile(java.lang.String):217:230 -> readFile
+    1:9:java.lang.Boolean writeFile(java.lang.String,java.lang.String):204:212 -> writeFile
+com.aeye.face.uitls.DeviceSafeCheckUtils$1 -> com.aeye.face.uitls.DeviceSafeCheckUtils$1:
+# {"id":"sourceFile","fileName":"DeviceSafeCheckUtils.java"}
+com.aeye.face.uitls.DeviceSafeCheckUtils$tcp -> com.aeye.face.uitls.DeviceSafeCheckUtils$tcp:
+# {"id":"sourceFile","fileName":"DeviceSafeCheckUtils.java"}
+    1:4:void <init>(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String):492:495 -> <init>
+    1:1:com.aeye.face.uitls.DeviceSafeCheckUtils$tcp create(java.lang.String[]):486:486 -> create
+com.aeye.face.uitls.FLogUtil -> com.aeye.face.uitls.FLogUtil:
+# {"id":"sourceFile","fileName":"FLogUtil.java"}
+    1:45:void backupAndRecreateLogFile(java.io.File):245:289 -> backupAndRecreateLogFile
+    1:12:void clearLogFile():453:464 -> clearLogFile
+    1:10:void closeResources(java.io.PrintWriter,java.io.FileWriter,java.io.FileInputStream):428:437 -> closeResources
+    1:35:boolean delDir(java.lang.String):300:334 -> delDir
+    36:36:boolean delDir(java.lang.String):301:301 -> delDir
+    1:26:boolean deleteDirectoryRecursively(java.io.File):346:371 -> deleteDirectoryRecursively
+    1:2:java.lang.String getCurrentTimestamp():400:401 -> getCurrentTimestamp
+    1:1:java.lang.String getLogFilePath():446:446 -> getLogFilePath
+    1:121:java.io.File getSafeLogFile():114:234 -> getSafeLogFile
+    1:7:java.lang.String getSafeLogFilePath():38:44 -> getSafeLogFilePath
+    1:2:void printLog(java.lang.String):383:384 -> printLog
+    1:45:void saveLogServer(java.lang.String):59:103 -> saveLogServer
+    46:85:void saveLogServer(java.lang.String):64:103 -> saveLogServer
+    86:95:void saveLogServer(java.lang.String):71:80 -> saveLogServer
+    96:127:void saveLogServer(java.lang.String):72:103 -> saveLogServer
+    128:128:void saveLogServer(java.lang.String):100:100 -> saveLogServer
+    129:129:void saveLogServer(java.lang.String):98:98 -> saveLogServer
+    130:138:void saveLogServer(java.lang.String):96:104 -> saveLogServer
+    1:1:void setCanPrinterLog(boolean):393:393 -> setCanPrinterLog
+    1:3:void setDirectoryPermissions(java.io.File):408:410 -> setDirectoryPermissions
+    1:3:void setFilePermissions(java.io.File):417:419 -> setFilePermissions
+com.aeye.face.uitls.FileUtil -> com.aeye.face.uitls.FileUtil:
+# {"id":"sourceFile","fileName":"FileUtil.java"}
+    1:14:java.lang.String FormetFileSize(long):192:205 -> FormetFileSize
+    1:16:java.lang.String assetFilePath(android.content.Context,java.lang.String):38:53 -> assetFilePath
+    17:17:java.lang.String assetFilePath(android.content.Context,java.lang.String):44:44 -> assetFilePath
+    18:19:java.lang.String assetFilePath(android.content.Context,java.lang.String):43:43 -> assetFilePath
+    30:30:java.lang.String assetFilePath(android.content.Context,java.lang.String):54:54 -> assetFilePath
+    1:2:java.lang.String getFilePath(android.content.Context,java.lang.String):31:32 -> getFilePath
+    1:7:long getFileSize(java.io.File):154:160 -> getFileSize
+    1:6:long getFileSizes(java.io.File):174:179 -> getFileSizes
+    1:16:java.lang.String getFileStringInfo(java.lang.String):98:113 -> getFileStringInfo
+    1:4:boolean isFileExists(java.lang.String):136:139 -> isFileExists
+    1:2:boolean makeDirs(java.lang.String):236:237 -> makeDirs
+    1:13:boolean mkdirs(java.lang.String):265:277 -> mkdirs
+    1:15:java.lang.String readTxt(java.lang.String):247:261 -> readTxt
+    1:25:boolean saveFileWithBytes(java.lang.String,byte[]):284:308 -> saveFileWithBytes
+    26:26:boolean saveFileWithBytes(java.lang.String,byte[]):299:299 -> saveFileWithBytes
+    1:23:void saveLogServer(java.lang.String,java.lang.String):64:86 -> saveLogServer
+    24:31:void saveLogServer(java.lang.String,java.lang.String):74:81 -> saveLogServer
+    32:44:void saveLogServer(java.lang.String,java.lang.String):77:89 -> saveLogServer
+    1:19:boolean writeFile(java.lang.String,java.lang.String):211:229 -> writeFile
+    20:29:boolean writeFile(java.lang.String,java.lang.String):223:232 -> writeFile
+com.aeye.face.uitls.LoadingDialog -> com.aeye.face.uitls.LoadingDialog:
+# {"id":"sourceFile","fileName":"LoadingDialog.java"}
+    1:23:android.app.Dialog createLoadingDialog(android.content.Context,java.lang.String):33:55 -> createLoadingDialog
+com.aeye.face.uitls.MBitmapUtil -> com.aeye.face.uitls.MBitmapUtil:
+# {"id":"sourceFile","fileName":"MBitmapUtil.java"}
+    1:22:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):25:46 -> cutAliveImage
+    23:25:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):45:47 -> cutAliveImage
+    1:3:android.graphics.Bitmap cutFaceImage(com.aeye.android.data.AEFaceInfo):51:53 -> cutFaceImage
+    1:1:android.graphics.Bitmap cutFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):19:19 -> cutFaceImageWithAlive
+    1:4:int[] cvtSpace(byte[],int,int,int):223:226 -> cvtSpace
+    1:1:android.graphics.Bitmap getFull640(com.aeye.android.data.AEFaceInfo):143:143 -> getFull640
+    1:4:android.graphics.Bitmap getFullFaceImageWithAlive(com.aeye.android.data.AEFaceInfo):117:120 -> getFullFaceImageWithAlive
+    1:23:android.graphics.Bitmap rawByteArray2RGBABitmap2(byte[],int,int,int):58:80 -> rawByteArray2RGBABitmap2
+    1:11:android.graphics.Bitmap rawByteArray2RGBABitmapFull(byte[],int,int,int):161:171 -> rawByteArray2RGBABitmapFull
+    1:3:byte[] rawByteArray2Y(byte[],int,int,int):211:213 -> rawByteArray2Y
+    1:8:android.graphics.Bitmap scaleBitmap(android.graphics.Bitmap,int):191:198 -> scaleBitmap
+com.aeye.face.uitls.MLog -> com.aeye.face.uitls.MLog:
+# {"id":"sourceFile","fileName":"MLog.java"}
+    1:1:void d(java.lang.String,java.lang.String):16:16 -> d
+    1:1:void e(java.lang.String,java.lang.String):10:10 -> e
+com.aeye.face.uitls.PictureManagerUtils -> com.aeye.face.uitls.PictureManagerUtils:
+# {"id":"sourceFile","fileName":"PictureManagerUtils.java"}
+    1:1:void <init>():49:49 -> <init>
+    2:67:void <init>():27:92 -> <init>
+    68:73:void <init>():50:55 -> <init>
+    1:4:void Array2JsonArray(org.json.JSONArray,android.graphics.Rect[]):188:191 -> Array2JsonArray
+    1:7:void BitmapAddToList(android.graphics.Bitmap,java.util.List,java.util.List):95:101 -> BitmapAddToList
+    1:3:void List2JsonArray(org.json.JSONArray,java.util.List):180:182 -> List2JsonArray
+    1:1:void addAliveImage(android.graphics.Bitmap):89:89 -> addAliveImage
+    1:9:void addOnePictureInfo(com.aeye.android.data.AEFaceInfo,int):76:84 -> addOnePictureInfo
+    1:13:java.lang.String bytesToHexString(byte[]):212:224 -> bytesToHexString
+    1:1:void destroyManager():46:46 -> destroyManager
+    1:1:int getCurNum():111:111 -> getCurNum
+    1:1:android.graphics.Rect getFaceRect():107:107 -> getFaceRect
+    1:49:java.lang.String getJsonBody(android.app.Activity):127:175 -> getJsonBody
+    1:5:java.lang.String getJsonString(android.app.Activity):201:205 -> getJsonString
+    1:3:com.aeye.face.uitls.PictureManagerUtils getPictureManager():40:42 -> getPictureManager
+    1:8:void resetPictureManager():65:72 -> resetPictureManager
+    1:1:void setCode(int):118:118 -> setCode
+    1:1:void setCurrentPose(int):122:122 -> setCurrentPose
+    1:3:void setPicNum(int):59:61 -> setPicNum
+com.aeye.face.uitls.PictureManagerUtilsLight -> com.aeye.face.uitls.PictureManagerUtilsLight:
+# {"id":"sourceFile","fileName":"PictureManagerUtilsLight.java"}
+    1:1:void <init>():36:36 -> <init>
+    2:53:void <init>():18:69 -> <init>
+    54:55:void <init>():37:38 -> <init>
+    1:2:void addAliveImage(android.graphics.Bitmap):72:73 -> addAliveImage
+    1:6:void addOnePictureInfo(com.aeye.android.data.AEFaceInfo,int):59:64 -> addOnePictureInfo
+    1:13:java.lang.String bytesToHexString(byte[]):243:255 -> bytesToHexString
+    1:1:void destroyManager():33:33 -> destroyManager
+    1:1:int getCurNum():81:81 -> getCurNum
+    1:1:android.graphics.Rect getFaceRect():77:77 -> getFaceRect
+    1:39:java.lang.String getJsonBody(java.lang.String):86:124 -> getJsonBody
+    40:84:java.lang.String getJsonBody(java.lang.String,java.lang.String):130:174 -> getJsonBody
+    1:6:java.lang.String getJsonString(java.lang.String):219:224 -> getJsonString
+    7:12:java.lang.String getJsonString(java.lang.String,java.lang.String):231:236 -> getJsonString
+    1:3:com.aeye.face.uitls.PictureManagerUtilsLight getPictureManager():27:29 -> getPictureManager
+    1:6:void resetPictureManager():50:55 -> resetPictureManager
+    1:5:void setPicNum(int):42:46 -> setPicNum
+com.aeye.face.uitls.SMUtil -> com.aeye.face.uitls.SMUtil:
+# {"id":"sourceFile","fileName":"SMUtil.java"}
+    1:16:java.lang.String BitmapSM2Sign(android.graphics.Bitmap):45:60 -> BitmapSM2Sign
+    1:3:byte[] BitmapToBit(android.graphics.Bitmap):87:89 -> BitmapToBit
+    1:4:android.graphics.Bitmap DataSM4Decode(java.lang.String,java.lang.String):36:39 -> DataSM4Decode
+    1:1:java.lang.String DataSM4Encode(java.lang.String,android.graphics.Bitmap):21:21 -> DataSM4Encode
+    2:5:java.lang.String DataSM4Encode(java.lang.String,byte[]):26:29 -> DataSM4Encode
+    1:1:java.lang.String bytesToHexString(byte[]):116:116 -> bytesToHexString
+    2:12:java.lang.String bytesToHexString(byte[],int):120:130 -> bytesToHexString
+    1:7:boolean checkSign(android.graphics.Bitmap,java.lang.String):68:74 -> checkSign
+    1:4:java.lang.String convertIconToString(android.graphics.Bitmap):138:141 -> convertIconToString
+    1:2:java.lang.String getPubKey():80:81 -> getPubKey
+    1:13:byte[] hexToBytes(java.lang.String):95:107 -> hexToBytes
+com.aeye.face.uitls.ToastUtil -> com.aeye.face.uitls.ToastUtil:
+# {"id":"sourceFile","fileName":"ToastUtil.java"}
+    1:9:void showToast(android.content.Context,java.lang.String):14:22 -> showToast
+com.aeye.face.verify.FaceVerifyLogManager -> com.aeye.face.verify.FaceVerifyLogManager:
+# {"id":"sourceFile","fileName":"FaceVerifyLogManager.java"}
+    1:1:void <init>():30:30 -> <init>
+    1:20:org.json.JSONObject buildCommonBody(android.content.Context):84:103 -> buildCommonBody
+    1:4:org.json.JSONObject buildNoFaceBody(android.content.Context):61:64 -> buildNoFaceBody
+    1:4:org.json.JSONObject buildVerifyEndBody(android.content.Context,boolean,java.lang.String):71:74 -> buildVerifyEndBody
+    5:7:org.json.JSONObject buildVerifyEndBody(android.content.Context,boolean,java.lang.String):74:76 -> buildVerifyEndBody
+    1:2:void lambda$submit$0(org.json.JSONObject):52:53 -> lambda$submit$0
+    1:5:void putIfNotEmpty(org.json.JSONObject,java.lang.String,java.lang.String):110:114 -> putIfNotEmpty
+    1:8:void submit(android.content.Context,org.json.JSONObject):50:57 -> submit
+    1:1:void uploadNoFace(android.content.Context):35:35 -> uploadNoFace
+    1:4:void uploadVerifyEnd(android.content.Context,boolean,java.lang.String):40:43 -> uploadVerifyEnd
+com.aeye.face.verify.FaceVerifyManager -> com.aeye.face.verify.FaceVerifyManager:
+# {"id":"sourceFile","fileName":"FaceVerifyManager.java"}
+    1:1:void <init>():18:18 -> <init>
+    1:5:void lambda$submit$0(java.lang.String,com.aeye.face.verify.FaceVerifyManager$Callback):30:34 -> lambda$submit$0
+    6:21:void lambda$submit$0(java.lang.String,com.aeye.face.verify.FaceVerifyManager$Callback):33:48 -> lambda$submit$0
+    22:30:void lambda$submit$0(java.lang.String,com.aeye.face.verify.FaceVerifyManager$Callback):46:54 -> lambda$submit$0
+    1:30:void submit(java.lang.String,com.aeye.face.verify.FaceVerifyManager$Callback):28:57 -> submit
+com.aeye.face.verify.FaceVerifyManager$Callback -> com.aeye.face.verify.FaceVerifyManager$Callback:
+# {"id":"sourceFile","fileName":"FaceVerifyManager.java"}
+com.aeye.face.verify.FaceVerifySession -> com.aeye.face.verify.FaceVerifySession:
+# {"id":"sourceFile","fileName":"FaceVerifySession.java"}
+    1:1:void <init>():19:19 -> <init>
+    1:4:void begin(java.lang.String,java.lang.String,java.lang.String):23:26 -> begin
+    1:4:void clear():30:33 -> clear
+    1:4:java.lang.String getAuthRecordId():61:64 -> getAuthRecordId
+    1:1:java.lang.String getBusinessCode():54:54 -> getBusinessCode
+    1:1:java.lang.String getUserId():50:50 -> getUserId
+    1:1:void resetEndLogSent():37:37 -> resetEndLogSent
+    1:4:boolean tryMarkEndLogSent():42:45 -> tryMarkEndLogSent
+com.aeye.face.verify.QrRecordStatus -> com.aeye.face.verify.QrRecordStatus:
+# {"id":"sourceFile","fileName":"QrRecordStatus.java"}
+    1:1:void <init>():21:21 -> <init>
+com.aeye.face.verify.QrRecordStatusManager -> com.aeye.face.verify.QrRecordStatusManager:
+# {"id":"sourceFile","fileName":"QrRecordStatusManager.java"}
+    1:1:void <init>():15:15 -> <init>
+    1:6:void lambda$update$0(java.lang.String,java.lang.String):31:36 -> lambda$update$0
+    7:7:void lambda$update$0(java.lang.String,java.lang.String):35:35 -> lambda$update$0
+    1:19:void update(java.lang.String):22:40 -> update
+com.aeye.face.view.AutoFitSurfaceView -> com.aeye.face.view.AutoFitSurfaceView:
+# {"id":"sourceFile","fileName":"AutoFitSurfaceView.java"}
+    1:1:void <init>(android.content.Context):18:18 -> <init>
+    2:3:void <init>(android.content.Context):14:15 -> <init>
+    4:4:void <init>(android.content.Context,android.util.AttributeSet):22:22 -> <init>
+    5:6:void <init>(android.content.Context,android.util.AttributeSet):14:15 -> <init>
+    7:7:void <init>(android.content.Context,android.util.AttributeSet,int):26:26 -> <init>
+    8:9:void <init>(android.content.Context,android.util.AttributeSet,int):14:15 -> <init>
+    1:47:void onMeasure(int,int):46:92 -> onMeasure
+    1:5:void setAspectRation(int,int):38:42 -> setAspectRation
+    6:6:void setAspectRation(int,int):36:36 -> setAspectRation
+com.aeye.face.view.CameraPreview -> com.aeye.face.view.CameraPreview:
+# {"id":"sourceFile","fileName":"CameraPreview.java"}
+    1:1:void <init>(android.content.Context,android.util.AttributeSet):32:32 -> <init>
+    2:2:void <init>(android.content.Context,android.util.AttributeSet):23:23 -> <init>
+    3:3:void <init>(android.content.Context,android.util.AttributeSet,int):36:36 -> <init>
+    4:4:void <init>(android.content.Context,android.util.AttributeSet,int):23:23 -> <init>
+    5:5:void <init>(android.content.Context):41:41 -> <init>
+    6:6:void <init>(android.content.Context):23:23 -> <init>
+    1:17:android.hardware.Camera$Size getOptimalPreviewSize(java.util.List,int,int):176:192 -> getOptimalPreviewSize
+    1:9:void initPreview():47:55 -> initPreview
+    1:25:void onLayout(boolean,int,int,int,int):99:123 -> onLayout
+    1:6:void onMeasure(int,int):87:92 -> onMeasure
+    1:4:void setCamera(android.hardware.Camera):59:62 -> setCamera
+    1:11:void surfaceChanged(android.view.SurfaceHolder,int,int,int):144:154 -> surfaceChanged
+    1:6:void surfaceCreated(android.view.SurfaceHolder):133:138 -> surfaceCreated
+    1:2:void surfaceDestroyed(android.view.SurfaceHolder):159:160 -> surfaceDestroyed
+    1:13:void switchCamera(android.hardware.Camera):67:79 -> switchCamera
+com.aeye.face.view.CameraSurfaceview -> com.aeye.face.view.CameraSurfaceview:
+# {"id":"sourceFile","fileName":"CameraSurfaceview.java"}
+    1:1:void <init>(android.content.Context,android.hardware.Camera):20:20 -> <init>
+    2:15:void <init>(android.content.Context,android.hardware.Camera):13:26 -> <init>
+    1:14:void surfaceChanged(android.view.SurfaceHolder,int,int,int):45:58 -> surfaceChanged
+    1:4:void surfaceCreated(android.view.SurfaceHolder):34:37 -> surfaceCreated
+    1:2:void surfaceDestroyed(android.view.SurfaceHolder):67:68 -> surfaceDestroyed
+com.aeye.face.view.CheckFaceView -> com.aeye.face.view.CheckFaceView:
+# {"id":"sourceFile","fileName":"CheckFaceView.java"}
+    1:1:void <init>(android.content.Context):62:62 -> <init>
+    2:2:void <init>(android.content.Context,android.util.AttributeSet):66:66 -> <init>
+    3:3:void <init>(android.content.Context,android.util.AttributeSet,int):70:70 -> <init>
+    4:47:void <init>(android.content.Context,android.util.AttributeSet,int):28:71 -> <init>
+    1:22:void drawBitmapCircle(android.graphics.Canvas):245:266 -> drawBitmapCircle
+    1:48:void drawCircleMask(android.graphics.Canvas):191:238 -> drawCircleMask
+    1:1:int getCanvasHeight():54:54 -> getCanvasHeight
+    1:1:int getCanvasWidth():51:51 -> getCanvasWidth
+    1:1:android.graphics.RectF getOvalRect():58:58 -> getOvalRect
+    1:4:android.animation.ValueAnimator getValA(long):120:123 -> getValA
+    1:12:void hasFace(boolean):155:166 -> hasFace
+    1:25:void init():75:99 -> init
+    1:3:void onDetachedFromWindow():282:284 -> onDetachedFromWindow
+    1:10:void onDraw(android.graphics.Canvas):170:179 -> onDraw
+    1:1:void pauseAnim():289:289 -> pauseAnim
+    1:7:void resumeAnim():270:276 -> resumeAnim
+    1:15:void setOutColor(int,android.os.Handler):103:117 -> setOutColor
+    1:17:void startCountDown():130:146 -> startCountDown
+    1:2:void stopCountDown():150:151 -> stopCountDown
+com.aeye.face.view.CheckFaceView$1 -> com.aeye.face.view.CheckFaceView$1:
+# {"id":"sourceFile","fileName":"CheckFaceView.java"}
+    1:1:void <init>(com.aeye.face.view.CheckFaceView):134:134 -> <init>
+    1:7:void onAnimationUpdate(android.animation.ValueAnimator):137:143 -> onAnimationUpdate
+com.aeye.face.view.CountView -> com.aeye.face.view.CountView:
+# {"id":"sourceFile","fileName":"CountView.java"}
+    1:1:void <init>(android.content.Context):16:16 -> <init>
+    2:2:void <init>(android.content.Context,android.util.AttributeSet):20:20 -> <init>
+    3:3:void <init>(android.content.Context,android.util.AttributeSet,int):24:24 -> <init>
+    4:5:void <init>(android.content.Context,android.util.AttributeSet,int):12:13 -> <init>
+    1:6:int getFontSize(int):77:82 -> getFontSize
+    1:31:void onDraw(android.graphics.Canvas):29:59 -> onDraw
+    32:32:void onDraw(android.graphics.Canvas):59:59 -> onDraw
+    1:6:void setCount(int,int):87:92 -> setCount
+    7:7:void setCount(int,int):91:91 -> setCount
+com.aeye.face.view.FaceView -> com.aeye.face.view.FaceView:
+# {"id":"sourceFile","fileName":"FaceView.java"}
+    1:1:void <init>(android.content.Context):27:27 -> <init>
+    2:4:void <init>(android.content.Context):14:16 -> <init>
+    5:5:void <init>(android.content.Context,android.util.AttributeSet):31:31 -> <init>
+    6:8:void <init>(android.content.Context,android.util.AttributeSet):14:16 -> <init>
+    9:9:void <init>(android.content.Context,android.util.AttributeSet,int):35:35 -> <init>
+    10:12:void <init>(android.content.Context,android.util.AttributeSet,int):14:16 -> <init>
+    1:54:void drawFaceRect(android.graphics.Rect,int,int,boolean):40:93 -> drawFaceRect
+    55:55:void drawFaceRect(android.graphics.Rect,int,int,boolean) -> drawFaceRect
+    1:3:void setSuppressFaceRect(boolean):20:22 -> setSuppressFaceRect
+com.aeye.face.view.RecognizeActivity -> com.aeye.face.view.RecognizeActivity:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:898:void <init>():89:986 -> <init>
+    1:1:com.aeye.face.view.ScanRingOverlayView access$000(com.aeye.face.view.RecognizeActivity):89:89 -> access$000
+    1:1:boolean access$100(com.aeye.face.view.RecognizeActivity):89:89 -> access$100
+    1:1:boolean access$1000(com.aeye.face.view.RecognizeActivity):89:89 -> access$1000
+    1:1:boolean access$1002(com.aeye.face.view.RecognizeActivity,boolean):89:89 -> access$1002
+    1:1:void access$1100(com.aeye.face.view.RecognizeActivity):89:89 -> access$1100
+    1:1:android.widget.TextView access$1200(com.aeye.face.view.RecognizeActivity):89:89 -> access$1200
+    1:1:void access$1300(com.aeye.face.view.RecognizeActivity):89:89 -> access$1300
+    1:1:int access$1400(int):89:89 -> access$1400
+    1:1:void access$1500(com.aeye.face.view.RecognizeActivity,java.lang.String):89:89 -> access$1500
+    1:1:java.lang.String access$1600(com.aeye.face.view.RecognizeActivity):89:89 -> access$1600
+    1:1:android.widget.TextView access$1700(com.aeye.face.view.RecognizeActivity):89:89 -> access$1700
+    1:1:android.os.Handler access$1800(com.aeye.face.view.RecognizeActivity):89:89 -> access$1800
+    1:1:android.widget.RelativeLayout access$1900(com.aeye.face.view.RecognizeActivity):89:89 -> access$1900
+    1:1:boolean access$200(com.aeye.face.view.RecognizeActivity):89:89 -> access$200
+    1:1:void access$2000(com.aeye.face.view.RecognizeActivity):89:89 -> access$2000
+    1:1:boolean access$2100(com.aeye.face.view.RecognizeActivity):89:89 -> access$2100
+    1:1:void access$2200(com.aeye.face.view.RecognizeActivity):89:89 -> access$2200
+    1:1:void access$2300(com.aeye.face.view.RecognizeActivity,java.lang.String):89:89 -> access$2300
+    1:1:void access$2400(com.aeye.face.view.RecognizeActivity):89:89 -> access$2400
+    1:1:java.lang.Runnable access$2502(com.aeye.face.view.RecognizeActivity,java.lang.Runnable):89:89 -> access$2502
+    1:1:void access$2600(com.aeye.face.view.RecognizeActivity):89:89 -> access$2600
+    1:1:com.aeye.face.view.CountView access$2700(com.aeye.face.view.RecognizeActivity):89:89 -> access$2700
+    1:1:boolean access$2800(com.aeye.face.view.RecognizeActivity):89:89 -> access$2800
+    1:1:boolean access$300(com.aeye.face.view.RecognizeActivity):89:89 -> access$300
+    1:1:boolean access$400(com.aeye.face.view.RecognizeActivity):89:89 -> access$400
+    1:1:boolean access$500(com.aeye.face.view.RecognizeActivity):89:89 -> access$500
+    1:1:float access$600(com.aeye.face.view.RecognizeActivity):89:89 -> access$600
+    1:1:float access$616(com.aeye.face.view.RecognizeActivity,float):89:89 -> access$616
+    1:1:float access$624(com.aeye.face.view.RecognizeActivity,float):89:89 -> access$624
+    1:1:android.os.Handler access$700(com.aeye.face.view.RecognizeActivity):89:89 -> access$700
+    1:1:void access$800(com.aeye.face.view.RecognizeActivity):89:89 -> access$800
+    1:1:android.widget.FrameLayout access$900(com.aeye.face.view.RecognizeActivity):89:89 -> access$900
+    1:20:void animateScanRingToSuccess():1536:1555 -> animateScanRingToSuccess
+    1:4:void cancelNoFaceFailTimer():1228:1231 -> cancelNoFaceFailTimer
+    1:2:void clearCheckHintLeadingIcon():1513:1514 -> clearCheckHintLeadingIcon
+    1:5:void clearCircularPreviewClip(android.view.View):777:781 -> clearCircularPreviewClip
+    1:12:void deliverSuccessCallbackAndFinish():1559:1570 -> deliverSuccessCallbackAndFinish
+    13:18:void deliverSuccessCallbackAndFinish():1569:1574 -> deliverSuccessCallbackAndFinish
+    1:2:void dismissHint():1072:1073 -> dismissHint
+    1:12:void exitAfterInPlaceFail():1721:1732 -> exitAfterInPlaceFail
+    13:18:void exitAfterInPlaceFail():1731:1736 -> exitAfterInPlaceFail
+    19:24:void exitAfterInPlaceFail():1735:1740 -> exitAfterInPlaceFail
+    1:19:void exitToAuthMethodHome():1698:1716 -> exitToAuthMethodHome
+    1:7:void faceAppear():1152:1158 -> faceAppear
+    1:2:void finish():954:955 -> finish
+    1:2:void finishActivityByFail():1578:1579 -> finishActivityByFail
+    1:4:void finishActivityByOther(int,java.lang.String):1393:1396 -> finishActivityByOther
+    5:11:void finishActivityByOther(int,java.lang.String):1395:1401 -> finishActivityByOther
+    12:17:void finishActivityByOther(int,java.lang.String):1400:1405 -> finishActivityByOther
+    1:18:void finishActivityBySuccessful():1430:1447 -> finishActivityBySuccessful
+    1:1:void finishActivityByTimeOut():1409:1409 -> finishActivityByTimeOut
+    1:4:void finishActivityByUserCancel():1413:1416 -> finishActivityByUserCancel
+    5:13:void finishActivityByUserCancel():1415:1423 -> finishActivityByUserCancel
+    14:18:void finishActivityByUserCancel():1422:1426 -> finishActivityByUserCancel
+    1:1:boolean getDecodeStatus():601:601 -> getDecodeStatus
+    1:1:com.aeye.face.camera.CaptureActivityHandler getHandler():1378:1378 -> getHandler
+    1:4:int getOrientation():871:874 -> getOrientation
+    1:13:byte[] hexToBytes(java.lang.String):425:437 -> hexToBytes
+    1:2:void hideVerifySubtitle():1675:1676 -> hideVerifySubtitle
+    1:1:int hintColorResId(int):1125:1125 -> hintColorResId
+    2:2:int hintColorResId(int):1123:1123 -> hintColorResId
+    3:3:int hintColorResId(int):1121:1121 -> hintColorResId
+    1:12:void initCamera(android.view.SurfaceHolder):855:866 -> initCamera
+    13:14:void initCamera(android.view.SurfaceHolder):857:858 -> initCamera
+    1:14:void initData():580:593 -> initData
+    1:7:void initVoice():557:563 -> initVoice
+    1:1:boolean isCollect():785:785 -> isCollect
+    1:1:boolean isVoiceOpen():571:571 -> isVoiceOpen
+    1:1:void lambda$animateScanRingToSuccess$3(android.animation.ValueAnimator):1548:1548 -> lambda$animateScanRingToSuccess$3
+    1:1:void lambda$onCreate$0(android.view.View):306:306 -> lambda$onCreate$0
+    1:1:void lambda$onCreate$1(android.view.View):309:309 -> lambda$onCreate$1
+    1:5:void lambda$scheduleNoFaceFailAfterDelay$2():1218:1222 -> lambda$scheduleNoFaceFailAfterDelay$2
+    1:1:void lambda$showInPlaceFailUi$4(boolean,java.lang.String):1590:1590 -> lambda$showInPlaceFailUi$4
+    1:5:void markQrRecordAbnormalExit():1865:1869 -> markQrRecordAbnormalExit
+    1:5:void markQrRecordNotPass():1857:1861 -> markQrRecordNotPass
+    1:5:void markQrRecordPassed():1849:1853 -> markQrRecordPassed
+    1:13:void onCreate(android.os.Bundle):228:240 -> onCreate
+    14:198:void onCreate(android.os.Bundle):238:422 -> onCreate
+    1:27:void onDestroy():923:949 -> onDestroy
+    1:8:void onFaceVerifyFailed(java.lang.String):1502:1509 -> onFaceVerifyFailed
+    1:17:void onFaceVerifyPassed():1482:1498 -> onFaceVerifyPassed
+    1:6:void onInPlaceFailRetry():1687:1692 -> onInPlaceFailRetry
+    1:5:boolean onKeyUp(int,android.view.KeyEvent):1841:1845 -> onKeyUp
+    1:3:void onPause():900:902 -> onPause
+    1:38:void onResume():719:756 -> onResume
+    1:14:void onStart():881:894 -> onStart
+    1:10:void onStop():907:916 -> onStop
+    1:14:void prepareRecog():789:802 -> prepareRecog
+    15:27:void prepareRecog():800:812 -> prepareRecog
+    28:38:void prepareRecog():806:816 -> prepareRecog
+    1:6:void resetData():1382:1387 -> resetData
+    1:24:void resetInPlaceFailUi():1648:1671 -> resetInPlaceFailUi
+    1:4:java.lang.String resolveLoseFaceFailDetail():1237:1240 -> resolveLoseFaceFailDetail
+    1:17:void restartTimer(long):695:711 -> restartTimer
+    1:26:void scheduleNoFaceFailAfterDelay():1199:1224 -> scheduleNoFaceFailAfterDelay
+    1:1:void setDecodeStatus(boolean):597:597 -> setDecodeStatus
+    1:12:void setSurfaceSize(android.view.SurfaceView,int,int,boolean):761:772 -> setSurfaceSize
+    1:4:void setWindowBrightness(int):551:554 -> setWindowBrightness
+    1:64:void showAlivePose(int,boolean,boolean):613:676 -> showAlivePose
+    65:65:void showAlivePose(int,boolean,boolean):648:648 -> showAlivePose
+    1:14:void showFaceOut(boolean):1167:1180 -> showFaceOut
+    1:1:void showFaceRect(android.graphics.Rect,int,int,boolean):1354:1354 -> showFaceRect
+    1:15:void showFaceStatus(boolean,boolean):1129:1143 -> showFaceStatus
+    1:5:void showHint(java.lang.String,int):980:984 -> showHint
+    1:55:void showInPlaceFailUi(boolean,java.lang.String):1589:1643 -> showInPlaceFailUi
+    1:12:void showInPlaceVerifySuccess():1520:1531 -> showInPlaceVerifySuccess
+    1:11:void showInPlaceVerifying():1468:1478 -> showInPlaceVerifying
+    1:2:void showManyPersonMessageBox():1318:1319 -> showManyPersonMessageBox
+    1:1:void showMessage(java.lang.String):1762:1762 -> showMessage
+    1:1:void showMessageBox():1249:1249 -> showMessageBox
+    1:7:void showNoFace():1185:1191 -> showNoFace
+    1:17:void showPoseStepFailedBriefly():1098:1114 -> showPoseStepFailedBriefly
+    1:7:void showPoseStepPassedBriefly():1087:1093 -> showPoseStepPassedBriefly
+    1:1:void showPoseSuccessMsg(boolean):1051:1051 -> showPoseSuccessMsg
+    1:17:void showQualityHint(int,boolean):988:1004 -> showQualityHint
+    18:34:void showQualityHint(int,boolean):999:1015 -> showQualityHint
+    35:83:void showQualityHint(int,boolean):996:1044 -> showQualityHint
+    1:7:void showShortToast(java.lang.String):964:970 -> showShortToast
+    1:1:void showTimeOutBox():1280:1280 -> showTimeOutBox
+    1:1:void showToast(java.lang.String):959:959 -> showToast
+    1:2:void showVerifySubtitle():1681:1682 -> showVerifySubtitle
+    1:21:void startRecog():824:844 -> startRecog
+    1:11:void startRingProgress():1748:1758 -> startRingProgress
+    1:1:void stopRingProgress():1744:1744 -> stopRingProgress
+    1:2:void stopTimer():689:690 -> stopTimer
+    1:3:void surfaceCreated(android.view.SurfaceHolder):1361:1363 -> surfaceCreated
+    1:1:void surfaceDestroyed(android.view.SurfaceHolder):1374:1374 -> surfaceDestroyed
+    1:2:void syncHideCheckHint():1080:1081 -> syncHideCheckHint
+    1:1:void updateVoice():567:567 -> updateVoice
+com.aeye.face.view.RecognizeActivity$1 -> com.aeye.face.view.RecognizeActivity$1:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):187:187 -> <init>
+    1:14:void run():190:203 -> run
+com.aeye.face.view.RecognizeActivity$10 -> com.aeye.face.view.RecognizeActivity$10:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity,boolean):1051:1051 -> <init>
+    1:6:void run():1054:1059 -> run
+com.aeye.face.view.RecognizeActivity$11 -> com.aeye.face.view.RecognizeActivity$11:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):1098:1098 -> <init>
+    1:7:void run():1101:1107 -> run
+com.aeye.face.view.RecognizeActivity$12 -> com.aeye.face.view.RecognizeActivity$12:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):1447:1447 -> <init>
+    1:1:void lambda$onFailed$1(java.lang.String):1461:1461 -> lambda$onFailed$1
+    1:1:void lambda$onPassed$0():1453:1453 -> lambda$onPassed$0
+    1:4:void onFailed(java.lang.String):1458:1461 -> onFailed
+    1:4:void onPassed(com.aeye.face.api.model.FaceIdentResult):1450:1453 -> onPassed
+com.aeye.face.view.RecognizeActivity$13 -> com.aeye.face.view.RecognizeActivity$13:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):1491:1491 -> <init>
+    1:2:void run():1494:1495 -> run
+com.aeye.face.view.RecognizeActivity$14 -> com.aeye.face.view.RecognizeActivity$14:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):1549:1549 -> <init>
+    1:1:void onAnimationEnd(android.animation.Animator):1552:1552 -> onAnimationEnd
+com.aeye.face.view.RecognizeActivity$2 -> com.aeye.face.view.RecognizeActivity$2:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):244:244 -> <init>
+    1:2:void onClick(android.view.View):248:249 -> onClick
+com.aeye.face.view.RecognizeActivity$3 -> com.aeye.face.view.RecognizeActivity$3:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):348:348 -> <init>
+    1:1:void onClick(android.view.View):351:351 -> onClick
+com.aeye.face.view.RecognizeActivity$4 -> com.aeye.face.view.RecognizeActivity$4:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):355:355 -> <init>
+    1:6:void onClick(android.view.View):358:363 -> onClick
+com.aeye.face.view.RecognizeActivity$5 -> com.aeye.face.view.RecognizeActivity$5:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):455:455 -> <init>
+    1:83:void handleMessage(android.os.Message):458:540 -> handleMessage
+    84:85:void handleMessage(android.os.Message):528:529 -> handleMessage
+    86:87:void handleMessage(android.os.Message):524:525 -> handleMessage
+    88:97:void handleMessage(android.os.Message):489:498 -> handleMessage
+    98:109:void handleMessage(android.os.Message):497:508 -> handleMessage
+    110:111:void handleMessage(android.os.Message):504:505 -> handleMessage
+    112:130:void handleMessage(android.os.Message):501:519 -> handleMessage
+    131:131:void handleMessage(android.os.Message):516:516 -> handleMessage
+    132:132:void handleMessage(android.os.Message):513:513 -> handleMessage
+    133:154:void handleMessage(android.os.Message):461:482 -> handleMessage
+    155:159:void handleMessage(android.os.Message):481:485 -> handleMessage
+com.aeye.face.view.RecognizeActivity$6 -> com.aeye.face.view.RecognizeActivity$6:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):669:669 -> <init>
+    1:1:void run():673:673 -> run
+com.aeye.face.view.RecognizeActivity$7 -> com.aeye.face.view.RecognizeActivity$7:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):676:676 -> <init>
+    1:2:void onCompletion(android.media.MediaPlayer):680:681 -> onCompletion
+com.aeye.face.view.RecognizeActivity$8 -> com.aeye.face.view.RecognizeActivity$8:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity):806:806 -> <init>
+    1:1:void run():810:810 -> run
+com.aeye.face.view.RecognizeActivity$9 -> com.aeye.face.view.RecognizeActivity$9:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:1:void <init>(com.aeye.face.view.RecognizeActivity,boolean):1037:1037 -> <init>
+    1:2:void run():1040:1041 -> run
+com.aeye.face.view.RecognizeActivity$MyCount -> com.aeye.face.view.RecognizeActivity$MyCount:
+# {"id":"sourceFile","fileName":"RecognizeActivity.java"}
+    1:2:void <init>(com.aeye.face.view.RecognizeActivity,android.os.Handler):1770:1771 -> <init>
+    1:1:void cancel():1786:1786 -> cancel
+    1:25:void finish():1794:1818 -> finish
+    1:2:void init(int):1775:1776 -> init
+    1:1:void onTick():1790:1790 -> onTick
+    1:6:void run():1826:1831 -> run
+    1:3:void start():1780:1782 -> start
+com.aeye.face.view.ScanRingOverlayView -> com.aeye.face.view.ScanRingOverlayView:
+# {"id":"sourceFile","fileName":"ScanRingOverlayView.java"}
+    1:1:void <init>(android.content.Context):49:49 -> <init>
+    2:21:void <init>(android.content.Context):31:50 -> <init>
+    22:22:void <init>(android.content.Context,android.util.AttributeSet):54:54 -> <init>
+    23:47:void <init>(android.content.Context,android.util.AttributeSet):31:55 -> <init>
+    48:48:void <init>(android.content.Context,android.util.AttributeSet,int):59:59 -> <init>
+    49:78:void <init>(android.content.Context,android.util.AttributeSet,int):31:60 -> <init>
+    1:4:int[] computePortraitPreviewCoverSize(android.content.Context,int):97:100 -> computePortraitPreviewCoverSize
+    1:5:float computePreviewHoleRadius(android.content.Context,int):82:86 -> computePreviewHoleRadius
+    1:12:void drawGradientScanArc(android.graphics.Canvas,android.graphics.RectF,float,float,float,float,android.graphics.Paint):215:226 -> drawGradientScanArc
+    1:8:void drawOutsideHoleMask(android.graphics.Canvas,int,int,float,float,float):231:238 -> drawOutsideHoleMask
+    1:1:float getArcStartAngle():148:148 -> getArcStartAngle
+    1:1:float getProgress():129:129 -> getProgress
+    1:7:void init():64:70 -> init
+    1:52:void onDraw(android.graphics.Canvas):153:204 -> onDraw
+    1:6:void setArcStartAngle(float):138:143 -> setArcStartAngle
+    1:5:void setHoleMaskEnabled(boolean):104:108 -> setHoleMaskEnabled
+    1:2:void setMode(int):112:113 -> setMode
+    1:3:void setProgress(float):122:124 -> setProgress
+com.aeye.mylibrary.utils.AeyeBase64 -> com.aeye.mylibrary.utils.AeyeBase64:
+# {"id":"sourceFile","fileName":"AeyeBase64.java"}
+    1:1:void <clinit>():9:9 -> <clinit>
+    1:1:void <init>():11:11 -> <init>
+    1:10:byte[] decode(byte[]):49:58 -> decode
+    11:11:byte[] decode(byte[]):55:55 -> decode
+    12:21:byte[] decode(java.lang.String):62:71 -> decode
+    22:22:byte[] decode(java.lang.String):68:68 -> decode
+    23:23:int decode(java.lang.String,java.io.OutputStream):75:75 -> decode
+    1:1:byte[] encode(byte[]):24:24 -> encode
+    2:11:byte[] encode(byte[],int,int):28:37 -> encode
+    12:12:byte[] encode(byte[],int,int):34:34 -> encode
+    13:13:int encode(byte[],java.io.OutputStream):41:41 -> encode
+    14:14:int encode(byte[],int,int,java.io.OutputStream):45:45 -> encode
+    1:1:java.lang.String toBase64String(byte[]):15:15 -> toBase64String
+    2:3:java.lang.String toBase64String(byte[],int,int):19:20 -> toBase64String
+com.aeye.mylibrary.utils.Base64Encoder -> com.aeye.mylibrary.utils.Base64Encoder:
+# {"id":"sourceFile","fileName":"Base64Encoder.java"}
+    1:1:void <init>():23:23 -> <init>
+    2:19:void <init>():7:24 -> <init>
+    1:20:int decode(byte[],int,int,java.io.OutputStream):80:99 -> decode
+    21:39:int decode(byte[],int,int,java.io.OutputStream):85:103 -> decode
+    40:60:int decode(java.lang.String,java.io.OutputStream):119:139 -> decode
+    61:79:int decode(java.lang.String,java.io.OutputStream):125:143 -> decode
+    1:7:int decodeLastBlock(java.io.OutputStream,char,char,char,char):150:156 -> decodeLastBlock
+    8:23:int decodeLastBlock(java.io.OutputStream,char,char,char,char):154:169 -> decodeLastBlock
+    24:40:int decodeLastBlock(java.io.OutputStream,char,char,char,char):166:182 -> decodeLastBlock
+    41:41:int decodeLastBlock(java.io.OutputStream,char,char,char,char):178:178 -> decodeLastBlock
+    1:39:int encode(byte[],int,int,java.io.OutputStream):28:66 -> encode
+    40:60:int encode(byte[],int,int,java.io.OutputStream):49:69 -> encode
+    1:6:void initialiseDecodingTable():13:18 -> initialiseDecodingTable
+    1:1:int nextI(byte[],int,int):108:108 -> nextI
+    2:2:int nextI(java.lang.String,int,int):190:190 -> nextI
+com.aeye.mylibrary.utils.DecoderException -> com.aeye.mylibrary.utils.DecoderException:
+# {"id":"sourceFile","fileName":"DecoderException.java"}
+    1:2:void <init>(java.lang.String,java.lang.Throwable):7:8 -> <init>
+    1:1:java.lang.Throwable getCause():12:12 -> getCause
+com.aeye.mylibrary.utils.Encoder -> com.aeye.mylibrary.utils.Encoder:
+# {"id":"sourceFile","fileName":"Encoder.java"}
+com.aeye.mylibrary.utils.EncoderException -> com.aeye.mylibrary.utils.EncoderException:
+# {"id":"sourceFile","fileName":"EncoderException.java"}
+    1:2:void <init>(java.lang.String,java.lang.Throwable):7:8 -> <init>
+    1:1:java.lang.Throwable getCause():12:12 -> getCause
+com.aeye.mylibrary.utils.StringList -> com.aeye.mylibrary.utils.StringList:
+# {"id":"sourceFile","fileName":"StringList.java"}
+com.aeye.mylibrary.utils.Strings -> com.aeye.mylibrary.utils.Strings:
+# {"id":"sourceFile","fileName":"Strings.java"}
+    1:10:void <clinit>():238:247 -> <clinit>
+    1:1:void <init>():15:15 -> <init>
+    1:4:char[] asCharArray(byte[]):194:197 -> asCharArray
+    1:1:java.lang.String fromByteArray(byte[]):190:190 -> fromByteArray
+    1:35:java.lang.String fromUTF8ByteArray(byte[]):22:56 -> fromUTF8ByteArray
+    36:60:java.lang.String fromUTF8ByteArray(byte[]):40:64 -> fromUTF8ByteArray
+    1:1:java.lang.String lineSeparator():233:233 -> lineSeparator
+    1:1:com.aeye.mylibrary.utils.StringList newList():229:229 -> newList
+    1:19:java.lang.String[] split(java.lang.String,char):204:222 -> split
+    1:4:byte[] toByteArray(char[]):158:161 -> toByteArray
+    5:9:byte[] toByteArray(java.lang.String):168:172 -> toByteArray
+    10:14:int toByteArray(java.lang.String,byte[],int):179:183 -> toByteArray
+    1:12:java.lang.String toLowerCase(java.lang.String):140:151 -> toLowerCase
+    1:1:byte[] toUTF8ByteArray(java.lang.String):68:68 -> toUTF8ByteArray
+    2:10:byte[] toUTF8ByteArray(char[]):72:80 -> toUTF8ByteArray
+    11:11:byte[] toUTF8ByteArray(char[]):77:77 -> toUTF8ByteArray
+    12:35:void toUTF8ByteArray(char[],java.io.OutputStream):86:109 -> toUTF8ByteArray
+    36:36:void toUTF8ByteArray(char[],java.io.OutputStream):102:102 -> toUTF8ByteArray
+    37:55:void toUTF8ByteArray(char[],java.io.OutputStream):95:113 -> toUTF8ByteArray
+    1:12:java.lang.String toUpperCase(java.lang.String):121:132 -> toUpperCase
+com.aeye.mylibrary.utils.Strings$1 -> com.aeye.mylibrary.utils.Strings$1:
+# {"id":"sourceFile","fileName":"Strings.java"}
+    1:1:java.lang.Object run():238:238 -> run
+    2:2:java.lang.String run():240:240 -> run
+com.aeye.mylibrary.utils.Strings$StringListImpl -> com.aeye.mylibrary.utils.Strings$StringListImpl:
+# {"id":"sourceFile","fileName":"Strings.java"}
+    1:1:void <init>(com.aeye.mylibrary.utils.Strings$1):253:253 -> <init>
+    2:2:void <init>():254:254 -> <init>
+    1:1:void add(int,java.lang.Object):253:253 -> add
+    2:2:boolean add(java.lang.Object):253:253 -> add
+    3:3:boolean add(java.lang.String):258:258 -> add
+    4:4:void add(int,java.lang.String):266:266 -> add
+    1:1:java.lang.String get(int):253:253 -> get
+    1:1:java.lang.Object set(int,java.lang.Object):253:253 -> set
+    2:2:java.lang.String set(int,java.lang.String):262:262 -> set
+    1:4:java.lang.String[] toStringArray():270:273 -> toStringArray
+    5:8:java.lang.String[] toStringArray(int,int):280:283 -> toStringArray
+com.aeye.sdk.AEFaceAlive -> com.aeye.sdk.AEFaceAlive:
+# {"id":"sourceFile","fileName":"AEFaceAlive.java"}
+    1:1:void <init>():84:84 -> <init>
+    2:52:void <init>():30:80 -> <init>
+    1:4:int AEYE_Alive_DestoryVIS():580:583 -> AEYE_Alive_DestoryVIS
+    1:60:long AEYE_Alive_DetectVIS(int[],int,int,android.graphics.Rect,java.lang.Object):410:469 -> AEYE_Alive_DetectVIS
+    1:28:long AEYE_Alive_DetectVIS_Single(int[],int,int,android.graphics.Rect,java.lang.Object):364:391 -> AEYE_Alive_DetectVIS_Single
+    1:1:java.lang.String AEYE_Alive_GetVersionVIS():120:120 -> AEYE_Alive_GetVersionVIS
+    1:4:long AEYE_Alive_InitVIS(android.content.Context,android.os.Bundle):113:116 -> AEYE_Alive_InitVIS
+    1:3:float[] AEYE_Alive_Quality(android.graphics.Bitmap,android.graphics.Rect):499:501 -> AEYE_Alive_Quality
+    4:18:float[] AEYE_Alive_Quality(int[],int,int,android.graphics.Rect):505:519 -> AEYE_Alive_Quality
+    1:3:float[] AEYE_Alive_QualityLight(android.graphics.Bitmap,android.graphics.Rect):525:527 -> AEYE_Alive_QualityLight
+    4:15:float[] AEYE_Alive_QualityLight(int[],int,int,android.graphics.Rect):531:542 -> AEYE_Alive_QualityLight
+    1:3:float AEYE_Alive_Quality_Angle(float[]):557:559 -> AEYE_Alive_Quality_Angle
+    1:3:float AEYE_Alive_Quality_Blur(float[]):549:551 -> AEYE_Alive_Quality_Blur
+    1:3:float[] AEYE_Alive_Quality_Landmark(float[]):573:575 -> AEYE_Alive_Quality_Landmark
+    1:3:float AEYE_Alive_Quality_Mask(float[]):565:567 -> AEYE_Alive_Quality_Mask
+    1:1:void AEYE_Alive_SetPose(int):495:495 -> AEYE_Alive_SetPose
+    1:1:void AEYE_Alive_setAliveListenerVIS(com.aeye.sdk.AEFaceAliveListener):160:160 -> AEYE_Alive_setAliveListenerVIS
+    1:5:void AEYE_Alive_setAliveParamVIS(int):124:128 -> AEYE_Alive_setAliveParamVIS
+    6:15:void AEYE_Alive_setAliveParamVIS(int,int):132:141 -> AEYE_Alive_setAliveParamVIS
+    16:24:void AEYE_Alive_setAliveParamVIS(int,android.os.Bundle):145:153 -> AEYE_Alive_setAliveParamVIS
+    1:14:int checkEye(float):333:346 -> checkEye
+    1:8:boolean checkPose(float,float,float):481:488 -> checkPose
+    1:4:boolean frameFilter():350:353 -> frameFilter
+    1:2:boolean frameFilter2():358:359 -> frameFilter2
+    1:5:com.aeye.sdk.AEFaceAlive getInstance():88:92 -> getInstance
+    1:4:boolean imageCheckJingMoAlive(int[],int,int):604:607 -> imageCheckJingMoAlive
+    1:12:boolean init(android.content.Context):96:107 -> init
+    1:18:boolean isDCStatusY(com.aeye.sdk.AEFaceAlive$Frame):167:184 -> isDCStatusY
+    1:117:int judgePose(int,double[],float,float,float,float):198:314 -> judgePose
+    118:131:int judgePose(int,double[],float,float,float,float):282:295 -> judgePose
+    132:158:int judgePose(int,double[],float,float,float,float):247:273 -> judgePose
+    159:174:int judgePose(int,double[],float,float,float,float):263:278 -> judgePose
+    175:186:int judgePose(int,double[],float,float,float,float):228:239 -> judgePose
+    187:202:int judgePose(int,double[],float,float,float,float):229:244 -> judgePose
+    203:215:int judgePose(int,double[],float,float,float,float):213:225 -> judgePose
+    216:338:int judgePose(int,double[],float,float,float,float):202:324 -> judgePose
+    1:1:void printLog(java.lang.String):599:599 -> printLog
+com.aeye.sdk.AEFaceAlive$Frame -> com.aeye.sdk.AEFaceAlive$Frame:
+# {"id":"sourceFile","fileName":"AEFaceAlive.java"}
+    1:3:void <init>(com.aeye.sdk.AEFaceAlive,float):591:593 -> <init>
+com.aeye.sdk.AEFaceAliveListener -> com.aeye.sdk.AEFaceAliveListener:
+# {"id":"sourceFile","fileName":"AEFaceAliveListener.java"}
+com.aeye.sdk.AEFaceDetect -> com.aeye.sdk.AEFaceDetect:
+# {"id":"sourceFile","fileName":"AEFaceDetect.java"}
+    1:1:void <init>():18:18 -> <init>
+    1:1:android.graphics.Rect[] AEYE_FaceDetect(int[],int,int):39:39 -> AEYE_FaceDetect
+    2:5:android.graphics.Rect[] AEYE_FaceDetect(android.graphics.Bitmap):47:50 -> AEYE_FaceDetect
+    1:1:android.graphics.Rect[] AEYE_FaceDetectImg(int[],int,int):56:56 -> AEYE_FaceDetectImg
+    1:1:int AEYE_FaceDetect_Destory():60:60 -> AEYE_FaceDetect_Destory
+    1:1:java.lang.String AEYE_FaceDetect_GetVersion():30:30 -> AEYE_FaceDetect_GetVersion
+    1:1:int AEYE_FaceDetect_Init(android.content.Context,android.os.Bundle):34:34 -> AEYE_FaceDetect_Init
+    1:5:com.aeye.sdk.AEFaceDetect getInstance():22:26 -> getInstance
+com.aeye.sdk.AEFaceQuality -> com.aeye.sdk.AEFaceQuality:
+# {"id":"sourceFile","fileName":"AEFaceQuality.java"}
+    1:24:int AEYE_FaceQuality(byte[],int,int,android.graphics.Rect):59:82 -> AEYE_FaceQuality
+    1:2:int AEYE_FaceQuality_Destory():97:98 -> AEYE_FaceQuality_Destory
+    1:1:java.lang.String AEYE_FaceQuality_GetVersion():30:30 -> AEYE_FaceQuality_GetVersion
+    1:2:long AEYE_FaceQuality_Init(android.content.Context,android.os.Bundle):40:40 -> AEYE_FaceQuality_Init
+    4:4:long AEYE_FaceQuality_Init(android.content.Context,android.os.Bundle):42:42 -> AEYE_FaceQuality_Init
+    1:4:com.aeye.sdk.AEFaceQuality getInstance():23:26 -> getInstance
+com.aeye.sdk.AEFaceTools -> com.aeye.sdk.AEFaceTools:
+# {"id":"sourceFile","fileName":"AEFaceTools.java"}
+    1:1:android.graphics.Bitmap AEYE_CutAlivePic(android.graphics.Bitmap,android.graphics.Rect):76:76 -> AEYE_CutAlivePic
+    1:5:android.graphics.Bitmap AEYE_CutPic(android.graphics.Bitmap,int,int):84:88 -> AEYE_CutPic
+    1:2:int AEYE_Destory():107:108 -> AEYE_Destory
+    1:4:android.graphics.Rect[] AEYE_FaceDetect(android.graphics.Bitmap):98:101 -> AEYE_FaceDetect
+    1:2:long AEYE_Init(android.content.Context,android.os.Bundle):25:26 -> AEYE_Init
+    1:11:int AEYE_QualityDetect(android.graphics.Bitmap):35:45 -> AEYE_QualityDetect
+    1:22:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):50:71 -> cutAliveImage
+    23:25:android.graphics.Bitmap cutAliveImage(android.graphics.Rect,android.graphics.Bitmap):70:72 -> cutAliveImage
+    1:4:com.aeye.sdk.AEFaceTools getInstance():18:21 -> getInstance
+com.aeye.sdk.AEFaceUnhack -> com.aeye.sdk.AEFaceUnhack:
+# {"id":"sourceFile","fileName":"AEFaceUnhack.java"}
+    1:6:void <init>():13:18 -> <init>
+    1:3:int AEYE_AliveUnhack_Destory():100:102 -> AEYE_AliveUnhack_Destory
+    1:4:float AEYE_AliveUnhack_Detect(int[],int,int):77:80 -> AEYE_AliveUnhack_Detect
+    5:5:float AEYE_AliveUnhack_Detect(int[],int,int):78:78 -> AEYE_AliveUnhack_Detect
+    6:12:float AEYE_AliveUnhack_Detect(android.graphics.Bitmap):89:95 -> AEYE_AliveUnhack_Detect
+    13:13:float AEYE_AliveUnhack_Detect(android.graphics.Bitmap):90:90 -> AEYE_AliveUnhack_Detect
+    1:1:java.lang.String AEYE_AliveUnhack_GetVersion():65:65 -> AEYE_AliveUnhack_GetVersion
+    1:4:long AEYE_AliveUnhack_Init(android.content.Context,android.os.Bundle):54:57 -> AEYE_AliveUnhack_Init
+    1:4:com.aeye.sdk.AEFaceUnhack getInstance():22:25 -> getInstance
+    1:8:boolean init(android.content.Context):29:36 -> init
+    9:17:boolean init(android.content.Context):34:42 -> init
+com.aeye.sdk.AEModelMgrTest -> com.aeye.sdk.AEModelMgrTest:
+# {"id":"sourceFile","fileName":"AEModelMgrTest.java"}
+    1:4:void afterInit(android.content.Context):76:79 -> afterInit
+    1:2:void beforeInit(android.content.Context):71:72 -> beforeInit
+    1:6:void checkVersion(android.content.Context,java.lang.String):90:95 -> checkVersion
+    1:7:void copyModelFromRaw(android.content.Context,int,java.io.File):34:40 -> copyModelFromRaw
+    8:15:void copyModelFromRaw(android.content.Context,int,java.io.File):39:46 -> copyModelFromRaw
+    1:4:void flushData(android.content.Context):83:86 -> flushData
+    1:1:java.lang.String getModelDir(android.content.Context):21:21 -> getModelDir
+    1:1:java.io.File getModelFile(android.content.Context,java.lang.String):25:25 -> getModelFile
+    1:1:java.lang.String getModelFilePath(android.content.Context,java.lang.String):29:29 -> getModelFilePath
+    1:15:java.lang.String loadModelData(android.content.Context,java.lang.String,java.lang.String):53:67 -> loadModelData
+com.aeye.sdk.LogFileUtil -> com.aeye.sdk.LogFileUtil:
+# {"id":"sourceFile","fileName":"LogFileUtil.java"}
+    1:16:java.lang.String getFileStringInfo(java.lang.String):65:80 -> getFileStringInfo
+    1:8:void saveLog(java.lang.String):16:23 -> saveLog
+    1:18:void saveLogServer(java.lang.String,java.lang.String):32:49 -> saveLogServer
+    19:26:void saveLogServer(java.lang.String,java.lang.String):42:49 -> saveLogServer
+    27:38:void saveLogServer(java.lang.String,java.lang.String):45:56 -> saveLogServer
+com.aeye.sm.SMCipherCaculater -> com.aeye.sm.SMCipherCaculater:
+# {"id":"sourceFile","fileName":"SMCipherCaculater.java"}
+    1:1:void <clinit>():7:7 -> <clinit>
+com.aeye.sm.Sm2Keys -> com.aeye.sm.Sm2Keys:
+# {"id":"sourceFile","fileName":"Sm2Keys.java"}
+    1:1:byte[] getPriKey():17:17 -> getPriKey
+    1:1:byte[] getPubKey():9:9 -> getPubKey
+    1:1:void setPriKey(byte[]):21:21 -> setPriKey
+    1:1:void setPubKey(byte[]):13:13 -> setPubKey
+com.aeye.sm4.BuildConfig -> com.aeye.sm4.BuildConfig:
+# {"id":"sourceFile","fileName":"BuildConfig.java"}

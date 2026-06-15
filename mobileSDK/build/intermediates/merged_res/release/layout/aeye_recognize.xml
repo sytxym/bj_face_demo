@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <com.aeye.face.view.FaceView
+        android:id="@+id/faceRect"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <RelativeLayout
+        android:id="@+id/faceStatus"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+<!--        <ImageView-->
+<!--            android:id="@+id/ivPreviewMask"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:scaleType="fitXY"-->
+<!--            android:src="@drawable/aeye_bg_noface"-->
+<!--            android:visibility="gone" />-->
+
+        <FrameLayout
+            android:id="@+id/face_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:layout_alignParentTop="true">
+
+            <TextView
+                android:id="@+id/tvTop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/face_theme_primary"
+                android:gravity="center"
+                android:text="@string/face_title"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/ivReturn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:src="@drawable/aeye_return"
+                android:contentDescription="@string/aeye_msg_cancel"
+                android:padding="12dp"
+                />
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <Space
+                android:id="@+id/face_toolbar_gap"
+                android:layout_width="match_parent"
+                android:layout_height="76dp" />
+
+            <TextView
+                android:id="@+id/tvHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingTop="20dp"
+                android:paddingEnd="16dp"
+                android:textStyle="bold"
+                android:paddingBottom="0dp"
+                android:text="@string/face_verify_subtitle"
+                android:textColor="@color/face_theme_primary"
+                android:textSize="18sp" />
+
+            <!-- 取景区：固定正方形尺寸，改 dimens 中 face_preview_panel_size 即可整体缩放 -->
+            <FrameLayout
+                android:id="@+id/face_preview_panel"
+                android:layout_width="@dimen/face_preview_panel_size"
+                android:layout_height="@dimen/face_preview_panel_size"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp">
+
+                <SurfaceView
+                    android:id="@+id/preview_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center" />
+
+                <com.aeye.face.view.ScanRingOverlayView
+                    android:id="@+id/scan_ring_overlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false" />
+
+                <TextView
+                    android:id="@+id/tvMaskHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:textColor="@color/face_result_success"
+                    android:textSize="20sp"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/ivNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/aeye_anim_count"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvEnvHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/aeye_selector_hit"
+                    android:drawableStart="@drawable/aeye_anim_tip"
+                    android:gravity="center"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:visibility="invisible" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvCheckHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="8dp"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/face_theme_primary"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/ivVoice"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:contentDescription="@string/aeye_msg_cancel"
+                    android:padding="8dp"
+                    android:src="@drawable/aeye_selector_voice" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvFailDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:textColor="@color/face_hint_sub"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btn_fail_retry"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="@dimen/face_fail_retry_margin_top"
+                android:layout_marginEnd="24dp"
+                android:background="@drawable/aeye_btn_primary_navy"
+                android:text="@string/face_retry_verify"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btn_fail_other"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/aeye_btn_outline_navy"
+                android:text="@string/face_other_verify"
+                android:textAllCaps="false"
+                android:textColor="@color/face_theme_primary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.aeye.face.view.CountView
+                android:id="@+id/tvRecogTimeCountdown"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:visibility="gone" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/introduceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:src="@drawable/aeye_introduce" />
+
+        <TextView
+            android:id="@+id/introduceBegin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="30dp"
+            android:background="@drawable/aeye_itd_btn_bg"
+            android:gravity="center"
+            android:text="@string/aeye_begin_recog"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+    </FrameLayout>
+</RelativeLayout>

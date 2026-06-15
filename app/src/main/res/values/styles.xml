@@ -1,0 +1,29 @@
+<resources>
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+
+
+    <style name="ResultTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF008ED6</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+    <style name="ResultFailTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF153D</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+
+
+
+
+
+
+</resources>

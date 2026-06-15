@@ -1,0 +1,107 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace "com.sdk.core"
+    compileSdk 34
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+//        targetSdkVersion 26
+
+        //20200107
+        versionCode 417
+        versionName "v4.17"
+        buildConfigField("String", "BUILD_TIME", getBuildTime())
+        buildConfigField("String", "versionName", versionName2())
+//        邮政只要armeabi架构
+        ndk {
+            //选择要添加的对应cpu类型的.so库。
+            abiFilters "armeabi"
+//            abiFilters "arm64-v8a"
+//            abiFilters 'arm'
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
+        ndkVersion '21.1.6352462'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+//            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+//        debug {
+//            minifyEnabled true
+////            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            android.libraryVariants.all { variant ->
+//                variant.outputs.all {
+//
+//                    outputFileName = "mobileSDK_debug_${versionName1()}_${releaseTime()}.aar"
+//                }
+//            }
+//        }
+    }
+
+    libraryVariants.configureEach { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.configureEach { output ->
+                output.outputFileName = "mobileSDK_release_${versionName1()}_${releaseTime()}.aar"
+            }
+        }
+    }
+
+}
+
+
+// 离线 Maven 不含 lint-gradle：禁用注解提取，配置期预置空 typedefs 供 syncReleaseLibJars 校验
+tasks.configureEach { task ->
+    if (task.name.contains("extractReleaseAnnotations") || task.name.contains("extractDebugAnnotations")) {
+        task.enabled = false
+    }
+}
+def offlineTypedefs = file("$buildDir/intermediates/annotations_typedef_file/release/typedefs.txt")
+offlineTypedefs.parentFile.mkdirs()
+if (!offlineTypedefs.exists()) {
+    offlineTypedefs.text = ""
+}
+
+/**
+ * 获取编译时间
+ */
+def getBuildTime() {
+    Date date = new Date();
+    String dateStr = "\"" + date.format("yyyy-MM-dd HH:mm:ss") + "\"";
+    return dateStr;
+}
+def versionName2() {
+    String version = "SDK";
+    version ="\"" + version+ android.getDefaultConfig().versionName+ "\"";
+    return  version
+}
+def versionName1() {
+      android.getDefaultConfig().versionName ;
+}
+
+def releaseTime() {
+    new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("GMT+08:00"))
+}
+
+dependencies {
+//    api fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.10.1'
+//    implementation files("libs/NxFaceQualitySDK-release.aar")
+
+    implementation files('libs/face_alive.jar')
+//    implementation files('libs/face_detection.jar')
+    implementation files('libs/face_quality.jar')
+    implementation files('libs/face_unhack.jar')
+//    implementation files('libs/sdk_assist.jar')
+    implementation files('libs/smsdk.jar')
+}

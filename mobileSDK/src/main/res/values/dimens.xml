@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <dimen name="login">20.0dp</dimen>
+    <dimen name="hit_text_size">20sp</dimen>
+
+    <!-- 活体页取景区域（正方形，改此值即可调节人脸框整体大小） -->
+    <dimen name="face_preview_panel_size">230dp</dimen>
+    <!-- 失败页「重新核验」按钮距上方区域：原 20dp + 下移 50dp -->
+    <dimen name="face_fail_retry_margin_top">70dp</dimen>
+    <!-- 扫描态：外圈灰轨（粗） / 内层蓝弧（细，同圆心描边） -->
+    <dimen name="face_scan_ring_base_stroke">6dp</dimen>
+    <dimen name="face_scan_ring_progress_stroke">4dp</dimen>
+    <dimen name="face_scan_ring_result_stroke">5dp</dimen>
+</resources>

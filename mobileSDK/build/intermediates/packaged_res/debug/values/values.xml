@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="blue">#0a6be4</color>
+    <color name="cancle_default">@color/white</color>
+    <color name="cancle_press">#e9e9e9</color>
+    <color name="confirm_default">@color/white</color>
+    <color name="confirm_press">#e9e9e9</color>
+    <color name="face_hint_sub">#666666</color>
+    <color name="face_info_card_bg">#E6F0FF</color>
+    <color name="face_result_fail">#E53935</color>
+    <color name="face_result_success">#22C55E</color>
+    <color name="face_scan_ring_base">#CCCCCC</color>
+    <color name="face_scan_ring_fail">#F5B5B5</color>
+    <color name="face_scan_ring_progress">#094194</color>
+    <color name="face_theme_primary">#003399</color>
+    <color name="face_theme_primary_pressed">#002266</color>
+    <color name="faq_bg">@color/light_blue</color>
+    <color name="gray">#040303</color>
+    <color name="green">#00a920</color>
+    <color name="help_bg">@color/light_blue</color>
+    <color name="history_bg">@color/light_blue</color>
+    <color name="history_list_bg">@color/white</color>
+    <color name="history_state_text_color">@color/white</color>
+    <color name="info_bg">@color/light_blue</color>
+    <color name="info_button_text_color">@color/white</color>
+    <color name="info_whole_bg">@color/white</color>
+    <color name="light_blue">#f2f8ff</color>
+    <color name="login_bg">@color/white</color>
+    <color name="login_id_desc">@color/blue</color>
+    <color name="login_psd_error">@color/red_hint</color>
+    <color name="login_title_text_color">@color/white</color>
+    <color name="main_bg">@color/white</color>
+    <color name="main_time_color">@color/red</color>
+    <color name="recog_bg">@color/black</color>
+    <color name="recog_text_color">@color/white</color>
+    <color name="recog_title">@color/gray</color>
+    <color name="recog_title_bar_color">@color/black</color>
+    <color name="red">#ff0000</color>
+    <color name="red_hint">#fd0300</color>
+    <color name="text_color">#057cf9</color>
+    <color name="title_go_back_color">@color/white</color>
+    <color name="title_text_color">@color/white</color>
+    <color name="white">#ffffff</color>
+    <dimen name="face_fail_retry_margin_top">70dp</dimen>
+    <dimen name="face_preview_panel_size">230dp</dimen>
+    <dimen name="face_scan_ring_base_stroke">6dp</dimen>
+    <dimen name="face_scan_ring_progress_stroke">4dp</dimen>
+    <dimen name="face_scan_ring_result_stroke">5dp</dimen>
+    <dimen name="hit_text_size">20sp</dimen>
+    <dimen name="login">20.0dp</dimen>
+    <string name="aeye_alive_fail">failed</string>
+    <string name="aeye_alive_success">passed</string>
+    <string name="aeye_begin_recog">start recognize</string>
+    <string name="aeye_camera_error">open camera error</string>
+    <string name="aeye_camera_notice">please look at the camera</string>
+    <string name="aeye_capture_fail">failed</string>
+    <string name="aeye_capture_success">passed</string>
+    <string name="aeye_face_blick">please wink your eyes</string>
+    <string name="aeye_face_down">Please lower your head</string>
+    <string name="aeye_face_far">so far !</string>
+    <string name="aeye_face_left">Please turn your head to the left</string>
+    <string name="aeye_face_lost">Motion amplitude is too large, face tracking loss</string>
+    <string name="aeye_face_mouth">please open your mouth</string>
+    <string name="aeye_face_no_detected">No face is detected</string>
+    <string name="aeye_face_recog">face recognization</string>
+    <string name="aeye_face_right">Please turn your head to the right</string>
+    <string name="aeye_face_shake">Please shake your head</string>
+    <string name="aeye_face_up">Please head up</string>
+    <string name="aeye_msg_cancel">cancel</string>
+    <string name="aeye_msg_retry">retry</string>
+    <string name="aeye_notice_morepeople">please make sure one face in the frame!</string>
+    <string name="aeye_notice_msg">please make sure you face in the frame</string>
+    <string name="aeye_notice_title">Notice</string>
+    <string name="aeye_pose_success">Good！please look at camera</string>
+    <string name="aeye_quality_bright">The light is too bright.</string>
+    <string name="aeye_quality_dim">The light is too dim.</string>
+    <string name="aeye_quality_fail">quality fail</string>
+    <string name="aeye_quality_failed">Failure of quality assessment</string>
+    <string name="aeye_quality_far">Too far away from the camera</string>
+    <string name="aeye_quality_near">Too close to the camera</string>
+    <string name="aeye_quality_out">keep you face in detect range</string>
+    <string name="aeye_quality_pass">Passed</string>
+    <string name="aeye_quality_side">keep facing the camera</string>
+    <string name="aeye_quality_uneven">The light is uneven.</string>
+    <string name="aeye_recog_timeout">recog timeout</string>
+    <string name="aeye_safetip">Caution! Your phone is not safe!</string>
+    <string name="aeye_timeout_label1">face up to mobile</string>
+    <string name="aeye_timeout_label2">get enough light</string>
+    <string name="aeye_timeout_label3">not obscured</string>
+    <string name="aeye_timeout_msg">Please see following actions to improve the success rate</string>
+    <string name="aeye_timeout_title">Timeout Notice</string>
+    <string name="aeye_user_cancel">user cancel</string>
+    <string name="face_fail_no_face_detail">No face detected. Please keep your face inside the frame</string>
+    <string name="face_fail_timeout_detail">Please: face the phone, ensure good lighting, and keep your face unobstructed</string>
+    <string name="face_other_verify">Other verification methods</string>
+    <string name="face_pose_fail_hint">Please follow the on-screen instructions</string>
+    <string name="face_retry_verify">Re-verify</string>
+    <string name="face_title">Face recognition</string>
+    <string name="face_verify_fail_default">Face does not match the ID number. Please verify again.</string>
+    <string name="face_verify_failed">Verification failed</string>
+    <string name="face_verify_passed">Verification passed</string>
+    <string name="face_verify_submitting">Submitting verification…</string>
+    <string name="face_verify_subtitle">Please complete verification according to the prompts</string>
+    <string name="info_confirm_main_title">You are about to perform real-name verification</string>
+    <string name="info_confirm_sub_title">Please keep your face in the frame and follow the on-screen instructions</string>
+    <string name="info_field_id_number">ID number</string>
+    <string name="info_field_id_type">ID type</string>
+    <string name="info_field_name">Name</string>
+    <string name="info_field_region">Region / Country</string>
+    <string name="info_hint_frame">Face inside the frame</string>
+    <string name="info_hint_front">Face the screen</string>
+    <string name="info_hint_light">Keep sufficient light</string>
+    <string name="info_start_verify">Start verification</string>
+    <string name="result_action_pics">Action liveness images</string>
+    <string name="result_alive">liveness Detection:</string>
+    <string name="result_front_face">Front face (image0)</string>
+    <style name="AeyeFaceTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/face_theme_primary</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        
+    </style>
+    <style name="AppTheme" parent="AppBaseTheme">
+        
+    </style>
+    <style name="CustomDialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Theme.Translucent</item>
+        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+    </style>
+    <style name="CustomProgressDialog" parent="@style/CustomDialog">
+        <item name="android:windowBackground">@android:style/Theme.Translucent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+    <style name="ResultFailTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF153D</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+    <style name="ResultTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF008ED6</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+    <style name="Theme.splash" parent="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+    <style name="Translucent_Dialog" parent="android:style/Theme.Dialog">
+        <item name="android:background">#00000000</item>
+        
+        <item name="android:windowBackground">@android:color/transparent</item>
+        
+    </style>
+    <style name="loading_dialog" parent="android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/free_dialog_bg</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+    <style name="selectorDialog" parent="@android:style/Theme.Dialog">
+
+        
+        <item name="android:windowFrame">@null</item>
+        
+        <item name="android:windowIsFloating">true</item>
+        
+        <item name="android:windowIsTranslucent">false</item>
+        
+        <item name="android:windowNoTitle">true</item>
+        
+        <item name="android:windowBackground">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+</resources>

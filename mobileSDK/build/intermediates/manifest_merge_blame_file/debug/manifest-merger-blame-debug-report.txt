@@ -1,0 +1,107 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    xmlns:tools="http://schemas.android.com/tools"
+4    package="com.sdk.core"
+5    android:versionCode="1"
+6    android:versionName="190328" >
+7
+8    <uses-sdk android:minSdkVersion="21" />
+9
+10    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+10-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:7:5-81
+10-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:7:22-78
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:8:5-67
+11-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:8:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:9:5-79
+12-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:9:22-76
+13    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+13-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:10:5-75
+13-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:10:22-72
+14    <uses-permission
+14-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:11:5-12:47
+15        android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+15-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:11:22-83
+16        tools:ignore="ProtectedPermissions" />
+16-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:12:9-44
+17    <uses-permission android:name="android.permission.WAKE_LOCK" />
+17-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:13:5-68
+17-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:13:22-65
+18    <uses-permission android:name="android.permission.CAMERA" />
+18-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:14:5-65
+18-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:14:22-62
+19    <!-- 针对 Android 12L (API 32) 及以下的设备，保留传统权限 -->
+20    <uses-permission
+20-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:16:5-17:38
+21        android:name="android.permission.READ_EXTERNAL_STORAGE"
+21-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:16:22-77
+22        android:maxSdkVersion="32" />
+22-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:17:9-35
+23    <uses-permission
+23-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:18:5-19:38
+24        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+24-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:18:22-78
+25        android:maxSdkVersion="32" />
+25-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:19:9-35
+26
+27    <!-- 针对 Android 13 (API 33) 及以上的设备，声明新的精细化媒体权限 -->
+28    <!-- 根据你的应用实际需要的媒体类型添加或删减 -->
+29    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+29-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:23:5-76
+29-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:23:22-73
+30    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+30-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:24:5-75
+30-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:24:22-72
+31    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+31-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:25:5-75
+31-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:25:22-72
+32
+33    <uses-feature android:name="android.hardware.camera" />
+33-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:27:5-60
+33-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:27:19-57
+34
+35    <application android:hardwareAccelerated="true" >
+35-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:29:5-52:19
+35-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:30:9-43
+36        <activity
+36-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:32:9-37:20
+37            android:name="com.aeye.face.view.RecognizeActivity"
+37-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:33:13-64
+38            android:configChanges="orientation|screenSize"
+38-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:34:13-59
+39            android:label="Graphics/CameraPreview"
+39-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:35:13-51
+40            android:theme="@style/AeyeFaceTheme" >
+40-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:36:13-49
+41        </activity>
+42        <activity
+42-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:38:9-44:20
+43            android:name="com.aeye.face.lightView.RecognizeLightActivity"
+43-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:39:13-74
+44            android:configChanges="orientation"
+44-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:40:13-48
+45            android:label="Graphics/CameraPreview"
+45-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:41:13-51
+46            android:screenOrientation="portrait"
+46-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:42:13-49
+47            android:theme="@style/AeyeFaceTheme" >
+47-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:43:13-49
+48        </activity>
+49        <activity
+49-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:45:9-49:52
+50            android:name="com.aeye.face.confirm.InfoConfirmActivity"
+50-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:46:13-69
+51            android:exported="false"
+51-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:47:13-37
+52            android:screenOrientation="portrait"
+52-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:48:13-49
+53            android:theme="@style/AeyeFaceTheme" />
+53-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:49:13-49
+54
+55        <service android:name="com.aeye.face.service.InitService" />
+55-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:50:9-69
+55-->D:\project\TestFace\mobileSDK\src\main\AndroidManifest.xml:50:18-66
+56    </application>
+57
+58</manifest>

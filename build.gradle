@@ -1,0 +1,33 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+//        maven { url 'file:///D:/maven-upload-staging-sdk-minimal-8.0.1' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter'}
+
+//        maven { url 'file:///D:/local-maven-repo' }
+
+//        maven { url 'file:///D:/maven-upload-staging/maven-upload-staging' }
+
+//        maven { url 'file:///D:/maven-upload-staging-sdk-minimal-8.0.1' }
+    }
+    // Kotlin 1.8+ 已合并 jdk7/jdk8 扩展，与旧版 kotlin-stdlib-jdk7/jdk8 并存会 Duplicate class
+    configurations.configureEach {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    }
+}

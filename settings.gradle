@@ -1,0 +1,3 @@
+rootProject.name = "TestFace"
+include ':app'
+include ':mobileSDK'

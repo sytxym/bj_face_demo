@@ -1,0 +1,97 @@
+<resources>
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+
+    <!-- 1、消除应用启动闪黑屏 -->
+    <style name="Theme.splash" parent="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="CustomDialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Theme.Translucent</item>
+        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+    </style>
+
+    <style name="CustomProgressDialog" parent="@style/CustomDialog">
+        <item name="android:windowBackground">@android:style/Theme.Translucent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Translucent_Dialog" parent="android:style/Theme.Dialog">
+        <item name="android:background">#00000000</item>
+        <!-- �����Զ��岼�ֵı���͸�� -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- ����window����͸����Ҳ����ȥ�߿� -->
+    </style>
+
+    <style name="selectorDialog" parent="@android:style/Theme.Dialog">
+
+        <!-- �߿� -->
+        <item name="android:windowFrame">@null</item>
+        <!-- �Ƿ�����activity֮�� -->
+        <item name="android:windowIsFloating">true</item>
+        <!-- ��͸�� -->
+        <item name="android:windowIsTranslucent">false</item>
+        <!-- �ޱ��� -->
+        <item name="android:windowNoTitle">true</item>
+        <!-- ����͸�� -->
+        <item name="android:windowBackground">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+
+
+    <style name="loading_dialog" parent="android:style/Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/free_dialog_bg</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <!-- 实名核身 / 活体：沉浸式状态栏（与顶栏同色） -->
+    <style name="AeyeFaceTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/face_theme_primary</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <style name="ResultTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF008ED6</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+    <style name="ResultFailTextView" parent="@android:style/Widget">
+        <item name="android:textColor">#FF153D</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+
+
+
+
+
+
+</resources>

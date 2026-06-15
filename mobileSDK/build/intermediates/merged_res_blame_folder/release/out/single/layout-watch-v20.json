@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
+        "source": "com.sdk.core.mobileSDK-appcompat-1.6.1-5:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/layout-watch-v20/abc_alert_dialog_title_material.xml",
+        "source": "com.sdk.core.mobileSDK-appcompat-1.6.1-5:/layout-watch-v20/abc_alert_dialog_title_material.xml"
+    }
+]

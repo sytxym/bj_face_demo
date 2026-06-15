@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aeye_begin_recog">开始认证</string>
+    <string name="aeye_face_recog">人脸采集</string>
+    <string name="aeye_quality_fail">质量评估失败</string>
+    
+    <string name="aeye_alive_fail">活体检测失败</string>
+    <string name="aeye_capture_fail">人脸采集失败</string>
+    <string name="aeye_alive_success">活体检测成功</string>
+    <string name="aeye_capture_success">人脸采集成功</string>
+
+    <string name="result_front_face">正脸照（image0）</string>
+    <string name="result_action_pics">动作活体图</string>
+    <string name="result_alive">活体检测:</string>
+    
+    <string name="aeye_face_no_detected">未检测到人脸</string>
+    <string name="aeye_face_lost">人脸跟踪失败\n动作幅度过大或未检测到人脸</string>
+    <string name="aeye_camera_notice">请正视摄像头</string>
+    <string name="aeye_face_blick">请自然眨眼</string>
+    <string name="aeye_face_mouth">请缓慢张嘴</string>
+    <string name="aeye_face_up">请缓慢抬头</string>
+    <string name="aeye_face_down">请缓慢低头</string>
+    <string name="aeye_face_left">请向左缓慢转头</string>
+    <string name="aeye_face_right">请向右缓慢转头</string>
+    <string name="aeye_face_shake">请缓慢摇头</string>
+    
+    <string name="aeye_quality_uneven">脸部光线不均匀</string>
+    <string name="aeye_quality_dim">人脸区域光线太暗</string>
+    <string name="aeye_quality_bright">人脸区域光线太亮</string>
+    <string name="aeye_quality_near">离镜头太近</string>
+    <string name="aeye_quality_far">离镜头太远</string>
+    <string name="aeye_quality_pass">质量评估通过</string>
+    <string name="aeye_quality_failed">质量评估失败</string>
+    <string name="aeye_quality_out">请将脸移入框内</string>
+    <string name="aeye_quality_side">请移动手机平视镜头</string>
+    
+    <string name="aeye_pose_success">很好！请再次正视摄像头</string>
+    
+    <string name="face_pose_fail_hint">未按提示完成动作，请重试</string>
+    
+    <string name="aeye_user_cancel">用户取消</string>
+    <string name="aeye_camera_error">打开摄像头失败</string>
+    <string name="aeye_recog_timeout">认证超时</string>
+    
+    <string name="aeye_msg_retry">重试</string>
+    <string name="aeye_msg_cancel">取消</string>
+
+    <string name="aeye_notice_title">提 示</string>
+    <string name="aeye_notice_msg">未检测到人脸，请确保引导框内有人脸</string>
+    <string name="aeye_timeout_title">超时提醒</string>
+    <string name="aeye_timeout_msg">请注意以下动作，提升成功率</string>
+    <string name="aeye_timeout_label1">平视手机</string>
+    <string name="aeye_timeout_label2">光线充足</string>
+    <string name="aeye_timeout_label3">未被遮挡</string>
+    <string name="aeye_face_far">请靠近一点</string>
+    <string name="aeye_safetip">本机设备存有隐患 ！</string>
+    <string name="aeye_notice_morepeople">屏幕内仅限1人，请调整后拍摄 ！</string>
+
+    <string name="face_title">人脸识别</string>
+    <string name="face_verify_subtitle">请根据提示完成人脸核验</string>
+    <string name="info_confirm_main_title">您即将进行实名核身验证</string>
+    <string name="info_confirm_sub_title">请保持正脸在取景框中根据屏幕提示完成识别</string>
+    <string name="info_hint_light">保持光线充足</string>
+    <string name="info_hint_frame">脸在取景框内</string>
+    <string name="info_hint_front">面部正对屏幕</string>
+    <string name="info_field_name">姓名</string>
+    <string name="info_field_region">地区/国家</string>
+    <string name="info_field_id_type">证件类型</string>
+    <string name="info_field_id_number">证件号码</string>
+    <string name="info_start_verify">开始核验</string>
+    <string name="face_verify_passed">验证通过</string>
+    <string name="face_verify_submitting">人脸核验中</string>
+    <string name="face_verify_failed">验证失败</string>
+    <string name="face_verify_fail_default">人脸与证件号不匹配，请重新核验</string>
+    <string name="face_retry_verify">重新核验</string>
+    <string name="face_other_verify">其他核验方式</string>
+    <string name="face_fail_timeout_detail">请注意：平视手机、光线充足、未被遮挡</string>
+    <string name="face_fail_no_face_detail">未检测到人脸，请确保引导框内有人脸</string>
+</resources>

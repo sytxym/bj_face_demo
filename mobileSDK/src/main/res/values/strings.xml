@@ -1,0 +1,78 @@
+<resources>
+    <string name="aeye_begin_recog">start recognize</string>
+    <string name="aeye_face_recog">face recognization</string>
+
+    <string name="aeye_quality_fail">quality fail</string>
+    
+    <string name="aeye_alive_fail">failed</string>
+    <string name="aeye_capture_fail">failed</string>
+    <string name="aeye_alive_success">passed</string>
+    <string name="aeye_capture_success">passed</string>
+
+    <string name="result_front_face">Front face (image0)</string>
+    <string name="result_action_pics">Action liveness images</string>
+    <string name="result_alive">liveness Detection:</string>
+    
+    <string name="aeye_face_no_detected">No face is detected</string>
+    <string name="aeye_face_lost">Motion amplitude is too large, face tracking loss</string>
+    <string name="aeye_camera_notice">please look at the camera</string>
+    <string name="aeye_face_blick">please wink your eyes</string>
+    <string name="aeye_face_mouth">please open your mouth</string>
+    <string name="aeye_face_up">Please head up</string>
+    <string name="aeye_face_down">Please lower your head</string>
+    <string name="aeye_face_left">Please turn your head to the left</string>
+    <string name="aeye_face_right">Please turn your head to the right</string>
+    <string name="aeye_face_shake">Please shake your head</string>
+    
+    <string name="aeye_quality_uneven">The light is uneven.</string>
+    <string name="aeye_quality_dim">The light is too dim.</string>
+    <string name="aeye_quality_bright">The light is too bright.</string>
+    <string name="aeye_quality_near">Too close to the camera</string>
+    <string name="aeye_quality_far">Too far away from the camera</string>
+    <string name="aeye_quality_pass">Passed</string>
+    <string name="aeye_quality_failed">Failure of quality assessment</string>
+    <string name="aeye_quality_out">keep you face in detect range</string>
+    <string name="aeye_quality_side">keep facing the camera</string>
+    
+    <string name="aeye_pose_success">Good！please look at camera</string>
+    <string name="face_pose_fail_hint">Please follow the on-screen instructions</string>
+    
+    <string name="aeye_user_cancel">user cancel</string>
+    <string name="aeye_camera_error">open camera error</string>
+    <string name="aeye_recog_timeout">recog timeout</string>
+
+    <string name="aeye_msg_retry">retry</string>
+    <string name="aeye_msg_cancel">cancel</string>
+
+    <string name="aeye_notice_title">Notice</string>
+    <string name="aeye_notice_msg">please make sure you face in the frame</string>
+    <string name="aeye_timeout_title">Timeout Notice</string>
+    <string name="aeye_timeout_msg">Please see following actions to improve the success rate</string>
+    <string name="aeye_timeout_label1">face up to mobile</string>
+    <string name="aeye_timeout_label2">get enough light</string>
+    <string name="aeye_timeout_label3">not obscured</string>
+    <string name="aeye_face_far">so far !</string>
+    <string name="aeye_safetip">Caution! Your phone is not safe!</string>
+    <string name="aeye_notice_morepeople">please make sure one face in the frame!</string>
+
+    <string name="face_title">Face recognition</string>
+    <string name="face_verify_subtitle">Please complete verification according to the prompts</string>
+    <string name="info_confirm_main_title">You are about to perform real-name verification</string>
+    <string name="info_confirm_sub_title">Please keep your face in the frame and follow the on-screen instructions</string>
+    <string name="info_hint_light">Keep sufficient light</string>
+    <string name="info_hint_frame">Face inside the frame</string>
+    <string name="info_hint_front">Face the screen</string>
+    <string name="info_field_name">Name</string>
+    <string name="info_field_region">Region / Country</string>
+    <string name="info_field_id_type">ID type</string>
+    <string name="info_field_id_number">ID number</string>
+    <string name="info_start_verify">Start verification</string>
+    <string name="face_verify_passed">Verification passed</string>
+    <string name="face_verify_submitting">Submitting verification…</string>
+    <string name="face_verify_failed">Verification failed</string>
+    <string name="face_verify_fail_default">Face does not match the ID number. Please verify again.</string>
+    <string name="face_retry_verify">Re-verify</string>
+    <string name="face_other_verify">Other verification methods</string>
+    <string name="face_fail_timeout_detail">Please: face the phone, ensure good lighting, and keep your face unobstructed</string>
+    <string name="face_fail_no_face_detail">No face detected. Please keep your face inside the frame</string>
+</resources>

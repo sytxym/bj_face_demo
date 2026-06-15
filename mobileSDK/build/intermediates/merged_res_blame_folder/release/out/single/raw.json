@@ -1,0 +1,98 @@
+[
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/unhack_net.param",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/unhack_net.param"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_out.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_out.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/pnet.param",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/pnet.param"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_up.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_up.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_quality_far.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_quality_far.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/rnet.param",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/rnet.param"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_quality_near.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_quality_near.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_right.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_right.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_down.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_down.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_mouth.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_mouth.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_left.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_left.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_face.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_face.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/rnet_model.bin",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/rnet_model.bin"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/unhack_model.bin",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/unhack_model.bin"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/facepre_model.bin",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/facepre_model.bin"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_quality_bright.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_quality_bright.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/pnet_model.bin",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/pnet_model.bin"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/onet_model.bin",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/onet_model.bin"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/facepre.param",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/facepre.param"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_shake.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_shake.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/ding.mp3",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/ding.mp3"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_eye.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_eye.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/aeye_quality_dim.wav",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/aeye_quality_dim.wav"
+    },
+    {
+        "merged": "com.sdk.core.mobileSDK-merged_res-19:/raw/onet.param",
+        "source": "com.sdk.core.mobileSDK-main-20:/raw/onet.param"
+    }
+]

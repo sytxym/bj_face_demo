@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.sdk.core"
+    android:versionCode="1"
+    android:versionName="190328" >
+
+    <uses-sdk android:minSdkVersion="21" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission
+        android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 针对 Android 12L (API 32) 及以下的设备，保留传统权限 -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- 针对 Android 13 (API 33) 及以上的设备，声明新的精细化媒体权限 -->
+    <!-- 根据你的应用实际需要的媒体类型添加或删减 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <uses-feature android:name="android.hardware.camera" />
+
+    <application android:hardwareAccelerated="true" >
+        <activity
+            android:name="com.aeye.face.view.RecognizeActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="Graphics/CameraPreview"
+            android:theme="@style/AeyeFaceTheme" >
+        </activity>
+        <activity
+            android:name="com.aeye.face.lightView.RecognizeLightActivity"
+            android:configChanges="orientation"
+            android:label="Graphics/CameraPreview"
+            android:screenOrientation="portrait"
+            android:theme="@style/AeyeFaceTheme" >
+        </activity>
+        <activity
+            android:name="com.aeye.face.confirm.InfoConfirmActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AeyeFaceTheme" />
+
+        <service android:name="com.aeye.face.service.InitService" />
+    </application>
+
+</manifest>
