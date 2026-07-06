@@ -397,21 +397,13 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (activity.getHandler().getCurSide() > 1) {
-                    activity.syncHideCheckHint();
+                if (!AEFacePack.getInstance().isUseGlobalTime()) {
+                    activity.restartTimer(AEFacePack.getInstance().getMotionTime());
                 }
-                activity.showPoseStepPassedBriefly();
-                CaptureActivityHandler.this.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!AEFacePack.getInstance().isUseGlobalTime()) {
-                            activity.restartTimer(AEFacePack.getInstance().getMotionTime());
-                        }
-                        flashDisplay(true, false);
-                        poseChange = false;
-                        resumeDecode();
-                    }
-                }, 400);
+                PictureManagerUtils.getPictureManager().setCurrentPose(mCurPos);
+                activity.showAlivePose(mCurPos, true, false);
+                poseChange = false;
+                resumeDecode();
             }
         });
     }

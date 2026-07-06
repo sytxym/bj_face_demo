@@ -12,7 +12,11 @@ public final class FaceSdkHostParamBuilder {
     private static final int DEFAULT_MOTION_TIMEOUT_SEC = 15;
     /** 连续多少帧未检测到人脸才提示（原 3 帧约 100ms，易误触；15 帧约 0.5~1s） */
     private static final int DEFAULT_LOST_FACE = 15;
-    private static final int DEFAULT_ALIVE_LEVEL = 1;
+    /**
+     * 活体难度等级：1 最低（阈值最宽松），2 中等，3 最高。
+     * 宿主经 {@link #buildBase} / {@link com.aeye.face.AEFaceVerifyFlow} 启动时以此为准。
+     */
+    public static final int DEFAULT_ALIVE_LEVEL = 1;
 
     private FaceSdkHostParamBuilder() {
     }
