@@ -36,6 +36,7 @@ import com.aeye.android.config.ConfigData;
 import com.aeye.android.data.AEFaceInfo;
 import com.aeye.android.libutils.ComplexUtil;
 import com.aeye.android.uitls.BitmapUtils;
+import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.AEFacePack;
 import com.aeye.face.AEFaceParam;
 import com.aeye.face.config.IDConstants;
@@ -87,7 +88,7 @@ public class DecodeHandlerLight extends Handler {
 	private int CfgLoseFace = 2;
 	private int CfgPicNum = 1;
 	private int CfgCapFace = 2;
-	private int CfgAliveLevel = 2;
+	private int CfgAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
 	private int CfgMotionPicNum = 1;
 
 	AEFaceInfo faceInfo = new AEFaceInfo();

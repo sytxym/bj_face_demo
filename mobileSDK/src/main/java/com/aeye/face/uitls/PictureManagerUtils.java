@@ -199,7 +199,7 @@ public class PictureManagerUtils {
 
         try {
             String message = getJsonBody(  activity);
-            Log.e(TAG, "getJsonBody=" + message);
+            // Log.e(TAG, "getJsonBody=" + message);
             return message;
         } catch (Exception e) {
             e.printStackTrace();

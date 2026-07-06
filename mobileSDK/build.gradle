@@ -51,7 +51,7 @@ android {
     libraryVariants.configureEach { variant ->
         if (variant.buildType.name == "release") {
             variant.outputs.configureEach { output ->
-                output.outputFileName = "mobileSDK_release_${versionName1()}_${releaseTime()}.aar"
+                output.outputFileName = "customs-face-sdk-android-${versionName1()}-${releaseTime()}.aar"
             }
         }
     }

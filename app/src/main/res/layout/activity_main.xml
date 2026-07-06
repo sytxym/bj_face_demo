@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="人脸认证"
         android:textStyle="bold"
-        android:textSize="16sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/btScanAuth"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,11 +26,24 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/scan_auth"
-        android:textSize="16sp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/btLocalFace"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btTestFace" />
+
+    <Button
+        android:id="@+id/btLocalFace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="本地核验（不调用接口）"
+        android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btTestFace" />
+        app:layout_constraintTop_toBottomOf="@+id/btScanAuth" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

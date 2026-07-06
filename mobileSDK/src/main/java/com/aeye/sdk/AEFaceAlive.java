@@ -13,7 +13,7 @@ import android.util.Log;
 import com.aeye.android.config.AEModelMgr;
 import com.aeye.android.face.UtilFacePre;
 import com.aeye.android.uitls.BitmapUtils;
-import com.aeye.face.AEFaceParam;
+import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.uitls.MLog;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class AEFaceAlive {
     private int mCurPose = -1;
     private int mPoseNum = -1;
     private int mPoseCount = 0;
-    private int mLevel = 2;
+    private int mLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
     private double[] poseValue = new double[]{1.0D};
     private double[] poseThreshold = null;
 //    private final double[][] poseThresholdLevel = new double[][]{{45.0D, -14.0D, 14.0D, -14.0D, 7.0D, 1.88D, 0.2D}, {35.0D, -15.0D, 15.0D, -15.0D, 8.0D, 1.68D, 0.19D}, {25.0D, -16.0D, 16.0D, -16.0D, 10.0D, 1.52D, 0.17D}};

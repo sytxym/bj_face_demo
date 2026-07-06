@@ -48,6 +48,7 @@ import com.aeye.aeyelib.AEyeLightAlive;
 import com.aeye.android.config.ConfigData;
 import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.face.AEFacePack;
+import com.aeye.face.callback.AEFaceCallbackHelper;
 import com.aeye.face.AEFaceParam;
 import com.aeye.face.ui.FaceImmersiveStatusBar;
 import com.aeye.face.camera.CameraConfigurationManagerLight;
@@ -1267,8 +1268,8 @@ public class RecognizeLightActivity extends Activity implements
             handler.resetData();
         if (null != AEFacePack.getInstance().getInterface()) {
 //            if (!m_hasFinishReturn) {
-                AEFacePack.getInstance().getInterface().onFinish(code,
-                        PictureManagerUtilsLight.getPictureManager().getJsonString(null));
+                AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(), code,
+                        PictureManagerUtilsLight.getPictureManager().getJsonString(null), reason);
 //            }
         }
         m_hasFinishReturn = true;
@@ -1282,7 +1283,8 @@ public class RecognizeLightActivity extends Activity implements
             if (!m_hasFinishReturn) {
                 String str = getApplication().getString(R.string.aeye_recog_timeout);
                 AEFacePack.getInstance().getInterface().onPrompt(handler.getCurPos(), null);
-                AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_TIMEOUT,
+                AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                        AEFacePack.ERROR_TIMEOUT,
                         PictureManagerUtilsLight.getPictureManager().getJsonString(null));
             }
         }
@@ -1297,7 +1299,8 @@ public class RecognizeLightActivity extends Activity implements
             if (!m_hasFinishReturn) {
                 m_hasFinishReturn = true;
                 String str = getApplication().getString(R.string.aeye_user_cancel);
-                AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_CANCEL,
+                AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                        AEFacePack.ERROR_CANCEL,
                         PictureManagerUtilsLight.getPictureManager().getJsonString(null));
             }
         }
@@ -1329,7 +1332,8 @@ public class RecognizeLightActivity extends Activity implements
                 mLandMark = AEyeLightAlive.getInstance().getBestBitLocation(rects, bitmap);
             } catch (Exception e) {
                 e.printStackTrace();
-                AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_FAIL,
+                AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                        AEFacePack.ERROR_FAIL,
                         PictureManagerUtilsLight.getPictureManager().getJsonString(null));
             }
             if (mLandMark != null) {
@@ -1351,14 +1355,17 @@ public class RecognizeLightActivity extends Activity implements
                     String data = PictureManagerUtilsLight.getPictureManager().getJsonString(encodeDataBase64, alignBitBase64);
                     if(data !=null)
                     {
-                        AEFacePack.getInstance().getInterface().onFinish(AEFacePack.SUCCESS,
+                        AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                                AEFacePack.SUCCESS,
                                 data);
                     }else{
-                        AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_FAIL,
+                        AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                                AEFacePack.ERROR_FAIL,
                                 null);
                     }
                 } else {
-                    AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_FAIL,
+                    AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                            AEFacePack.ERROR_FAIL,
                             PictureManagerUtilsLight.getPictureManager().getJsonString(null));
                 }
             }
@@ -1380,7 +1387,8 @@ public class RecognizeLightActivity extends Activity implements
                 resId = R.string.aeye_capture_fail;
             }
             String str = getApplication().getString(resId);
-            AEFacePack.getInstance().getInterface().onFinish(AEFacePack.ERROR_FAIL,
+            AEFaceCallbackHelper.dispatchFinish(AEFacePack.getInstance().getInterface(),
+                    AEFacePack.ERROR_FAIL,
                     PictureManagerUtilsLight.getPictureManager().getJsonString(null));
         }
         finish();

@@ -32,11 +32,17 @@ public final class FaceVerifyLogManager {
 
     /** 取景过程出现无人脸时调用（每次触发上报一次）。 */
     public static void uploadNoFace(Context context) {
+        if (FaceVerifySession.isLocalVerifyOnly()) {
+            return;
+        }
         submit(context, buildNoFaceBody(context));
     }
 
     /** 本地核验结束：成功 result=0，失败 result=1（同一会话仅上报一次）。 */
     public static void uploadVerifyEnd(Context context, boolean success, String failReason) {
+        if (FaceVerifySession.isLocalVerifyOnly()) {
+            return;
+        }
         if (!FaceVerifySession.tryMarkEndLogSent()) {
             return;
         }

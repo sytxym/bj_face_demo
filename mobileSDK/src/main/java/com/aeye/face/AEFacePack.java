@@ -19,6 +19,7 @@ import android.util.Log;
 import com.aeye.aeyelib.AEyeLightAlive;
 import com.aeye.android.config.AEModelMgr;
 import com.aeye.android.config.ConfigData;
+import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.lightView.RecognizeLightActivity;
 import com.aeye.face.uitls.ColorInfo;
 import com.aeye.face.uitls.PictureManagerUtils;
@@ -83,7 +84,7 @@ public class AEFacePack {
     private int mMotionPicNum = 1;
     private int mMotionTime = 5;
     private int mFixMotion = 0;
-    private int mAliveLevel = 2;
+    private int mAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
     private int mShowFaceRect = 0;
     private int mNoticeTimeout = 1;
     private int mFaceStartTimer = 0;
@@ -366,7 +367,7 @@ public class AEFacePack {
         mCaptureFace = 3;
         mModelAllSide = 0;
         mMotionTime = 5;
-        mAliveLevel = 2;
+        mAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
         mShowFaceRect = 0;
         mTitle = null;
         mFixMotion = 0;

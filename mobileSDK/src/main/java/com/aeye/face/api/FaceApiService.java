@@ -1,15 +1,19 @@
 package com.aeye.face.api;
 
+import android.content.Context;
 import android.text.TextUtils;
 
+import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.model.ApiResult;
 import com.aeye.face.api.model.FaceIdentResult;
+import com.aeye.face.api.model.QrInsertRecordResult;
 import com.aeye.face.config.FaceActionConfig;
 import com.aeye.face.config.FaceActionConfigDefaults;
 import com.aeye.face.config.FaceActionConfigParser;
 import com.aeye.face.confirm.InfoConfirmDefaults;
 import com.aeye.face.confirm.InfoConfirmParser;
 import com.aeye.face.confirm.InfoConfirmPayload;
+import com.aeye.face.uitls.DeviceInfoCollector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +44,20 @@ public final class FaceApiService {
     }
 
     public static FaceActionConfig mockActionConfig() {
-        return parseActionConfig(FaceActionConfigDefaults.FALLBACK_JSON);
+        return mockActionConfig(FaceActionConfigDefaults.DEFAULT_BUSINESS_CODE);
+    }
+
+    /**
+     * Mock 回退：{@code businessCode}/{@code businessName} 与宿主请求参数保持一致。
+     */
+    public static FaceActionConfig mockActionConfig(String businessCode) {
+        FaceActionConfig config = parseActionConfig(FaceActionConfigDefaults.FALLBACK_JSON);
+        String code = TextUtils.isEmpty(businessCode)
+                ? FaceActionConfigDefaults.DEFAULT_BUSINESS_CODE
+                : businessCode.trim();
+        config.setBusinessCode(code);
+        config.setBusinessName(FaceActionConfigDefaults.resolveBusinessName(code));
+        return config;
     }
 
     // ---------- 用户信息预览 ----------
@@ -59,6 +76,83 @@ public final class FaceApiService {
 
     public static InfoConfirmPayload mockUserPreview() {
         return parseUserPreview(InfoConfirmDefaults.FALLBACK_JSON);
+    }
+
+    // ---------- 新增认证记录 ----------
+
+    /**
+     * 组装 {@code /qrCode/insertRecord} 请求体。
+     * <p>注册场景无 userId 时传 {@code certNo}；其他场景传 {@code userId}。
+     * {@code busType}/{@code busId} 来自动作配置接口返回值。</p>
+     */
+    public static String buildInsertRecordRequestJson(Context context,
+                                                      FaceActionConfig config,
+                                                      String userId,
+                                                      String certNo) throws JSONException {
+        if (config == null) {
+            throw new IllegalArgumentException("动作配置为空");
+        }
+        JSONObject req = new JSONObject();
+        if (FaceActionConfigDefaults.isRegisterScene(config.getBusinessCode())) {
+            if (TextUtils.isEmpty(userId)) {
+                if (TextUtils.isEmpty(certNo)) {
+                    throw new IllegalArgumentException("注册场景 certNo 为空");
+                }
+                req.put("certNo", certNo.trim());
+            } else {
+                req.put("userId", userId.trim());
+            }
+        } else {
+            if (TextUtils.isEmpty(userId)) {
+                throw new IllegalArgumentException("userId 为空");
+            }
+            req.put("userId", userId.trim());
+        }
+        req.put("busType", config.getBusinessCode());
+        req.put("busId", String.valueOf(config.getActionConfigId()));
+        JSONObject device = DeviceInfoCollector.collect(context);
+        req.put("brand", device.optString("brand", ""));
+        req.put("model", device.optString("model", ""));
+        req.put("osType", device.optString("osType", DeviceInfoCollector.OS_TYPE_ANDROID));
+        req.put("osVersion", device.optString("osVersion", ""));
+        req.put("deviceId", device.optString("deviceId", ""));
+        req.put("source", AEFaceSdk.getLogSource());
+        return req.toString();
+    }
+
+    public static QrInsertRecordResult insertQrCodeRecord(String baseUrl, String jsonBody) throws Exception {
+        String response = SdkHttpClient.postJson(baseUrl, FaceApiPaths.QR_CODE_INSERT_RECORD, jsonBody);
+        return parseInsertRecordResponse(response);
+    }
+
+    public static QrInsertRecordResult mockInsertRecord(String userId) throws Exception {
+        JSONObject mock = new JSONObject(QrInsertRecordDefaults.MOCK_RESPONSE_JSON);
+        JSONObject businessData = ApiResponseParser.extractBusinessData(mock);
+        if (businessData == null) {
+            throw new IllegalArgumentException("Mock 响应 data 为空");
+        }
+        if (!TextUtils.isEmpty(userId)) {
+            businessData.put("userId", userId);
+        }
+        return parseInsertRecordResponse(mock.toString());
+    }
+
+    public static QrInsertRecordResult parseInsertRecordResponse(String json) throws JSONException {
+        ApiResult apiResult = ApiResponseParser.parse(json);
+        JSONObject data = apiResult.getBusinessData();
+        if (data == null) {
+            throw new IllegalArgumentException("insertRecord 响应 data 为空");
+        }
+        String authRecordId = data.optString("authRecordId", null);
+        if (TextUtils.isEmpty(authRecordId) && data.has("authRecordId")) {
+            authRecordId = String.valueOf(data.optLong("authRecordId", 0L));
+            if ("0".equals(authRecordId)) {
+                authRecordId = null;
+            }
+        }
+        return new QrInsertRecordResult(
+                data.optString("userId", null),
+                authRecordId);
     }
 
     // ---------- 人脸核验 ----------

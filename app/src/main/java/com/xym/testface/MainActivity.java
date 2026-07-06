@@ -22,6 +22,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.aeye.face.AEFaceInterface;
 import com.aeye.face.AEFacePack;
 import com.aeye.face.AEFaceVerifyFlow;
+import com.aeye.face.config.FaceActionConfig;
+import com.aeye.face.config.FaceActionOptions;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
@@ -34,8 +36,8 @@ import com.journeyapps.barcodescanner.ScanOptions;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AEFaceInterface {
 
-    /** 动作活体业务码，与后台配置接口 businessCode 一致 */
-    private static final String DEMO_BUSINESS_CODE = "REGISTER";
+    /** 动作活体业务码，与后台 business_config.business_code 一致（Demo：自然人实名认证） */
+    private static final String DEMO_BUSINESS_CODE = "12";
     /** 人脸认证按钮使用的演示用户 ID */
     private static final String DEMO_USER_ID = "demoUser001";
 
@@ -62,8 +64,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Button btTestFace = findViewById(R.id.btTestFace);
         Button btScanAuth = findViewById(R.id.btScanAuth);
+        Button btLocalFace = findViewById(R.id.btLocalFace);
         btTestFace.setOnClickListener(this);
         btScanAuth.setOnClickListener(this);
+        btLocalFace.setOnClickListener(this);
     }
 
     /** 注册相机权限与扫码结果的 Activity Result 回调 */
@@ -94,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startFaceVerify(DEMO_USER_ID);
         } else if (id == R.id.btScanAuth) {
             startScanAuth();
+        } else if (id == R.id.btLocalFace) {
+            startLocalFaceVerify();
         }
     }
 
@@ -131,9 +137,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 统一人脸核验入口：拉配置 → 信息预览 → 活体 → SDK 内人脸核验。
-     *
      * @param userId       后台用户信息预览接口使用的用户标识
-     * @param authRecordId 扫码 authIdentRecordId，非扫码传 null 使用 SDK 演示值
      */
     private void startFaceVerify(String userId) {
         startFaceVerify(userId, null);
@@ -157,6 +161,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onError(String message) {
                         dismissLoading();
+                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    /**
+     * 本地核验入口：仅做本地活体检测，不调用我方任何后台接口。
+     * 动作配置由宿主自定义；活体完成后结果与人脸图片数组通过 {@link #onFinish} 回调，
+     * 宿主可自行拿 data 中的 images 去对接第三方接口。
+     */
+    private void startLocalFaceVerify() {
+        FaceActionOptions options = new FaceActionOptions.Builder()
+                .actionType(FaceActionConfig.ACTION_SEQUENCE)
+                .actionCount(3)
+                .enableLookUp(true)
+                .enableShakeHead(true)
+                .enableBlink(true)
+                .enableLookDown(false)
+                .enableOpenMouth(false)
+                .aliveLevel(1)
+                .motionTimeoutSec(15)
+                .voiceEnabled(true)
+                .build();
+
+        AEFaceVerifyFlow.startLocal(
+                this,
+                options,
+                getClass().getName(),
+                this,
+                new AEFaceVerifyFlow.Callback() {
+                    @Override
+                    public void onPreviewOpened() {
+                        // 本地模式无预览/网络请求，活体页已直接启动
+                    }
+
+                    @Override
+                    public void onError(String message) {
                         Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
                     }
                 });

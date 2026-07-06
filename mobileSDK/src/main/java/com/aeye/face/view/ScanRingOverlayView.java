@@ -35,6 +35,8 @@ public class ScanRingOverlayView extends View {
     private float arcStartAngle = 150f;
     /** 检测态单段弧长（度），沿圆周旋转一整圈 */
     private static final float SCAN_ARC_SWEEP_DEG = 90f;
+    /** 是否绘制检测态蓝色旋转弧（无人脸时为 false，仅保留灰色轨道） */
+    private boolean scanArcEnabled;
 
     /** 白底竖屏：圆外遮罩，仅预览圆内透明露出 SurfaceView */
     private boolean holeMaskEnabled;
@@ -108,9 +110,28 @@ public class ScanRingOverlayView extends View {
         invalidate();
     }
 
+    /** 控制检测态蓝色旋转弧是否可见（成功过渡 progress&gt;0 时不受此开关影响） */
+    public void setScanArcEnabled(boolean enabled) {
+        if (scanArcEnabled == enabled) {
+            return;
+        }
+        scanArcEnabled = enabled;
+        if (mode == MODE_SCANNING) {
+            invalidate();
+        }
+    }
+
+    public boolean isScanArcEnabled() {
+        return scanArcEnabled;
+    }
+
     public void setMode(int mode) {
         this.mode = mode;
         invalidate();
+    }
+
+    public int getMode() {
+        return mode;
     }
 
     public void setProgress(float p) {
@@ -192,16 +213,18 @@ public class ScanRingOverlayView extends View {
         ringThin.setStrokeCap(Paint.Cap.ROUND);
         canvas.drawOval(baseOval, ringThin);
 
-        ringArc.setStrokeWidth(progressStroke);
-        ringArc.setStrokeCap(Paint.Cap.ROUND);
-        float startDeg = arcStartAngle;
-        float sweep;
-        if (progress > 0f) {
-            sweep = 360f * progress;
-        } else {
-            sweep = SCAN_ARC_SWEEP_DEG;
+        if (scanArcEnabled || progress > 0f) {
+            ringArc.setStrokeWidth(progressStroke);
+            ringArc.setStrokeCap(Paint.Cap.ROUND);
+            float startDeg = arcStartAngle;
+            float sweep;
+            if (progress > 0f) {
+                sweep = 360f * progress;
+            } else {
+                sweep = SCAN_ARC_SWEEP_DEG;
+            }
+            drawGradientScanArc(canvas, baseOval, cx, cy, startDeg, sweep, ringArc);
         }
-        drawGradientScanArc(canvas, baseOval, cx, cy, startDeg, sweep, ringArc);
     }
 
     /**

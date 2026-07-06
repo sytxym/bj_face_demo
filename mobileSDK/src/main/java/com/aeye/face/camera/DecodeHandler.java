@@ -32,6 +32,8 @@ import com.aeye.android.data.AEFaceInfo;
 import com.aeye.android.libutils.ComplexUtil;
 import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.face.AEFacePack;
+import com.aeye.face.camera.PreviewFrameCache;
+import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.config.IDConstants;
 import com.aeye.face.uitls.MBitmapUtil;
 import com.aeye.face.view.RecognizeActivity;
@@ -78,7 +80,7 @@ public class DecodeHandler extends Handler {
     private int CfgLoseFace = 2;
     private int CfgPicNum = 1;
     private int CfgCapFace = 2;
-    private int CfgAliveLevel = 2;
+    private int CfgAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
     private int CfgMotionPicNum = 1;
 
     AEFaceInfo faceInfo = new AEFaceInfo();
@@ -166,6 +168,7 @@ public class DecodeHandler extends Handler {
         faceInfo.imgByteA = data.clone();
         faceInfo.imgWidth = width;
         faceInfo.imgHeight = height;
+        PreviewFrameCache.update(data, width, height, faceInfo.direction);
         // TODO: 2022/8/19
 //        if (changeOri) {
 //            faceInfo.width = (width > 960 || height > 960) ? (height + 1) / 2

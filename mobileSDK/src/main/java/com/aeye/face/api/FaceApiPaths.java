@@ -17,6 +17,9 @@ public final class FaceApiPaths {
     /** POST {@code /logManagement/saveFaceVerifyLog} 核验日志记录 */
     public static final String SAVE_FACE_VERIFY_LOG = "/logManagement/saveFaceVerifyLog";
 
+    /** POST {@code /qrCode/insertRecord} 新增认证记录 */
+    public static final String QR_CODE_INSERT_RECORD = "/qrCode/insertRecord";
+
     /** POST {@code /qrCode/updateRecord} 认证记录状态更新（二维码） */
     public static final String QR_CODE_UPDATE_RECORD = "/qrCode/updateRecord";
 }

@@ -98,6 +98,15 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="center" />
 
+                <ImageView
+                    android:id="@+id/iv_preview_freeze"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
                 <com.aeye.face.view.ScanRingOverlayView
                     android:id="@+id/scan_ring_overlay"
                     android:layout_width="match_parent"

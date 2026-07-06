@@ -46,7 +46,7 @@ public final class DefaultFaceActionConfigLoader implements FaceActionConfigLoad
                 fromRemote = true;
             } catch (Exception ignored) {
                 if (useFallbackOnError) {
-                    config = FaceApiService.mockActionConfig();
+                    config = FaceApiService.mockActionConfig(code);
                 }
             }
             if (config == null) {
