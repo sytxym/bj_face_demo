@@ -59,6 +59,13 @@ public class AEFacePack {
     /** 用户选择「其他核验方式」，应回到宿主认证方式选择页，非活体失败结果 */
     public static final int ERROR_OTHER_VERIFY = -12;
 
+    /** {@link #AEYE_EnvCheckDetail} 结果：环境就绪 */
+    public static final int ENV_CHECK_OK = 0;
+    /** {@link #AEYE_EnvCheckDetail} 结果：相机等必需权限未授予（已触发系统权限申请对话框） */
+    public static final int ENV_CHECK_PERMISSION_MISSING = 1;
+    /** {@link #AEYE_EnvCheckDetail} 结果：可用内存低于阈值 */
+    public static final int ENV_CHECK_LOW_MEMORY = 2;
+
     private AEFaceInterface m_finishListener = null;
     private Context mAppContext;
     private String mHostHomeActivityClass;
@@ -848,6 +855,49 @@ public class AEFacePack {
     }
 
     public boolean AEYE_EnvCheck(Context context, int threshold) {
+        return AEYE_EnvCheckDetail(context, threshold) == ENV_CHECK_OK;
+    }
+
+    /**
+     * 环境检查（静默版本）：<b>不触发</b>系统权限申请对话框，仅返回状态。
+     * 供 {@link com.aeye.face.AEFaceVerifyFlow} 由外层的
+     * {@link com.aeye.face.uitls.FacePermissionRequester} 统一发起授权并在授权后自动继续。
+     */
+    public int AEYE_EnvCheckSilent(Context context, int threshold) {
+        ConfigData.makeDestDir(context);
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        MemoryInfo mi = new MemoryInfo();
+        am.getMemoryInfo(mi);
+        if (threshold == 0) {
+            threshold = 350 * 1024 * 1024;
+        }
+        if (Build.VERSION.SDK_INT >= 23) {
+            String[] permissions = new String[]{
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.WAKE_LOCK
+            };
+            for (String p : permissions) {
+                if (context.checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                    return ENV_CHECK_PERMISSION_MISSING;
+                }
+            }
+        }
+        if (threshold < 0) {
+            return ENV_CHECK_OK;
+        }
+        if (mi.availMem < threshold) {
+            return ENV_CHECK_LOW_MEMORY;
+        }
+        return ENV_CHECK_OK;
+    }
+
+    /**
+     * 环境检查，区分「权限缺失」与「内存不足」两种失败情形，避免调用方一律提示为内存不足。
+     * 权限缺失场景内部仍会触发一次 {@link ActivityCompat#requestPermissions} 弹出系统对话框。
+     *
+     * @return 见 {@link #ENV_CHECK_OK}/{@link #ENV_CHECK_PERMISSION_MISSING}/{@link #ENV_CHECK_LOW_MEMORY}
+     */
+    public int AEYE_EnvCheckDetail(Context context, int threshold) {
         ConfigData.makeDestDir(context);
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         MemoryInfo mi = new MemoryInfo();
@@ -869,21 +919,23 @@ public class AEFacePack {
                 }
             }
             if (!mPermissionList.isEmpty()) {
-                String[] permission = mPermissionList.toArray(new String[mPermissionList.size()]);
-                ActivityCompat.requestPermissions((Activity) context, permission, 0);
-                return false;
+                if (context instanceof Activity) {
+                    String[] permission = mPermissionList.toArray(new String[0]);
+                    ActivityCompat.requestPermissions((Activity) context, permission, 0);
+                }
+                return ENV_CHECK_PERMISSION_MISSING;
             }
         }
 
         if (threshold < 0) {
-            return true;
+            return ENV_CHECK_OK;
         }
 
         if (mi.availMem < threshold) {
-            return false;
+            return ENV_CHECK_LOW_MEMORY;
         }
 
-        return true;
+        return ENV_CHECK_OK;
     }
 
     private String getAvailMemory(Context context) {// 获取android当前可用内存大小

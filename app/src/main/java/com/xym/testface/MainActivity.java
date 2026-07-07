@@ -163,6 +163,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         dismissLoading();
                         Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
                     }
+
+                    @Override
+                    public void onPermissionRequesting() {
+                        // 权限对话框弹出前先收起 loading，避免与"拉取活体配置"文案并存
+                        dismissLoading();
+                    }
+
+                    @Override
+                    public void onPermissionResult(boolean granted) {
+                        // 授权通过后 SDK 会自动重新执行核验流程，这里恢复 loading
+                        if (granted) {
+                            showLoading(getString(R.string.loading_liveness_config));
+                        }
+                    }
                 });
     }
 

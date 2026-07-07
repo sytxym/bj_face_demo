@@ -13,6 +13,7 @@ import com.aeye.face.config.FaceActionOptions;
 import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.confirm.InfoConfirmManager;
 import com.aeye.face.confirm.InfoConfirmRepository;
+import com.aeye.face.uitls.FacePermissionRequester;
 import com.aeye.face.verify.FaceVerifySession;
 import com.aeye.face.verify.QrInsertRecordManager;
 
@@ -40,6 +41,24 @@ public final class AEFaceVerifyFlow {
          * 格式与活体结束 {@link AEFaceInterface#onUniFinish(String)} 一致。
          */
         default void onUniResult(int code, String message) {
+        }
+
+        /**
+         * SDK 即将拉起系统权限对话框（当前仅相机权限）。
+         * 宿主可在此收起「拉取活体配置」等 loading，避免用户误以为配置接口正在与授权同时进行。
+         * <p>与 {@link #onError} 互斥：调用了本回调后，若最终授权成功会走 {@link #onPreviewOpened}，
+         * 拒绝则走 {@link #onError}。</p>
+         */
+        default void onPermissionRequesting() {
+        }
+
+        /**
+         * 系统权限对话框的结果。授权通过时，SDK 会自动继续核验流程，
+         * 宿主可在此重新展示 loading 直到 {@link #onPreviewOpened}。
+         *
+         * @param granted true：全部权限已授予；false：存在被拒（后续会收到 {@link #onError}）
+         */
+        default void onPermissionResult(boolean granted) {
         }
     }
 
@@ -87,6 +106,17 @@ public final class AEFaceVerifyFlow {
                     FaceUniResultCodes.MSG_MISSING_PARAMS);
             return;
         }
+
+        // 环境预检：授权后自动继续，无需宿主再次点击按钮
+        if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
+            @Override
+            public void run() {
+                start(activity, businessCode, userId, authRecordId, hostHomeActivityClass, listener, callback);
+            }
+        })) {
+            return;
+        }
+
         FaceVerifySession.begin(userId, authRecordId, businessCode);
         try {
             AEFaceSdk.ensureInitialized();
@@ -174,13 +204,18 @@ public final class AEFaceVerifyFlow {
                     FaceUniResultCodes.MSG_NO_ACTIVITY);
             return;
         }
-        FaceVerifySession.begin(null, null, null, true);
 
-        if (!AEFacePack.getInstance().AEYE_EnvCheck(activity, 200 * 1024 * 1024)) {
-            notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
-                    "内存不足，无法启动活体");
+        // 环境预检：授权后自动继续，无需宿主再次点击按钮
+        if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
+            @Override
+            public void run() {
+                startLocal(activity, options, hostHomeActivityClass, listener, callback);
+            }
+        })) {
             return;
         }
+
+        FaceVerifySession.begin(null, null, null, true);
         AEFacePack.getInstance().AEYE_Init(activity);
 
         Bundle paras = FaceSdkHostParamBuilder.buildBase(hostHomeActivityClass, true);
@@ -198,7 +233,9 @@ public final class AEFaceVerifyFlow {
 
     private static boolean prepareSdk(Activity activity, String hostHomeActivityClass,
                                       AEFaceInterface listener, Callback callback) {
-        if (!AEFacePack.getInstance().AEYE_EnvCheck(activity, 200 * 1024 * 1024)) {
+        // 环境检查已在 start()/startLocal() 入口完成，这里做一次内存兜底
+        int env = AEFacePack.getInstance().AEYE_EnvCheckSilent(activity, 200 * 1024 * 1024);
+        if (env == AEFacePack.ENV_CHECK_LOW_MEMORY) {
             notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
                     "内存不足，无法启动活体");
             return false;
@@ -211,6 +248,59 @@ public final class AEFaceVerifyFlow {
         AEFacePack.getInstance().AEYE_SetListener(listener);
         AEFacePack.getInstance().AEYE_SetParameter(paras);
         return true;
+    }
+
+    /**
+     * 环境预检（入口调用）：
+     * <ul>
+     *   <li>OK：返回 true，调用方继续后续流程</li>
+     *   <li>内存不足：走完整失败流程，返回 false</li>
+     *   <li>权限缺失：拉起系统对话框；
+     *     <ul>
+     *       <li>用户授权 → 自动执行 {@code resume}（宿主无需重新点击按钮）</li>
+     *       <li>用户拒绝 → 走完整失败流程，回调「未授予相机权限」</li>
+     *     </ul>
+     *     返回 false，当前调用直接返回，避免同一流程被并发执行两次。
+     *   </li>
+     * </ul>
+     */
+    private static boolean ensureEnvironmentReady(final Activity activity,
+                                                  final AEFaceInterface listener,
+                                                  final Callback callback,
+                                                  final Runnable resume) {
+        int env = AEFacePack.getInstance().AEYE_EnvCheckSilent(activity, 200 * 1024 * 1024);
+        if (env == AEFacePack.ENV_CHECK_OK) {
+            return true;
+        }
+        if (env == AEFacePack.ENV_CHECK_LOW_MEMORY) {
+            notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
+                    "内存不足，无法启动活体");
+            return false;
+        }
+        // ENV_CHECK_PERMISSION_MISSING：先通知宿主收起 loading，再拉起权限对话框；授权后自动继续
+        if (callback != null) {
+            callback.onPermissionRequesting();
+        }
+        FacePermissionRequester.requestIfNeeded(activity, new FacePermissionRequester.Callback() {
+            @Override
+            public void onResult(boolean granted) {
+                if (callback != null) {
+                    callback.onPermissionResult(granted);
+                }
+                if (activity.isFinishing()) {
+                    notifyFlowError(listener, callback, FaceUniResultCodes.NO_ACTIVITY,
+                            FaceUniResultCodes.MSG_NO_ACTIVITY);
+                    return;
+                }
+                if (granted) {
+                    resume.run();
+                } else {
+                    notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
+                            "未授予相机权限");
+                }
+            }
+        });
+        return false;
     }
 
     private static void notifyFlowError(AEFaceInterface listener, Callback callback,
