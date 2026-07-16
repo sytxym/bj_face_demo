@@ -361,7 +361,7 @@ public class RecognizeActivity extends Activity implements
         ivReturn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finishActivityByUserCancel();
+                handleUserExit();
             }
         });
 
@@ -1858,19 +1858,49 @@ public class RecognizeActivity extends Activity implements
         AEFacePack.getInstance().returnToHostAuthHome();
     }
 
-    /** 失败/超时仍走结果回调（非「其他核验方式」） */
+    /**
+     * 用户主动退出统一入口：
+     * <ul>
+     *   <li>页内失败/超时态：回传准确的 {@link AEFacePack#ERROR_TIMEOUT} / {@link AEFacePack#ERROR_FAIL}</li>
+     *   <li>其余状态：按用户取消 {@link AEFacePack#ERROR_CANCEL} 处理</li>
+     * </ul>
+     */
+    private void handleUserExit() {
+        if (mInPlaceFailUi) {
+            exitAfterInPlaceFail();
+        } else {
+            finishActivityByUserCancel();
+        }
+    }
+
+    /**
+     * 失败/超时态退出：向宿主回传准确的 {@link AEFacePack#ERROR_TIMEOUT} /
+     * {@link AEFacePack#ERROR_FAIL}（区别于「其他核验方式」的 {@link AEFacePack#ERROR_OTHER_VERIFY}）。
+     */
     private void exitAfterInPlaceFail() {
         if (m_hasFinishReturn) {
             finish();
             return;
         }
+        stopRingProgress();
+        final boolean timeout = mInPlaceFailIsTimeout;
+        final String failDetail = timeout
+                ? getString(R.string.face_fail_timeout_detail)
+                : AEFacePack.getInstance().getPendingFailDetail();
+        // 结束日志（会话内去重，超时场景在此补报）+ 二维码终态兜底（失败态已置未通过时为空操作）
+        FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false,
+                TextUtils.isEmpty(failDetail)
+                        ? getString(timeout ? R.string.aeye_recog_timeout : R.string.face_verify_failed)
+                        : failDetail);
+        markQrRecordAbnormalExit();
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null) {
+            m_hasFinishReturn = true;
             finish();
             return;
         }
         m_hasFinishReturn = true;
-        if (mInPlaceFailIsTimeout) {
+        if (timeout) {
             if (handler != null) {
                 listener.onPrompt(handler.getCurPos(), null);
             }
@@ -1880,7 +1910,6 @@ public class RecognizeActivity extends Activity implements
                 finish();
             });
         } else {
-            final String failDetail = AEFacePack.getInstance().getPendingFailDetail();
             PictureManagerUtils.getPictureManager().setCode(AEFaceParam.CODE_ERROR_ALIVE_FAILED);
             buildLivenessJsonAsync(json -> {
                 AEFaceCallbackHelper.dispatchFinish(listener, AEFacePack.ERROR_FAIL, json, failDetail);
@@ -2022,7 +2051,7 @@ public class RecognizeActivity extends Activity implements
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
 //			if (!AEFacePack.getInstance().isOpenReturnButton())
-            finishActivityByUserCancel();
+            handleUserExit();
             return true;
         }
 
