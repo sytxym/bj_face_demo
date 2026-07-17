@@ -230,6 +230,8 @@ public class RecognizeActivity extends Activity implements
     private Runnable mNoFaceFailRunnable;
     /** 是否已上报二维码终态（4 未通过 / 5 已通过 / 2 异常退出） */
     private boolean mQrRecordFinalized;
+    /** 本会话动作活体未通过次数；满 3 次上报 isPass=4 + failedType=1 */
+    private int mLivenessFailCount;
 
     /**
      * Activity 生命周期 onCreate
@@ -511,6 +513,7 @@ public class RecognizeActivity extends Activity implements
                     mDisplayedCheckHintResId = 0;
                     break;
                 case UI_MSG_MESSAGE_BOX:
+                    noteLivenessFailForQrRecord();
                     showInPlaceFailUi(false, resolveLoseFaceFailDetail());
                     break;
                 case UI_MSG_TIMEOUT_BOX:
@@ -947,7 +950,8 @@ public class RecognizeActivity extends Activity implements
     /**退出预览*/
     public void onDestroy() {
         if (!mQrRecordFinalized) {
-            QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT);
+            QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT,
+                    QrRecordStatus.FailedType.CANCELLED);
             mQrRecordFinalized = true;
         }
         AEFacePack.getInstance().unregisterFaceFlowActivity(this);
@@ -1302,6 +1306,7 @@ public class RecognizeActivity extends Activity implements
         long elapsed = now - mNoFaceSinceElapsedMs;
         if (elapsed >= NO_FACE_FAIL_DELAY_MS) {
             cancelNoFaceFailTimer();
+            noteLivenessFailForQrRecord();
             showInPlaceFailUi(false, resolveLoseFaceFailDetail());
             return;
         }
@@ -1315,6 +1320,7 @@ public class RecognizeActivity extends Activity implements
             if (mInPlaceFailUi || mInPlaceSuccessUi) {
                 return;
             }
+            noteLivenessFailForQrRecord();
             showInPlaceFailUi(false, resolveLoseFaceFailDetail());
         };
         mUIHandler.postDelayed(mNoFaceFailRunnable, delay);
@@ -1412,6 +1418,7 @@ public class RecognizeActivity extends Activity implements
     /** 多人脸：内联失败提示 */
     public void showManyPersonMessageBox() {
         cancelNoFaceFailTimer();
+        noteLivenessFailForQrRecord();
         showInPlaceFailUi(false, getString(R.string.aeye_notice_morepeople));
         /*
         handler.cancelDecodeTask();
@@ -1713,6 +1720,7 @@ public class RecognizeActivity extends Activity implements
 
     public void finishActivityByFail() {
         MLog.d(TAG, "finishActivityByFail");
+        noteLivenessFailForQrRecord();
         showInPlaceFailUi(false, null);
     }
 
@@ -2066,19 +2074,40 @@ public class RecognizeActivity extends Activity implements
         QrRecordStatusManager.update(QrRecordStatus.PASSED);
     }
 
+    /** 后台比对等未通过：上报 isPass=4，不传 failedType */
     private void markQrRecordNotPass() {
+        markQrRecordNotPass(null);
+    }
+
+    /**
+     * @param failedType 仅动作活体未通过 3 次时传 {@link QrRecordStatus.FailedType#LIVENESS_ACTION}；其它未通过为 null
+     */
+    private void markQrRecordNotPass(String failedType) {
         if (mQrRecordFinalized) {
             return;
         }
         mQrRecordFinalized = true;
-        QrRecordStatusManager.update(QrRecordStatus.NOT_PASS);
+        QrRecordStatusManager.update(QrRecordStatus.NOT_PASS, failedType);
     }
 
+    /** 异常退出：isPass=2，必传 failedType=6（已取消） */
     private void markQrRecordAbnormalExit() {
         if (mQrRecordFinalized) {
             return;
         }
         mQrRecordFinalized = true;
-        QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT);
+        QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT,
+                QrRecordStatus.FailedType.CANCELLED);
+    }
+
+    /**
+     * 累计动作活体未通过次数；满 3 次上报 {@code isPass=4} + {@code failedType=1}。
+     * 超时、后台比对失败不计入。
+     */
+    private void noteLivenessFailForQrRecord() {
+        mLivenessFailCount++;
+        if (mLivenessFailCount == 3) {
+            markQrRecordNotPass(QrRecordStatus.FailedType.LIVENESS_ACTION);
+        }
     }
 }
