@@ -1,3 +1,0 @@
-com.aeye.facepro.BuildConfig
-com.aeye.unhack.BuildConfig
-com.sdk.core.BuildConfig
