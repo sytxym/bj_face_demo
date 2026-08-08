@@ -297,7 +297,7 @@ public class RecognizeActivity extends Activity implements
     /** 炫彩色光序列是否已启动（纯炫彩需检测到人脸后再启动，避免帧与色序错位） */
     private volatile boolean mLightFlashStarted = false;
     /** 纯炫彩：人脸稳定后再延迟启动色光，避免入框瞬间就开始闪光 */
-    private static final long LIGHT_FLASH_SETTLE_MS = 400L;
+    private static final long LIGHT_FLASH_SETTLE_MS = 600L;
     /** 延迟启动色光是否已排队；解码线程逐帧调用，必须幂等，否则每帧重排会导致永远等不到 */
     private volatile boolean mBeginFlashScheduled = false;
 

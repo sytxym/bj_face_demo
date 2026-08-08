@@ -57,7 +57,7 @@ public final class FaceApiService {
      * Mock 回退：{@code businessCode}/{@code businessName} 与宿主请求参数保持一致。
      */
     public static FaceActionConfig mockActionConfig(String businessCode) {
-        FaceActionConfig config = parseActionConfig(FaceActionConfigDefaults.FALLBACK_JSON_MOTION_LIGHT);
+        FaceActionConfig config = parseActionConfig(FaceActionConfigDefaults.FALLBACK_JSON);
         String code = TextUtils.isEmpty(businessCode)
                 ? FaceActionConfigDefaults.DEFAULT_BUSINESS_CODE
                 : businessCode.trim();
