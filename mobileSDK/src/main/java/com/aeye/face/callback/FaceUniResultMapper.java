@@ -8,78 +8,82 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * 将 SDK 内部结果码映射为 UniApp 统一 {@code {code, message}} 结构。
+ * 结果码映射：把 SDK 内部结果码映射为三端统一的 {@code resultCode}/{@code resultMsg}，
+ * 并注入到 {@code onFinish} 的 {@code data} JSON 顶层。
  */
 public final class FaceUniResultMapper {
 
     private FaceUniResultMapper() {
     }
 
-    public static JSONObject toUniJson(int sdkValue) {
-        return toUniJson(sdkValue, null);
-    }
-
-    public static JSONObject toUniJson(int sdkValue, String detailMessage) {
-        JSONObject json = new JSONObject();
-        try {
-            int code;
-            String message;
-            switch (sdkValue) {
-                case AEFacePack.SUCCESS:
-                    code = FaceUniResultCodes.SUCCESS;
-                    message = FaceUniResultCodes.MSG_SUCCESS;
-                    break;
-                case AEFacePack.ERROR_CANCEL:
-                case AEFacePack.ERROR_OTHER_VERIFY:
-                    code = FaceUniResultCodes.USER_CANCEL;
-                    message = FaceUniResultCodes.MSG_USER_CANCEL;
-                    break;
-                case AEFacePack.ERROR_FAIL:
-                case AEFacePack.ERROR_TIMEOUT:
-                case AEFacePack.ERROR_CAMERA:
-                case AEFacePack.ERROR_DANGER_DEVICE:
-                    code = FaceUniResultCodes.AUTH_FAILED;
-                    message = FaceUniResultCodes.MSG_AUTH_FAILED;
-                    break;
-                default:
-                    code = FaceUniResultCodes.AUTH_FAILED;
-                    message = FaceUniResultCodes.MSG_AUTH_FAILED;
-                    break;
-            }
-            if (!TextUtils.isEmpty(detailMessage)
-                    && code != FaceUniResultCodes.SUCCESS
-                    && code != FaceUniResultCodes.USER_CANCEL) {
-                // 保留 detail 供 uni 侧排查，message 仍用约定文案
-                json.put("detail", detailMessage.trim());
-            }
-            json.put("code", code);
-            json.put("message", message);
-        } catch (JSONException ignored) {
-            // unreachable
+    /**
+     * SDK 内部结果码 → 三端统一结果码（字符串，含前导零）。
+     * 随 {@code data.resultCode} 下发给业务 APP。
+     */
+    public static String unifiedResultCode(int sdkValue) {
+        switch (sdkValue) {
+            case AEFacePack.SUCCESS:
+                return FaceUniResultCodes.RESULT_SUCCESS;
+            case AEFacePack.ERROR_TIMEOUT:
+                return FaceUniResultCodes.RESULT_TIMEOUT;
+            case AEFacePack.ERROR_CANCEL:
+                return FaceUniResultCodes.RESULT_USER_CANCEL;
+            case AEFacePack.ERROR_CAMERA:
+                return FaceUniResultCodes.RESULT_CAMERA_ERROR;
+            case AEFacePack.ERROR_DANGER_DEVICE:
+                return FaceUniResultCodes.RESULT_DEVICE_UNSAFE;
+            case AEFacePack.ERROR_OTHER_VERIFY:
+                return FaceUniResultCodes.RESULT_OTHER_VERIFY;
+            case AEFacePack.ERROR_FAIL:
+            default:
+                // 其它异常码（含炫彩算法失败等）统一归为核验失败
+                return FaceUniResultCodes.RESULT_VERIFY_FAILED;
         }
-        return json;
     }
 
-    public static JSONObject flowErrorToUniJson(int uniCode, String message) {
-        JSONObject json = new JSONObject();
+    /** 统一结果码对应的默认中文文案 */
+    public static String unifiedResultMessage(int sdkValue) {
+        switch (sdkValue) {
+            case AEFacePack.SUCCESS:
+                return FaceUniResultCodes.RESULT_MSG_SUCCESS;
+            case AEFacePack.ERROR_TIMEOUT:
+                return FaceUniResultCodes.RESULT_MSG_TIMEOUT;
+            case AEFacePack.ERROR_CANCEL:
+                return FaceUniResultCodes.RESULT_MSG_USER_CANCEL;
+            case AEFacePack.ERROR_CAMERA:
+                return FaceUniResultCodes.RESULT_MSG_CAMERA_ERROR;
+            case AEFacePack.ERROR_DANGER_DEVICE:
+                return FaceUniResultCodes.RESULT_MSG_DEVICE_UNSAFE;
+            case AEFacePack.ERROR_OTHER_VERIFY:
+                return FaceUniResultCodes.RESULT_MSG_OTHER_VERIFY;
+            case AEFacePack.ERROR_FAIL:
+            default:
+                return FaceUniResultCodes.RESULT_MSG_VERIFY_FAILED;
+        }
+    }
+
+    /** 把统一结果码写入 data JSON 顶层（业务 APP 直接读 {@code resultCode} / {@code resultMsg}） */
+    private static void putUnifiedResult(JSONObject target, int sdkValue, String detailMessage) {
+        if (target == null) {
+            return;
+        }
         try {
-            json.put("code", uniCode);
-            json.put("message", TextUtils.isEmpty(message) ? defaultMessage(uniCode) : message.trim());
+            target.put("resultCode", unifiedResultCode(sdkValue));
+            target.put("resultMsg", unifiedResultMessage(sdkValue));
+            if (!TextUtils.isEmpty(detailMessage) && sdkValue != AEFacePack.SUCCESS) {
+                target.put("resultDetail", detailMessage.trim());
+            }
         } catch (JSONException ignored) {
         }
-        return json;
     }
 
-    public static String defaultMessage(int uniCode) {
-        switch (uniCode) {
-            case FaceUniResultCodes.SUCCESS:
-                return FaceUniResultCodes.MSG_SUCCESS;
+    /** 流程前置错误码对应的默认文案（用于 {@code onError}） */
+    public static String defaultMessage(int flowCode) {
+        switch (flowCode) {
             case FaceUniResultCodes.NO_ACTIVITY:
                 return FaceUniResultCodes.MSG_NO_ACTIVITY;
             case FaceUniResultCodes.MISSING_PARAMS:
                 return FaceUniResultCodes.MSG_MISSING_PARAMS;
-            case FaceUniResultCodes.USER_CANCEL:
-                return FaceUniResultCodes.MSG_USER_CANCEL;
             case FaceUniResultCodes.PARSE_FAILED:
                 return FaceUniResultCodes.MSG_PARSE_FAILED;
             case FaceUniResultCodes.AUTH_FAILED:
@@ -89,50 +93,39 @@ public final class FaceUniResultMapper {
     }
 
     /**
-     * 在原有 {@code data} JSON 上追加 {@code uniResult}，原生宿主可忽略该字段。
+     * 在原有 {@code data} JSON 顶层注入 {@code resultCode}/{@code resultMsg}。
      */
     public static String mergeIntoData(int sdkValue, String data) {
         return mergeIntoData(sdkValue, data, null);
     }
 
     public static String mergeIntoData(int sdkValue, String data, String detailMessage) {
-        JSONObject uniResult = toUniJson(sdkValue, detailMessage);
         if (TextUtils.isEmpty(data)) {
             JSONObject wrapper = new JSONObject();
-            try {
-                wrapper.put("uniResult", uniResult);
-                return wrapper.toString();
-            } catch (JSONException e) {
-                return uniResult.toString();
-            }
+            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            return wrapper.toString();
         }
         if (isInvalidDataJson(data)) {
             JSONObject wrapper = new JSONObject();
             try {
-                wrapper.put("uniResult", flowErrorToUniJson(
-                        FaceUniResultCodes.PARSE_FAILED,
-                        FaceUniResultCodes.MSG_PARSE_FAILED));
                 wrapper.put("legacyData", data);
-                return wrapper.toString();
-            } catch (JSONException e) {
-                return uniResult.toString();
+            } catch (JSONException ignored) {
             }
+            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            return wrapper.toString();
         }
         try {
             JSONObject root = new JSONObject(data);
-            root.put("uniResult", uniResult);
+            putUnifiedResult(root, sdkValue, detailMessage);
             return root.toString();
         } catch (JSONException e) {
             JSONObject wrapper = new JSONObject();
             try {
-                wrapper.put("uniResult", flowErrorToUniJson(
-                        FaceUniResultCodes.PARSE_FAILED,
-                        FaceUniResultCodes.MSG_PARSE_FAILED));
                 wrapper.put("legacyData", data);
-                return wrapper.toString();
-            } catch (JSONException ex) {
-                return uniResult.toString();
+            } catch (JSONException ignored) {
             }
+            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            return wrapper.toString();
         }
     }
 

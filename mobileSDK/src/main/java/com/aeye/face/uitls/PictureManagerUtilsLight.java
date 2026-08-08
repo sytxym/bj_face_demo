@@ -58,7 +58,7 @@ public class PictureManagerUtilsLight {
     public void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
         Log.e("LIULU","add pic : "+curPos+", mPicNum : "+m_picNum+" ,maxPic : "+m_MaxPicNum);
         if ((curPos <= m_picNum) && (m_picNum < m_MaxPicNum)) {
-            m_Faces[m_picNum] = bitRect.faceRect;
+            m_Faces[m_picNum] = bitRect.imgRect;
             m_PicSigns[m_picNum] = SMUtil.BitmapSM2Sign(bitRect.faceBitmap);
             m_Pics[m_picNum++] = SMUtil.DataSM4Encode(decryptKey, bitRect.faceBitmap);
             FLogUtil.printLog("add pic success nums : "+m_picNum);
@@ -199,7 +199,7 @@ public class PictureManagerUtilsLight {
 //            json.put("alive", aliveJson);
 //            json.put("aliveSign", aliveSignJson);
 //            json.put("rect", rectJson);
-//            json.put("picnum", m_picNum + "");
+//            json.put("picnum", m_picNum);
 //
 //            json.put("bioType", "1");
 //            json.put("channel", "005");

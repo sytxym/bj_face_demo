@@ -95,8 +95,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
             @Override
             public void onShake(boolean status) {
                 if (decodeThread != null) {
-                    decodeThread.getHandler().sendMessage(
-                            Message.obtain(decodeThread.getHandler(), IDConstants.id_shake, status));
+                    Handler decodeHandler = decodeThread.getHandler();
+                    if (decodeHandler != null) {
+                        decodeHandler.sendMessage(
+                                Message.obtain(decodeHandler, IDConstants.id_shake, status));
+                    }
                 }
             }
 
@@ -152,8 +155,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
                 // start another.
                 // resetData();
                 if (state == State.PREVIEW) {
-                    CameraManager.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-                            IDConstants.id_decode);
+                    Handler decodeHandler = decodeThread.getHandler();
+                    if (decodeHandler != null) {
+                        CameraManager.get(activity).requestPreviewFrame(decodeHandler,
+                                IDConstants.id_decode);
+                    }
                 }
                 break;
 
@@ -209,7 +215,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 
     public void resetData() {
         removeCallbacksAndMessages(null);
-        decodeThread.getHandler().removeCallbacksAndMessages(null);
+        // getHandler 有界等待，异常时可能为 null，需判空防 NPE
+        Handler decodeHandler = decodeThread.getHandler();
+        if (decodeHandler != null) {
+            decodeHandler.removeCallbacksAndMessages(null);
+        }
 
         activity.resetData();
         state = State.PAUSE;
@@ -223,7 +233,9 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
         cameraDirection = activity.getOrientation();
 
         PictureManagerUtils.getPictureManager().resetPictureManager();
-        decodeThread.getHandler().sendEmptyMessage(DecodeHandler.MSG_RESET);
+        if (decodeHandler != null) {
+            decodeHandler.sendEmptyMessage(DecodeHandler.MSG_RESET);
+        }
     }
 
     public void startPreview() {
@@ -236,9 +248,10 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
      */
     public void quitSynchronously() {
         CameraManager.get(activity).stopPreview();
-        Message quit = Message.obtain(decodeThread.getHandler(),
-                IDConstants.id_quit);
-        quit.sendToTarget();
+        Handler decodeHandler = decodeThread.getHandler();
+        if (decodeHandler != null) {
+            Message.obtain(decodeHandler, IDConstants.id_quit).sendToTarget();
+        }
         decodeThread.end();
 
         // Be absolutely sure we don't send any queued up messages
@@ -256,8 +269,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
      */
     public void restartPreviewAndDecode() {
         state = State.PREVIEW;
-        CameraManager.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-                IDConstants.id_decode);
+        Handler decodeHandler = decodeThread.getHandler();
+        if (decodeHandler != null) {
+            CameraManager.get(activity).requestPreviewFrame(decodeHandler,
+                    IDConstants.id_decode);
+        }
         CameraManager.get(activity).requestAutoFocus(this,
                 IDConstants.id_auto_focus);
         activity.setDecodeStatus(true);
@@ -273,8 +289,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 
     public boolean startOneSide() {
         if (mSideSucc) {
-            decodeThread.getHandler().sendEmptyMessageDelayed(
-                    IDConstants.id_request_side, 800);
+            Handler decodeHandler = decodeThread.getHandler();
+            if (decodeHandler != null) {
+                decodeHandler.sendEmptyMessageDelayed(
+                        IDConstants.id_request_side, 800);
+            }
             mSideSucc = false;
             return true;
         } else {
@@ -307,8 +326,11 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 
     public void resumeDecode() {
         state = State.PREVIEW;
-        CameraManager.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-                IDConstants.id_decode);
+        Handler decodeHandler = decodeThread.getHandler();
+        if (decodeHandler != null) {
+            CameraManager.get(activity).requestPreviewFrame(decodeHandler,
+                    IDConstants.id_decode);
+        }
     }
 
     /** 固定动作池：按 {@link AEFaceParam#AliveMotion} 数组顺序依次执行；否则在池内随机。 */

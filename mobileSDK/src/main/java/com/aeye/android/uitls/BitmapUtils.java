@@ -58,6 +58,19 @@ public class BitmapUtils {
         return Base64.encodeToString(appicon, 2);
     }
 
+    /**
+     * JPEG base64（NO_WRAP）。炫彩 thunderAliveCheck 上传用，体积远小于 PNG，降低弱网超时概率。
+     */
+    public static String convertJpegToString(Bitmap bitmap, int quality) {
+        if (bitmap == null || bitmap.isRecycled()) {
+            return "";
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int q = quality < 1 ? 1 : Math.min(quality, 100);
+        bitmap.compress(CompressFormat.JPEG, q, baos);
+        return Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP);
+    }
+
     public static String AEYE_Base64Encode(Bitmap bitmap) {
         return convertIconToString(bitmap);
     }

@@ -91,14 +91,23 @@ public class ScanRingOverlayView extends View {
     }
 
     /**
-     * 竖屏 3:4 预览尺寸（center-cover）：宽度对齐圆孔直径，高度按 4:3 放大，
+     * 竖屏预览尺寸（center-cover，默认 3:4）：宽度对齐圆孔直径，高度按宽高比放大，
      * 上下超出圆孔部分由 {@link #drawOutsideHoleMask} 遮住，圆内铺满且不变形（同支付宝类方案）。
      * @return [width, height]
      */
     public static int[] computePortraitPreviewCoverSize(Context context, int panelPx) {
+        return computePortraitPreviewCoverSize(context, panelPx, 4f / 3f);
+    }
+
+    /**
+     * @param heightOverWidth 旋转后显示比例 H/W，动作约 4/3，炫彩 1080×1920 为 16/9
+     */
+    public static int[] computePortraitPreviewCoverSize(Context context, int panelPx,
+                                                        float heightOverWidth) {
         float holeR = computePreviewHoleRadius(context, panelPx);
         int surfaceW = Math.round(holeR * 2f);
-        int surfaceH = Math.round(surfaceW * 4f / 3f);
+        float ratio = heightOverWidth > 0f ? heightOverWidth : (4f / 3f);
+        int surfaceH = Math.round(surfaceW * ratio);
         return new int[]{surfaceW, surfaceH};
     }
 

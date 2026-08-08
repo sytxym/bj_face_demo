@@ -18,34 +18,45 @@ package com.aeye.face.camera;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
-import com.aeye.face.lightView.RecognizeLightActivity;
+import com.aeye.face.view.RecognizeActivity;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 final class DecodeThreadLight extends Thread {
 
-    private RecognizeLightActivity activity;
+    private static final String TAG = "DecodeThreadLight";
+    /** 等待解码线程 Looper 就绪的上限；超时返回 null，调用方需判空 */
+    private static final long HANDLER_INIT_TIMEOUT_MS = 3000L;
+    /** 退出时等待解码线程结束的上限；解码线程若卡死在 native 调用，不能拖死主线程（ANR） */
+    private static final long QUIT_JOIN_TIMEOUT_MS = 2000L;
+
+    private RecognizeActivity activity;
     private Handler handler;
     private final CountDownLatch handlerInitLatch;
 
-    DecodeThreadLight(RecognizeLightActivity activity) {
+    DecodeThreadLight(RecognizeActivity activity) {
 
         this.activity = activity;
         handlerInitLatch = new CountDownLatch(1);
     }
 
+    /** 可能返回 null（初始化超时/异常），调用方必须判空 */
     Handler getHandler() {
         try {
-            handlerInitLatch.await();
+            if (!handlerInitLatch.await(HANDLER_INIT_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                Log.w(TAG, "getHandler: init latch timeout, decode thread not ready");
+            }
         } catch (InterruptedException ie) {
             // continue?
         }
         return handler;
     }
 
-    @Override/**����DecodeHandler�͸�Handler��Looper*/
+    @Override
     public void run() {
         Looper.prepare();
         handler = new DecodeHandlerLight(activity);
@@ -55,7 +66,12 @@ final class DecodeThreadLight extends Thread {
 
     public void end() {
         try {
-            join();
+            join(QUIT_JOIN_TIMEOUT_MS);
+            if (isAlive()) {
+                // 解码线程可能卡死在耗时/挂起的 native 调用中，放弃等待并中断，避免主线程 ANR
+                Log.w(TAG, "end: decode thread still alive after " + QUIT_JOIN_TIMEOUT_MS + "ms, abandon");
+                interrupt();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -24,7 +24,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
-import com.aeye.face.lightView.RecognizeLightActivity;
+import com.aeye.face.view.RecognizeActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -226,7 +226,7 @@ public final class CameraConfigurationManagerLight {
 			cameraResolution = new Point((screenResolution.x >> 3) << 3,
 					(screenResolution.y >> 3) << 3);
 		}
-		cameraResolution = new Point(RecognizeLightActivity.mPreviewHeight, RecognizeLightActivity.mPreviewWidth);
+		cameraResolution = new Point(RecognizeActivity.mPreviewHeight, RecognizeActivity.mPreviewWidth);
 		return cameraResolution;
 	}
 

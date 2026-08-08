@@ -5,7 +5,7 @@ package com.aeye.face.api;
  */
 public final class FaceApiPaths {
 
-    /** GET {@code ?businessCode=} 动作活体配置 */
+    /** POST {@code {"businessCode":"..."}} 动作活体配置 */
     public static final String ACTION_CONFIG_LIST = "/faceActionConfig/listActionConfigByBusinessType";
 
     /** GET {@code /faceUser/selectById/{userId}} 用户信息预览 */
@@ -22,4 +22,16 @@ public final class FaceApiPaths {
 
     /** POST {@code /qrCode/updateRecord} 认证记录状态更新（二维码） */
     public static final String QR_CODE_UPDATE_RECORD = "/qrCode/updateRecord";
+
+    /** POST 炫彩颜色序列（flashUrl 基地址下） */
+    public static final String THUNDER_ALIVE_COLOR = "/alg-api/liveness/thunderAliveColor";
+
+    /** POST {@code /assistant/thunderAliveColor} 炫彩获取颜色（apiBaseUrl 基地址，无请求参数，isNewColorIntenface=true 时使用） */
+    public static final String ASSISTANT_THUNDER_ALIVE_COLOR = "/assistant/thunderAliveColor";
+
+    /** POST 炫彩服务端活体验证（flashUrl 基地址下） */
+    public static final String THUNDER_ALIVE_CHECK = "/alg-api/liveness/thunderAliveCheck";
+
+    /** 炫彩请求来源标识（SDK 内部固定） */
+    public static final String THUNDER_SOURCE = "app";
 }

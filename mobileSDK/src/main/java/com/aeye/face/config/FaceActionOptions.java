@@ -24,6 +24,7 @@ public final class FaceActionOptions {
     private final int aliveLevel;
     private final int motionTimeoutSec;
     private final boolean voiceEnabled;
+    private final String detectType;
 
     private FaceActionOptions(Builder b) {
         this.actionType = b.actionType;
@@ -36,6 +37,7 @@ public final class FaceActionOptions {
         this.aliveLevel = b.aliveLevel;
         this.motionTimeoutSec = b.motionTimeoutSec;
         this.voiceEnabled = b.voiceEnabled;
+        this.detectType = b.detectType;
     }
 
     /** 默认配置：顺序动作[抬头→摇头→眨眼]、3 个动作、难度 1、超时 15s、开启语音。 */
@@ -46,6 +48,7 @@ public final class FaceActionOptions {
     /** 转为 {@link FaceActionConfig}，复用既有的 SDK 参数映射逻辑。 */
     public FaceActionConfig toActionConfig() {
         FaceActionConfig config = new FaceActionConfig();
+        config.setDetectType(detectType);
         config.setActionType(actionType);
         config.setActionCount(actionCount);
         config.setEnableLookUp(enableLookUp);
@@ -122,6 +125,10 @@ public final class FaceActionOptions {
         return voiceEnabled;
     }
 
+    public String getDetectType() {
+        return detectType;
+    }
+
     public static final class Builder {
         private String actionType = FaceActionConfig.ACTION_SEQUENCE;
         private int actionCount = 3;
@@ -133,6 +140,7 @@ public final class FaceActionOptions {
         private int aliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
         private int motionTimeoutSec = 15;
         private boolean voiceEnabled = true;
+        private String detectType = FaceActionConfig.DETECT_MOTION;
 
         /** 动作模式：{@link FaceActionConfig#ACTION_SEQUENCE} 顺序 / {@link FaceActionConfig#ACTION_RANDOM} 随机。 */
         public Builder actionType(String type) {
@@ -188,6 +196,19 @@ public final class FaceActionOptions {
         /** 是否播放语音提示。 */
         public Builder voiceEnabled(boolean enabled) {
             this.voiceEnabled = enabled;
+            return this;
+        }
+
+        /**
+         * 检测类型：{@link FaceActionConfig#DETECT_MOTION} /
+         * {@link FaceActionConfig#DETECT_LIGHT} /
+         * {@link FaceActionConfig#DETECT_MOTION_LIGHT} /
+         * {@link FaceActionConfig#DETECT_SILENT}。
+         */
+        public Builder detectType(String type) {
+            if (type != null) {
+                this.detectType = type;
+            }
             return this;
         }
 

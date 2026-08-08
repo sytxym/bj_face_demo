@@ -68,8 +68,11 @@
     <string name="info_field_id_type">证件类型</string>
     <string name="info_field_id_number">证件号码</string>
     <string name="info_start_verify">开始核验</string>
+    <string name="info_light_loading">炫彩活体加载中...</string>
     <string name="face_verify_passed">验证通过</string>
     <string name="face_verify_submitting">人脸核验中</string>
+    <string name="face_verify_network_timeout">网络超时，请重试</string>
+    <string name="face_verify_network_error">网络异常，请稍后重试</string>
     <string name="face_verify_failed">验证失败</string>
     <string name="face_verify_fail_default">人脸与证件号不匹配，请重新核验</string>
     <string name="face_retry_verify">重新核验</string>

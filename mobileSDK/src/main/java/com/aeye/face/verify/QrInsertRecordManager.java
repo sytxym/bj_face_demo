@@ -10,8 +10,6 @@ import com.aeye.face.api.FaceApiService;
 import com.aeye.face.api.model.QrInsertRecordResult;
 import com.aeye.face.config.FaceActionConfig;
 import com.aeye.face.config.FaceActionConfigManager;
-import com.aeye.face.confirm.InfoConfirmPayload;
-import com.aeye.face.confirm.InfoConfirmRepository;
 
 /**
  * 新增二维码认证记录：非扫码场景在预览前创建 authRecordId。
@@ -30,7 +28,7 @@ public final class QrInsertRecordManager {
     }
 
     /**
-     * 使用已缓存的动作配置、预览信息与设备信息调用 {@code /qrCode/insertRecord}。
+     * 使用已缓存的动作配置、外部传入的用户基本信息与设备信息调用 {@code /qrCode/insertRecord}。
      */
     public static void insert(Context context, Callback callback) {
         if (context == null) {
@@ -45,8 +43,9 @@ public final class QrInsertRecordManager {
                 if (config == null) {
                     throw new IllegalStateException("动作配置未加载");
                 }
-                InfoConfirmPayload preview = InfoConfirmRepository.getCached();
-                String certNo = preview != null ? preview.getIdNumber() : null;
+                // 注册场景兜底 certNo：取外部业务 App 传入的用户基本信息（预览接口已取消）
+                FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
+                String certNo = userInfo != null ? userInfo.getCertNo() : null;
                 String body = FaceApiService.buildInsertRecordRequestJson(
                         appContext,
                         config,

@@ -97,16 +97,25 @@ public class AEFaceBean {
     }
 
     public Bitmap getLightBitmap(int index) {
-        if (images != null) {
-            if (index < picnum) {
-                String cur = images[index];
-                if (cur != null) {
-                    return SMUtil.DataSM4Decode("E3A03D4A1586F6952F0E699344D0F4E2", cur);
-//                    return BitmapUtils.convertStringToBitmap(cur);
-                }
-            }
+        if (images == null || index < 0 || index >= images.length) {
+            return null;
+        }
+        // picnum 可能是 JSON 字符串解析失败导致为 0，此时以 images.length 为准
+        int limit = picnum > 0 ? Math.min(picnum, images.length) : images.length;
+        if (index >= limit) {
+            return null;
+        }
+        String cur = images[index];
+        if (cur != null && !cur.isEmpty()) {
+            return SMUtil.DataSM4Decode("E3A03D4A1586F6952F0E699344D0F4E2", cur);
         }
         return null;
+    }
+
+    /** 是否为炫彩结果（含 lightData / sequnce） */
+    public boolean isLightAliveResult() {
+        return (lightData != null && !lightData.isEmpty())
+                || (sequnce != null && !sequnce.isEmpty());
     }
     public String getStrImage(int index) {
         if (images != null) {

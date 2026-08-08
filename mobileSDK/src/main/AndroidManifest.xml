@@ -35,13 +35,7 @@
             android:label="Graphics/CameraPreview"
             android:theme="@style/AeyeFaceTheme" >
         </activity>
-        <activity
-            android:name="com.aeye.face.lightView.RecognizeLightActivity"
-            android:configChanges="orientation"
-            android:label="Graphics/CameraPreview"
-            android:screenOrientation="portrait"
-            android:theme="@style/AeyeFaceTheme" >
-        </activity>
+        <!-- RecognizeLightActivity 源码保留作参考，已从编译排除；炫彩入口为 RecognizeActivity -->
         <activity
             android:name="com.aeye.face.confirm.InfoConfirmActivity"
             android:exported="false"

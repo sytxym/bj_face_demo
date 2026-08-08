@@ -39,9 +39,14 @@ public class DemoApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        AEFaceSdk.init(serverAddr);
+        AEFaceSdk.init(serverAddr,true);
         AEFaceSdk.setLogSource("5"); // 掌上海关 APP
-        AEFaceSdk.setHttpLogEnabled(true); //关闭请求日志
+        AEFaceSdk.setHttpLogEnabled(true);
+        // 炫彩接口切换（调试用）：true=新接口（assistant/thunderAliveColor 拉色 + faceIdent 带炫彩字段）；
+        // false=老接口（alg-api/liveness/thunderAliveColor 拉色 + thunderAliveCheck 核验，不调 faceIdent）
+        AEFaceSdk.setNewColorIntenface(false);
+        // 炫彩拉色 / thunderAliveCheck：基地址 + 凭证（路径由 SDK FaceApiPaths 拼接）
+        AEFaceSdk.setThunderCredentials(serverAddr, "50002", "50002@1qaz");
         mHttpClient = OkHttpClientFactory.createOkHttpClient();
         ristTypeList(this);
     }

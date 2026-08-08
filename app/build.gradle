@@ -17,7 +17,12 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
+        ndk {
+            //选择要添加的对应cpu类型的.so库。
+            // 不含 arm64-v8a：libLightAlive/libfa_dymc/libtg_dymc 只有 32 位版本，64 位设备以兼容模式运行
+            abiFilters "armeabi", "armeabi-v7a","arm64-v8a"
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

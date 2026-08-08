@@ -6,21 +6,36 @@ import android.text.TextUtils;
 
 import com.aeye.face.callback.FaceUniResultCodes;
 import com.aeye.face.callback.FaceUniResultMapper;
+import com.aeye.face.config.FaceActionConfig;
 import com.aeye.face.config.FaceActionConfigDefaults;
 import com.aeye.face.config.FaceActionConfigManager;
 import com.aeye.face.config.FaceActionConfigRepository;
+import com.aeye.face.config.FaceActionConfigSdkMapper;
 import com.aeye.face.config.FaceActionOptions;
 import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.confirm.InfoConfirmManager;
-import com.aeye.face.confirm.InfoConfirmRepository;
+import com.aeye.face.confirm.InfoConfirmPayload;
 import com.aeye.face.uitls.FacePermissionRequester;
+import com.aeye.face.verify.FaceUserInfo;
 import com.aeye.face.verify.FaceVerifySession;
 import com.aeye.face.verify.QrInsertRecordManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
- * 人脸核验统一入口：宿主只需传入 businessCode、userId，SDK 内部完成配置拉取、参数设置与预览页跳转。
+ * 人脸核验统一入口。传入参数分两类分别管理：
+ * <ul>
+ *   <li><b>用户基本信息</b>（{@link FaceUserInfo}：certName/certType/certNo/country/userId/busId）：
+ *       由外部业务 App 传入（SDK 已取消调用用户信息预览接口），
+ *       活体完成后透传给人脸核验接口 {@code /assistant/faceIdent}；</li>
+ *   <li><b>SDK 配置信息</b>（活体检测方式、动作配置等）：
+ *       在线核验（{@link #start}）使用配置接口返回的字段；
+ *       本地核验（{@link #startLocal}）由外部业务 App 通过 {@link FaceActionOptions} 传入，
+ *       参数名称与数据格式沿用活体配置接口。</li>
+ * </ul>
  * <p>
- * 使用前调用 {@link AEFaceSdk#init(String)} 配置后台根地址。
+ * 在线核验使用前调用 {@link AEFaceSdk#init(String)} 配置后台根地址。
  * </p>
  */
 public final class AEFaceVerifyFlow {
@@ -35,13 +50,6 @@ public final class AEFaceVerifyFlow {
 
         /** 流程前置失败（配置/预览/insertRecord 等），原生宿主使用 */
         void onError(String message);
-
-        /**
-         * UniApp 统一结果（流程未进入活体时）。
-         * 格式与活体结束 {@link AEFaceInterface#onUniFinish(String)} 一致。
-         */
-        default void onUniResult(int code, String message) {
-        }
 
         /**
          * SDK 即将拉起系统权限对话框（当前仅相机权限）。
@@ -90,6 +98,60 @@ public final class AEFaceVerifyFlow {
                              final String hostHomeActivityClass,
                              final AEFaceInterface listener,
                              final Callback callback) {
+        start(activity, businessCode, userId, authRecordId, null,
+                hostHomeActivityClass, listener, callback);
+    }
+
+    /**
+     * 在线核验推荐入口：外部业务 App 传入用户基本信息。
+     * <p>身份字段（certName/certType/certNo/country/userId/busId）不再通过接口获取，
+     * 活体完成后随 {@code /assistant/faceIdent} 一并提交；
+     * SDK 配置（活体方式、动作等）仍使用配置接口返回的字段。</p>
+     *
+     * @param userInfo           外部业务 App 传入的用户基本信息（含 userId）
+     * @param authRecordId       扫码场景传入 authIdentRecordId；宿主直启传 null，SDK 调用 insertRecord 创建
+     * @param detectTypeOverride 覆盖后台配置的 detectType（如 LIGHT / MOTION_LIGHT）；为 null 时以后台配置为准
+     */
+    public static void start(final Activity activity,
+                             final String businessCode,
+                             final FaceUserInfo userInfo,
+                             final String authRecordId,
+                             final String detectTypeOverride,
+                             final String hostHomeActivityClass,
+                             final AEFaceInterface listener,
+                             final Callback callback) {
+        startInternal(activity, businessCode,
+                userInfo != null ? userInfo.getUserId() : null,
+                userInfo, authRecordId, detectTypeOverride,
+                hostHomeActivityClass, listener, callback);
+    }
+
+    /**
+     * @param detectTypeOverride 覆盖后台配置的 detectType（如 LIGHT / MOTION_LIGHT）；
+     *                           为 null 时完全以后台配置为准。炫彩与动作走同一套后台流程
+     *                           （配置、insertRecord、faceIdent、日志、二维码状态）。
+     */
+    public static void start(final Activity activity,
+                             final String businessCode,
+                             final String userId,
+                             final String authRecordId,
+                             final String detectTypeOverride,
+                             final String hostHomeActivityClass,
+                             final AEFaceInterface listener,
+                             final Callback callback) {
+        startInternal(activity, businessCode, userId, null, authRecordId, detectTypeOverride,
+                hostHomeActivityClass, listener, callback);
+    }
+
+    private static void startInternal(final Activity activity,
+                                      final String businessCode,
+                                      final String userId,
+                                      final FaceUserInfo userInfo,
+                                      final String authRecordId,
+                                      final String detectTypeOverride,
+                                      final String hostHomeActivityClass,
+                                      final AEFaceInterface listener,
+                                      final Callback callback) {
         if (activity == null || activity.isFinishing()) {
             notifyFlowError(listener, callback, FaceUniResultCodes.NO_ACTIVITY,
                     FaceUniResultCodes.MSG_NO_ACTIVITY);
@@ -111,13 +173,15 @@ public final class AEFaceVerifyFlow {
         if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
             @Override
             public void run() {
-                start(activity, businessCode, userId, authRecordId, hostHomeActivityClass, listener, callback);
+                startInternal(activity, businessCode, userId, userInfo, authRecordId,
+                        detectTypeOverride, hostHomeActivityClass, listener, callback);
             }
         })) {
             return;
         }
 
-        FaceVerifySession.begin(userId, authRecordId, businessCode);
+        FaceVerifySession.begin(userId, authRecordId, businessCode, false, detectTypeOverride);
+        FaceVerifySession.setUserInfo(userInfo);
         try {
             AEFaceSdk.ensureInitialized();
         } catch (IllegalStateException e) {
@@ -129,43 +193,37 @@ public final class AEFaceVerifyFlow {
         FaceActionConfigManager.fetch(businessCode, new FaceActionConfigRepository.FetchCallback() {
             @Override
             public void onSuccess(com.aeye.face.config.FaceActionConfig config, boolean fromRemote) {
+                if (!TextUtils.isEmpty(detectTypeOverride) && config != null) {
+                    config.setDetectType(detectTypeOverride);
+                }
                 if (!prepareSdk(activity, hostHomeActivityClass, listener, callback)) {
                     return;
                 }
-                InfoConfirmManager.fetch(userId, new InfoConfirmRepository.FetchCallback() {
+                // 用户信息预览接口已取消：确认页不再展示用户信息，
+                // payload 由外部传入的基本信息组装（仅作标题等兜底透传）
+                final InfoConfirmPayload payload =
+                        buildConfirmPayload(FaceVerifySession.getUserInfo());
+                Runnable openPreview = () -> {
+                    InfoConfirmManager.open(activity, payload);
+                    if (callback != null) {
+                        callback.onPreviewOpened();
+                    }
+                };
+                if (FaceVerifySession.isAuthRecordIdFromHost()) {
+                    openPreview.run();
+                    return;
+                }
+                QrInsertRecordManager.insert(activity, new QrInsertRecordManager.Callback() {
                     @Override
                     public void onSuccess(
-                            com.aeye.face.confirm.InfoConfirmPayload payload,
-                            boolean previewFromRemote) {
-                        Runnable openPreview = () -> {
-                            InfoConfirmManager.open(activity, payload);
-                            if (callback != null) {
-                                callback.onPreviewOpened();
-                            }
-                        };
-                        if (FaceVerifySession.isAuthRecordIdFromHost()) {
-                            openPreview.run();
-                            return;
-                        }
-                        QrInsertRecordManager.insert(activity, new QrInsertRecordManager.Callback() {
-                            @Override
-                            public void onSuccess(
-                                    com.aeye.face.api.model.QrInsertRecordResult result) {
-                                openPreview.run();
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
-                                        message != null ? message : "新增认证记录失败");
-                            }
-                        });
+                            com.aeye.face.api.model.QrInsertRecordResult result) {
+                        openPreview.run();
                     }
 
                     @Override
                     public void onError(String message) {
                         notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
-                                message != null ? message : "获取预览信息失败");
+                                message != null ? message : "新增认证记录失败");
                     }
                 });
             }
@@ -199,6 +257,23 @@ public final class AEFaceVerifyFlow {
                                   final String hostHomeActivityClass,
                                   final AEFaceInterface listener,
                                   final Callback callback) {
+        startLocal(activity, null, options, hostHomeActivityClass, listener, callback);
+    }
+
+    /**
+     * 本地核验入口（带用户基本信息）：SDK 配置由外部通过 {@link FaceActionOptions} 传入
+     * （参数名称与数据格式沿用活体配置接口，detectType 对应活体类型、enableXxx/actionCount 对应动作配置），
+     * 不调用任何我方后台接口。{@code userInfo} 仅保存在会话中供宿主/日志使用，
+     * 本地模式下不会提交给 faceIdent。
+     *
+     * @param userInfo 外部业务 App 传入的用户基本信息（可为 null）
+     */
+    public static void startLocal(final Activity activity,
+                                  final FaceUserInfo userInfo,
+                                  final FaceActionOptions options,
+                                  final String hostHomeActivityClass,
+                                  final AEFaceInterface listener,
+                                  final Callback callback) {
         if (activity == null || activity.isFinishing()) {
             notifyFlowError(listener, callback, FaceUniResultCodes.NO_ACTIVITY,
                     FaceUniResultCodes.MSG_NO_ACTIVITY);
@@ -209,13 +284,14 @@ public final class AEFaceVerifyFlow {
         if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
             @Override
             public void run() {
-                startLocal(activity, options, hostHomeActivityClass, listener, callback);
+                startLocal(activity, userInfo, options, hostHomeActivityClass, listener, callback);
             }
         })) {
             return;
         }
 
-        FaceVerifySession.begin(null, null, null, true);
+        FaceVerifySession.begin(userInfo != null ? userInfo.getUserId() : null, null, null, true);
+        FaceVerifySession.setUserInfo(userInfo);
         AEFacePack.getInstance().AEYE_Init(activity);
 
         Bundle paras = FaceSdkHostParamBuilder.buildBase(hostHomeActivityClass, true);
@@ -231,6 +307,24 @@ public final class AEFaceVerifyFlow {
         }
     }
 
+    /**
+     * 由外部传入的基本信息组装确认页 payload（确认页信息区已隐藏，仅透传标题兜底字段）。
+     */
+    private static InfoConfirmPayload buildConfirmPayload(FaceUserInfo info) {
+        JSONObject data = new JSONObject();
+        try {
+            if (info != null) {
+                data.putOpt("name", info.getCertName());
+                data.putOpt("nation", info.getCountry());
+                data.putOpt("certType", info.getCertType());
+                data.putOpt("certNo", info.getCertNo());
+                data.putOpt("userId", info.getUserId());
+            }
+        } catch (JSONException ignored) {
+        }
+        return InfoConfirmPayload.fromApiData(data);
+    }
+
     private static boolean prepareSdk(Activity activity, String hostHomeActivityClass,
                                       AEFaceInterface listener, Callback callback) {
         // 环境检查已在 start()/startLocal() 入口完成，这里做一次内存兜底
@@ -244,6 +338,16 @@ public final class AEFaceVerifyFlow {
 
         Bundle paras = FaceSdkHostParamBuilder.buildBase(hostHomeActivityClass, true);
         FaceActionConfigManager.applyCachedToSdkBundle(paras);
+        // Demo/联调可覆盖 detectType；正式环境通常已由缓存配置写入
+        String override = FaceVerifySession.getDetectTypeOverride();
+        if (!TextUtils.isEmpty(override)) {
+            FaceActionConfig cfg = FaceActionConfigManager.getCached();
+            if (cfg == null) {
+                cfg = new FaceActionConfig();
+            }
+            cfg.setDetectType(override);
+            FaceActionConfigSdkMapper.applyToBundle(paras, cfg);
+        }
 
         AEFacePack.getInstance().AEYE_SetListener(listener);
         AEFacePack.getInstance().AEYE_SetParameter(paras);
@@ -304,14 +408,12 @@ public final class AEFaceVerifyFlow {
     }
 
     private static void notifyFlowError(AEFaceInterface listener, Callback callback,
-                                        int uniCode, String detailMessage) {
-        String uniMessage = FaceUniResultMapper.defaultMessage(uniCode);
+                                        int flowCode, String detailMessage) {
         if (callback != null) {
-            callback.onError(TextUtils.isEmpty(detailMessage) ? uniMessage : detailMessage);
-            callback.onUniResult(uniCode, uniMessage);
-        }
-        if (listener != null) {
-            listener.onUniFinish(FaceUniResultMapper.flowErrorToUniJson(uniCode, uniMessage).toString());
+            String message = TextUtils.isEmpty(detailMessage)
+                    ? FaceUniResultMapper.defaultMessage(flowCode)
+                    : detailMessage;
+            callback.onError(message);
         }
     }
 }

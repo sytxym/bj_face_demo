@@ -52,6 +52,16 @@ final class ApiLogger {
         Log.d(TAG, "----------------------------------");
     }
 
+    static void logRetry(String url, int attempt, Throwable error) {
+        if (!AEFaceSdk.isHttpLogEnabled()) {
+            return;
+        }
+        Log.w(TAG, "---------- HTTP Retry ----------");
+        Log.w(TAG, "URL: " + url);
+        Log.w(TAG, "Retry #" + attempt + ", cause: "
+                + (error != null ? error.getClass().getSimpleName() + ": " + error.getMessage() : "unknown"));
+    }
+
     static void logError(String url, Throwable error) {
         if (!AEFaceSdk.isHttpLogEnabled()) {
             return;

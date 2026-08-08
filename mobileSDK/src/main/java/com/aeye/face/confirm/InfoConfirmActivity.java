@@ -1,6 +1,7 @@
 package com.aeye.face.confirm;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Outline;
 import android.os.Build;
@@ -24,12 +25,15 @@ import com.sdk.core.R;
  */
 public class InfoConfirmActivity extends Activity {
 
+    private ProgressDialog lightLoadingDialog;
+    private Button startButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         FaceImmersiveStatusBar.install(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.aeye_activity_info_confirm);
-        FaceImmersiveStatusBar.bindToolbar(this, findViewById(R.id.face_toolbar), null);
+        FaceImmersiveStatusBar.bindToolbar(this, findViewById(R.id.face_toolbar));
         FaceImmersiveStatusBar.bindBottomMargin(this, findViewById(R.id.btn_start), 20);
         AEFacePack.getInstance().registerFaceFlowActivity(this);
         QrRecordStatusManager.update(QrRecordStatus.SCAN_DONE);
@@ -61,13 +65,45 @@ public class InfoConfirmActivity extends Activity {
         ImageView back = findViewById(R.id.btn_back);
         back.setOnClickListener(v -> finish());
 
-        Button start = findViewById(R.id.btn_start);
-        start.setOnClickListener(v -> {
+        startButton = findViewById(R.id.btn_start);
+        startButton.setOnClickListener(v -> {
             String failDetail = in.getStringExtra(InfoConfirmExtras.EXTRA_FAIL_DETAIL);
-            AEFacePack.getInstance().setPendingFailDetail(failDetail);
-            AEFacePack.getInstance().AEYE_BeginRecog(InfoConfirmActivity.this);
-            finish();
+            AEFacePack pack = AEFacePack.getInstance();
+            pack.setPendingFailDetail(failDetail);
+            startButton.setEnabled(false);
+
+            // 取景页启动后再关闭确认页，避免炫彩异步拉色期间闪回首页
+            pack.setOnRecognizeLaunched(() -> {
+                dismissLightLoading();
+                if (!isFinishing()) {
+                    finish();
+                }
+            });
+
+            pack.AEYE_BeginRecog(InfoConfirmActivity.this);
+            if (pack.isThunderProcessing()) {
+                // 异步拉色中：保持本页并展示 loading，等回调里 finish
+                showLightLoading();
+            } else if (!isFinishing()) {
+                // 未起页（重复调用等）：恢复按钮，清理回调
+                pack.clearOnRecognizeLaunched();
+                startButton.setEnabled(true);
+            }
+            // 同步起页：launchRecognizeActivity 已触发回调并 finish
         });
+    }
+
+    private void showLightLoading() {
+        dismissLightLoading();
+        lightLoadingDialog = ProgressDialog.show(
+                this, null, getString(R.string.info_light_loading), true, false);
+    }
+
+    private void dismissLightLoading() {
+        if (lightLoadingDialog != null && lightLoadingDialog.isShowing()) {
+            lightLoadingDialog.dismiss();
+        }
+        lightLoadingDialog = null;
     }
 
     private static String safe(String s) {
@@ -90,6 +126,8 @@ public class InfoConfirmActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        dismissLightLoading();
+        AEFacePack.getInstance().clearOnRecognizeLaunched();
         AEFacePack.getInstance().unregisterFaceFlowActivity(this);
         super.onDestroy();
     }

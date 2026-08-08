@@ -22,8 +22,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.aeye.face.AEFaceInterface;
 import com.aeye.face.AEFacePack;
 import com.aeye.face.AEFaceVerifyFlow;
+import android.text.TextUtils;
+
 import com.aeye.face.config.FaceActionConfig;
-import com.aeye.face.config.FaceActionOptions;
+import com.aeye.face.verify.FaceUserInfo;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
@@ -36,10 +38,39 @@ import com.journeyapps.barcodescanner.ScanOptions;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AEFaceInterface {
 
-    /** 动作活体业务码，与后台 business_config.business_code 一致（Demo：自然人实名认证） */
+    /** 动作活体业务码，与后台 business_config.business_code 一致（Demo：自然人实名认证）；JSON 未传 businessCode 时的默认值 */
     private static final String DEMO_BUSINESS_CODE = "12";
-    /** 人脸认证按钮使用的演示用户 ID */
-    private static final String DEMO_USER_ID = "demoUser001";
+
+    /**
+     * 模拟业务 App（H5/RN）传入的启动参数 JSON——在线核验（useType=0）。
+     * 正式接入时由业务侧传入该 JSON，未传字段使用默认值；目前联调阶段写死。
+     */
+    private static final String DEMO_ONLINE_LAUNCH_JSON = "{"
+            + "\"certName\":\"张三\","
+            + "\"certType\":\"1\","
+            + "\"certNo\":\"430622199001011234\","
+            + "\"country\":\"中国\","
+            + "\"userId\":\"demoUser001\","
+            + "\"busId\":\"demoBus001\","
+            + "\"businessCode\":\"" + DEMO_BUSINESS_CODE + "\","
+            + "\"useType\":" + FaceVerifyLaunchParams.USE_TYPE_ONLINE
+            + "}";
+
+    /**
+     * 模拟业务 App 传入的启动参数 JSON——本地核验（useType=1，不调用我方后台）。
+     * liveType=0 动作活体，actionType=[抬头,低头,摇头,眨眼,张嘴]，示例为 低头+摇头+眨眼。
+     */
+    private static final String DEMO_LOCAL_LAUNCH_JSON = "{"
+            + "\"certName\":\"张三\","
+            + "\"certType\":\"1\","
+            + "\"certNo\":\"430622199001011234\","
+            + "\"country\":\"中国\","
+            + "\"userId\":\"demoUser001\","
+            + "\"busId\":\"demoBus001\","
+            + "\"useType\":" + FaceVerifyLaunchParams.USE_TYPE_LOCAL + ","
+            + "\"liveType\":" + FaceVerifyLaunchParams.LIVE_TYPE_MOTION + ","
+            + "\"actionType\":[0,1,1,1,0]"
+            + "}";
 
     /** 拉取活体配置时的 loading，预览页打开或失败时关闭 */
     private ProgressDialog loadingDialog;
@@ -65,9 +96,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btTestFace = findViewById(R.id.btTestFace);
         Button btScanAuth = findViewById(R.id.btScanAuth);
         Button btLocalFace = findViewById(R.id.btLocalFace);
+        Button btLight = findViewById(R.id.btLocalLight);
+        Button btMotionLight = findViewById(R.id.btLocalMotionLight);
         btTestFace.setOnClickListener(this);
         btScanAuth.setOnClickListener(this);
         btLocalFace.setOnClickListener(this);
+        btLight.setOnClickListener(this);
+        btMotionLight.setOnClickListener(this);
     }
 
     /** 注册相机权限与扫码结果的 Activity Result 回调 */
@@ -95,11 +130,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.btTestFace) {
-            startFaceVerify(DEMO_USER_ID);
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, null);
         } else if (id == R.id.btScanAuth) {
             startScanAuth();
         } else if (id == R.id.btLocalFace) {
-            startLocalFaceVerify();
+            startFaceVerify(DEMO_LOCAL_LAUNCH_JSON, null, null, null);
+        } else if (id == R.id.btLocalLight) {
+            // 与动作活体同一套后台流程，仅覆盖 detectType=LIGHT
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_LIGHT);
+        } else if (id == R.id.btLocalMotionLight) {
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_MOTION_LIGHT);
         }
     }
 
@@ -125,31 +165,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         scanLauncher.launch(options);
     }
 
-    /** 解析扫码 JSON，用其中的 userId、authIdentRecordId 启动人脸核验 */
+    /** 解析扫码 JSON，用其中的 userId、authIdentRecordId 启动人脸核验（其余参数沿用启动 JSON） */
     private void handleScanResult(String qrContent) {
         try {
             ScanAuthParser.Result scanResult = ScanAuthParser.parse(qrContent);
-            startFaceVerify(scanResult.getUserId(), scanResult.getAuthIdentRecordId());
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON,
+                    scanResult.getUserId(), scanResult.getAuthIdentRecordId(), null);
         } catch (Exception e) {
             Toast.makeText(this, R.string.scan_parse_error, Toast.LENGTH_LONG).show();
         }
     }
 
     /**
-     * 统一人脸核验入口：拉配置 → 信息预览 → 活体 → SDK 内人脸核验。
-     * @param userId       后台用户信息预览接口使用的用户标识
+     * 统一人脸核验入口：解析业务 App 传入的启动 JSON（用户基本信息 + SDK 配置），
+     * 按 useType 路由到在线核验（拉配置 → 确认页 → insertRecord → 活体 → faceIdent）
+     * 或本地核验（不调用我方后台，liveType/actionType 决定活体方式）。
+     *
+     * @param launchJson         业务 App（H5/RN）传入的启动参数 JSON；为空时全部字段用默认值
+     * @param scanUserId         扫码场景覆盖 JSON 中的 userId；非扫码传 null
+     * @param scanAuthRecordId   扫码场景传入的认证记录 ID；非扫码传 null
+     * @param detectTypeOverride 非空时覆盖后台 detectType（联调炫彩用，仅在线核验生效）
      */
-    private void startFaceVerify(String userId) {
-        startFaceVerify(userId, null);
-    }
+    private void startFaceVerify(String launchJson, String scanUserId,
+                                 String scanAuthRecordId, String detectTypeOverride) {
+        FaceVerifyLaunchParams params;
+        try {
+            params = FaceVerifyLaunchParams.fromJson(launchJson);
+        } catch (Exception e) {
+            Toast.makeText(this, "启动参数解析失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+        FaceUserInfo userInfo = TextUtils.isEmpty(scanUserId)
+                ? params.getUserInfo()
+                : withUserId(params.getUserInfo(), scanUserId);
 
-    private void startFaceVerify(String userId, String authRecordId) {
+        if (params.isLocalVerify()) {
+            // 本地核验：不调用我方后台，SDK 配置由 JSON 的 liveType/actionType 决定
+            AEFaceVerifyFlow.startLocal(
+                    this,
+                    userInfo,
+                    params.toLocalActionOptions(),
+                    getClass().getName(),
+                    this,
+                    new AEFaceVerifyFlow.Callback() {
+                        @Override
+                        public void onPreviewOpened() {
+                            // 本地模式无预览/网络请求，活体页已直接启动
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                        }
+                    });
+            return;
+        }
+
+        // 在线核验：SDK 配置以配置接口返回为准
+        String businessCode = !TextUtils.isEmpty(params.getBusinessCode())
+                ? params.getBusinessCode() : DEMO_BUSINESS_CODE;
+        String authRecordId = !TextUtils.isEmpty(scanAuthRecordId)
+                ? scanAuthRecordId : params.getAuthRecordId();
         showLoading(getString(R.string.loading_liveness_config));
         AEFaceVerifyFlow.start(
                 this,
-                DEMO_BUSINESS_CODE,
-                userId,
+                businessCode,
+                userInfo,
                 authRecordId,
+                detectTypeOverride,
                 getClass().getName(),
                 this,
                 new AEFaceVerifyFlow.Callback() {
@@ -166,13 +249,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onPermissionRequesting() {
-                        // 权限对话框弹出前先收起 loading，避免与"拉取活体配置"文案并存
                         dismissLoading();
                     }
 
                     @Override
                     public void onPermissionResult(boolean granted) {
-                        // 授权通过后 SDK 会自动重新执行核验流程，这里恢复 loading
                         if (granted) {
                             showLoading(getString(R.string.loading_liveness_config));
                         }
@@ -180,41 +261,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
-    /**
-     * 本地核验入口：仅做本地活体检测，不调用我方任何后台接口。
-     * 动作配置由宿主自定义；活体完成后结果与人脸图片数组通过 {@link #onFinish} 回调，
-     * 宿主可自行拿 data 中的 images 去对接第三方接口。
-     */
-    private void startLocalFaceVerify() {
-        FaceActionOptions options = new FaceActionOptions.Builder()
-                .actionType(FaceActionConfig.ACTION_SEQUENCE)
-                .actionCount(3)
-                .enableLookUp(true)
-                .enableShakeHead(true)
-                .enableBlink(true)
-                .enableLookDown(false)
-                .enableOpenMouth(false)
-                .aliveLevel(1)
-                .motionTimeoutSec(15)
-                .voiceEnabled(true)
-                .build();
-
-        AEFaceVerifyFlow.startLocal(
-                this,
-                options,
-                getClass().getName(),
-                this,
-                new AEFaceVerifyFlow.Callback() {
-                    @Override
-                    public void onPreviewOpened() {
-                        // 本地模式无预览/网络请求，活体页已直接启动
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
-                    }
-                });
+    /** 扫码场景：用扫码结果中的 userId 覆盖启动 JSON 里的 userId，其余身份字段保持不变 */
+    private FaceUserInfo withUserId(FaceUserInfo base, String userId) {
+        FaceUserInfo.Builder builder = new FaceUserInfo.Builder().userId(userId);
+        if (base != null) {
+            builder.certName(base.getCertName())
+                    .certType(base.getCertType())
+                    .certNo(base.getCertNo())
+                    .country(base.getCountry())
+                    .busId(base.getBusId());
+        }
+        return builder.build();
     }
 
     private void showLoading(String message) {
@@ -254,10 +311,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onProcess(int i, String s) {
     }
 
-    /** 活体结束：value 为结果码，data 为采集 JSON（可上传后台做人脸核验） */
+    /**
+     * 活体结束：value 为 SDK 内部码，data 为采集 JSON，
+     * resultCode 为三端统一码（"0"/"0414009"…），业务端以 resultCode 为准。
+     */
     @Override
-    public void onFinish(int value, String data) {
-        Log.d("terry", "onFinish: " + value + " " + data);
+    public void onFinish(int value, String data, String resultCode) {
+        Log.d("terry", "onFinish: " + value + " resultCode=" + resultCode + " data" + data);
         if (value == AEFacePack.ERROR_OTHER_VERIFY) {
             // 二次核验流程由 SDK 内部处理，不在此跳转
             return;
@@ -265,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recogIntent = new Intent(this, ResultAliveActivity.class);
 //        FLogUtil.saveLogServer("MainActivity->onFinish:" + data);
         recogIntent.putExtra("VALUE", value);
+        recogIntent.putExtra("RESULT_CODE", resultCode);
         mApp.setSnapData(data);
         recogIntent.putExtra("DATA", decodeError(value));
 

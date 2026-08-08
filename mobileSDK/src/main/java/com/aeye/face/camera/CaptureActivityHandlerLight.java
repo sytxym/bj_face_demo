@@ -28,7 +28,7 @@ import com.aeye.android.uitls.ImageUtils;
 import com.aeye.face.AEFacePack;
 import com.aeye.face.config.IDConstants;
 import com.aeye.face.uitls.PictureManagerUtilsLight;
-import com.aeye.face.lightView.RecognizeLightActivity;
+import com.aeye.face.view.RecognizeActivity;
 import com.aeye.sdk.AEFaceAlive;
 import com.aeye.sdk.AEFaceAliveListener;
 
@@ -53,7 +53,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	private int poseIndex = 0;
 	private int[] poseArray = null;
 	private int[] poseTotal = null;
-	private RecognizeLightActivity activity;
+	private RecognizeActivity activity;
 	private AEFaceInfo mBuffer;
 //	private AccShakeDetect shakeDet;
 	private double compare = POSVALUE_DEFAULT;
@@ -75,7 +75,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	 * 构造
 	 * @param activity
 	 */
-	public CaptureActivityHandlerLight(RecognizeLightActivity activity) {
+	public CaptureActivityHandlerLight(RecognizeActivity activity) {
 		this.activity = activity;
 //		shakeDet = new AccShakeDetect();
 //		shakeDet.registerSensor(activity, new OnShakeListener() {
@@ -102,7 +102,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		switch (message.what) {
 		case IDConstants.id_auto_focus:
 			if (state == State.PREVIEW) {
-				CameraManager.get(activity).requestAutoFocus(this,
+				CameraManagerLight.get(activity).requestAutoFocus(this,
 						IDConstants.id_auto_focus);
 			}
 			break;
@@ -134,8 +134,11 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 			// start another.
 			// resetData();
 			if (state == State.PREVIEW) {
-				CameraManagerLight.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-						IDConstants.id_decode);
+				Handler decodeHandler = decodeThread.getHandler();
+				if (decodeHandler != null) {
+					CameraManagerLight.get(activity).requestPreviewFrame(decodeHandler,
+							IDConstants.id_decode);
+				}
 			}
 			break;
 			
@@ -154,8 +157,12 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 
 	public void resetData() {
 		removeCallbacksAndMessages(null);
-		decodeThread.getHandler().removeCallbacksAndMessages(null);
-		
+		// getHandler 有界等待，异常时可能为 null，需判空防 NPE
+		Handler decodeHandler = decodeThread.getHandler();
+		if (decodeHandler != null) {
+			decodeHandler.removeCallbacksAndMessages(null);
+		}
+
 		activity.resetData();
 		state = State.PAUSE;
 		succeedNum = 0;
@@ -168,7 +175,20 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		cameraDirection = activity.getOrientation();
 		
 		PictureManagerUtilsLight.getPictureManager().resetPictureManager();
-		decodeThread.getHandler().sendEmptyMessage(DecodeHandler.MSG_RESET);
+		if (decodeHandler != null) {
+			decodeHandler.sendEmptyMessage(DecodeHandler.MSG_RESET);
+		}
+	}
+
+	/**
+	 * 只回退解码侧的色序跟踪，预览/解码循环继续。
+	 * 闪光启动、人脸丢失回退都走这里；{@link #resetData()} 会暂停解码循环，不能在闪光过程中调用。
+	 */
+	public void resetColorTracking() {
+		Handler decodeHandler = decodeThread.getHandler();
+		if (decodeHandler != null) {
+			decodeHandler.sendEmptyMessage(DecodeHandlerLight.MSG_RESET_COLOR);
+		}
 	}
 
 	public void startPreview() {
@@ -180,9 +200,10 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	/** 退出预览、退出decodehandler的looper */
 	public void quitSynchronously() {
 		CameraManagerLight.get(activity).stopPreview();
-		Message quit = Message.obtain(decodeThread.getHandler(),
-				IDConstants.id_quit);
-		quit.sendToTarget();
+		Handler decodeHandler = decodeThread.getHandler();
+		if (decodeHandler != null) {
+			Message.obtain(decodeHandler, IDConstants.id_quit).sendToTarget();
+		}
 		decodeThread.end();
 
 		// Be absolutely sure we don't send any queued up messages
@@ -198,8 +219,11 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	/** 重新预览时请求自动焦点和预览帧 */
 	public void restartPreviewAndDecode() {
 		state = State.PREVIEW;
-		CameraManagerLight.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-				IDConstants.id_decode);
+		Handler decodeHandler = decodeThread.getHandler();
+		if (decodeHandler != null) {
+			CameraManagerLight.get(activity).requestPreviewFrame(decodeHandler,
+					IDConstants.id_decode);
+		}
 		CameraManagerLight.get(activity).requestAutoFocus(this,
 				IDConstants.id_auto_focus);
 		activity.setDecodeStatus(true);
@@ -215,8 +239,11 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	
 	public boolean startOneSide() {
 		if (mSideSucc) {
-			decodeThread.getHandler().sendEmptyMessageDelayed(
-					IDConstants.id_request_side, 800);
+			Handler decodeHandler = decodeThread.getHandler();
+			if (decodeHandler != null) {
+				decodeHandler.sendEmptyMessageDelayed(
+						IDConstants.id_request_side, 800);
+			}
 			mSideSucc = false;
 			return true;
 		} else {
@@ -253,8 +280,11 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	public void resumeDecode() {
 		Log.e("capture handler","resumeDecode");
 		state = State.PREVIEW;
-		CameraManagerLight.get(activity).requestPreviewFrame(decodeThread.getHandler(),
-				IDConstants.id_decode);
+		Handler decodeHandler = decodeThread.getHandler();
+		if (decodeHandler != null) {
+			CameraManagerLight.get(activity).requestPreviewFrame(decodeHandler,
+					IDConstants.id_decode);
+		}
 	}
 
 	private int[] computePoseArray(int action) {
@@ -339,7 +369,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	
 	public void displayPoseChange(final boolean delay) {
 //		poseChange = true;
-//		if (activity.getHandler().getCurSide() > 1) {
+//		if (activity.getLightHandler().getCurSide() > 1) {
 ////			activity.showPoseSuccessMsg(true);
 //			activity.dismissHint();
 //		}
@@ -351,7 +381,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 //			@Override
 //			public void run() {
 //
-//				if (activity.getHandler().getCurSide() > 1) {
+//				if (activity.getLightHandler().getCurSide() > 1) {
 ////					activity.showPoseSuccessMsg(false);
 //				}
 //
@@ -471,7 +501,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 				}
 				if(poseIndex>=5 && activity.currentIndex>=5) {
 					info.isAlive = true;
-					Message message = Message.obtain(activity.getHandler(),
+					Message message = Message.obtain(activity.getLightHandler(),
 							IDConstants.id_decode_succeeded, info);
 					message.sendToTarget();
 					compare = POSVALUE_DEFAULT;
@@ -504,7 +534,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		} else if (reason == 0) {
 			addAliveImage(info);
 			info.isAlive = true;
-			Message message = Message.obtain(activity.getHandler(),
+			Message message = Message.obtain(activity.getLightHandler(),
 					IDConstants.id_decode_succeeded, info);
 			message.sendToTarget();
 		}

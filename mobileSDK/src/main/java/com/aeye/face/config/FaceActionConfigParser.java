@@ -26,7 +26,9 @@ public final class FaceActionConfigParser {
         config.setActionConfigId(data.optLong("actionConfigId", 0L));
         config.setBusinessCode(data.optString("businessCode", ""));
         config.setBusinessName(data.optString("businessName", ""));
-        config.setDetectType(data.optString("detectType", "FACE"));
+        // detectType 后台为数字码（1 静默/2 动作/3 炫彩/4 动作+炫彩），缺省按动作
+        config.setDetectType(data.optString("detectType", FaceActionConfig.DETECT_MOTION));
+        // actionType 后台为数字码（1 顺序/2 随机），兼容旧 SEQUENCE/RANDOM，缺省随机
         String actionType = data.optString("actionType", FaceActionConfig.ACTION_RANDOM);
         config.setActionType(TextUtils.isEmpty(actionType) ? FaceActionConfig.ACTION_RANDOM : actionType);
         config.setActionCount(data.optInt("actionCount", 3));

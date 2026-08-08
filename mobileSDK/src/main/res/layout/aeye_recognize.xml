@@ -16,50 +16,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-<!--        <ImageView-->
-<!--            android:id="@+id/ivPreviewMask"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:scaleType="fitXY"-->
-<!--            android:src="@drawable/aeye_bg_noface"-->
-<!--            android:visibility="gone" />-->
-
-        <FrameLayout
-            android:id="@+id/face_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:layout_alignParentTop="true">
-
-            <TextView
-                android:id="@+id/tvTop"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/face_theme_primary"
-                android:gravity="center"
-                android:text="@string/face_title"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <ImageView
-                android:id="@+id/ivReturn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="4dp"
-                android:src="@drawable/aeye_return"
-                android:contentDescription="@string/aeye_msg_cancel"
-                android:padding="12dp"
-                />
-
-            <View
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="end"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="4dp" />
-        </FrameLayout>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -70,19 +26,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="76dp" />
 
-            <TextView
-                android:id="@+id/tvHint"
+            <!-- 与上层 tvHint 占位对齐，避免闪光时文案层与取景错位 -->
+            <Space
+                android:id="@+id/face_hint_gap"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingTop="20dp"
-                android:paddingEnd="16dp"
-                android:textStyle="bold"
-                android:paddingBottom="0dp"
-                android:text="@string/face_verify_subtitle"
-                android:textColor="@color/face_theme_primary"
-                android:textSize="18sp" />
+                android:layout_height="58dp" />
 
             <!-- 取景区：固定正方形尺寸，改 dimens 中 face_preview_panel_size 即可整体缩放 -->
             <FrameLayout
@@ -106,12 +54,6 @@
                     android:contentDescription="@null"
                     android:scaleType="centerCrop"
                     android:visibility="gone" />
-
-                <com.aeye.face.view.ScanRingOverlayView
-                    android:id="@+id/scan_ring_overlay"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clickable="false" />
 
                 <TextView
                     android:id="@+id/tvMaskHint"
@@ -145,33 +87,12 @@
                     android:visibility="invisible" />
             </FrameLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvCheckHint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:drawablePadding="8dp"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/face_theme_primary"
-                    android:textSize="16sp"
-                    android:visibility="gone" />
-
-                <ImageView
-                    android:id="@+id/ivVoice"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="8dp"
-                    android:contentDescription="@string/aeye_msg_cancel"
-                    android:padding="8dp"
-                    android:src="@drawable/aeye_selector_voice" />
-            </LinearLayout>
+            <!-- 与上层 tip 行占位对齐（提示文案 + 语音按钮） -->
+            <Space
+                android:id="@+id/face_tip_gap"
+                android:layout_width="match_parent"
+                android:layout_height="88dp"
+                android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/tvFailDetail"
@@ -232,6 +153,122 @@
                 android:visibility="gone" />
         </LinearLayout>
     </RelativeLayout>
+
+    <!-- 炫彩闪光层：盖住取景白底；镂空与预览圆对齐 -->
+    <com.aeye.face.lightView.CheckFaceView
+        android:id="@+id/facebgview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- 文案/语音按钮叠在闪光层之上，闪光时仍可见 -->
+    <LinearLayout
+        android:id="@+id/face_chrome_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:orientation="vertical">
+
+        <Space
+            android:id="@+id/face_chrome_toolbar_gap"
+            android:layout_width="match_parent"
+            android:layout_height="76dp" />
+
+        <TextView
+            android:id="@+id/tvHint"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:text="@string/face_verify_subtitle"
+            android:textColor="@color/face_theme_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- 扫描环叠在闪光层之上，与下方取景面板同尺寸对齐 -->
+        <FrameLayout
+            android:layout_width="@dimen/face_preview_panel_size"
+            android:layout_height="@dimen/face_preview_panel_size"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp"
+            android:clickable="false"
+            android:focusable="false">
+
+            <com.aeye.face.view.ScanRingOverlayView
+                android:id="@+id/scan_ring_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="88dp">
+
+            <TextView
+                android:id="@+id/tvCheckHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:textColor="@color/face_theme_primary"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/ivVoice"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                android:contentDescription="@string/aeye_msg_cancel"
+                android:padding="8dp"
+                android:src="@drawable/aeye_selector_voice" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/face_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:id="@+id/tvTop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/face_theme_primary"
+            android:gravity="center"
+            android:text="@string/face_title"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/ivReturn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:src="@drawable/aeye_return"
+            android:contentDescription="@string/aeye_msg_cancel"
+            android:padding="12dp" />
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp" />
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/introduceView"

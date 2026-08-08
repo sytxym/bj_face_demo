@@ -95,8 +95,8 @@ public final class FaceActionConfigDefaults {
             + "\"actionConfigId\":10001,"
             + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
             + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
-            + "\"detectType\":\"FACE\","
-            + "\"actionType\":\"RANDOM\","
+            + "\"detectType\":\"2\","
+            + "\"actionType\":\"2\","
             + "\"actionCount\":3,"
             + "\"enableLookUp\":\"1\","
             + "\"enableLookDown\":\"0\","
@@ -110,6 +110,76 @@ public final class FaceActionConfigDefaults {
             + "\"messageList\":[],"
             + "\"messageType\":null"
             + "}";
+
+    /** 联调样例：纯炫彩 detectType=3 */
+    public static final String FALLBACK_JSON_LIGHT = "{"
+            + "\"ok\":true,"
+            + "\"errorCode\":null,"
+            + "\"mygType\":null,"
+            + "\"data\":{"
+            + "\"data\":{"
+            + "\"actionConfigId\":10002,"
+            + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
+            + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
+            + "\"detectType\":\"3\","
+            + "\"actionType\":\"2\","
+            + "\"actionCount\":0,"
+            + "\"enableLookUp\":\"0\","
+            + "\"enableLookDown\":\"0\","
+            + "\"enableShakeHead\":\"0\","
+            + "\"enableOpenMouth\":\"0\","
+            + "\"enableBlink\":\"0\","
+            + "\"memo\":\"Demo 模拟纯炫彩配置\""
+            + "}"
+            + "},"
+            + "\"errors\":null,"
+            + "\"messageList\":[],"
+            + "\"messageType\":null"
+            + "}";
+
+    /** 联调样例：动作+炫彩 detectType=4 */
+    public static final String FALLBACK_JSON_MOTION_LIGHT = "{"
+            + "\"ok\":true,"
+            + "\"errorCode\":null,"
+            + "\"mygType\":null,"
+            + "\"data\":{"
+            + "\"data\":{"
+            + "\"actionConfigId\":10003,"
+            + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
+            + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
+            + "\"detectType\":\"4\","
+            + "\"actionType\":\"2\","
+            + "\"actionCount\":1,"
+            + "\"enableLookUp\":\"0\","
+            + "\"enableLookDown\":\"0\","
+            + "\"enableShakeHead\":\"0\","
+            + "\"enableOpenMouth\":\"1\","
+            + "\"enableBlink\":\"1\","
+            + "\"memo\":\"Demo 模拟动作+炫彩配置\""
+            + "}"
+            + "},"
+            + "\"errors\":null,"
+            + "\"messageList\":[],"
+            + "\"messageType\":null"
+            + "}";
+
+    /**
+     * 按 detectType 取 Mock JSON（联调用）。未知类型回退 {@link #FALLBACK_JSON}。
+     * <p>仅认数字码：3 炫彩 / 4 动作+炫彩，其余回退动作。</p>
+     */
+    public static String fallbackJsonForDetectType(String detectType) {
+        if (TextUtils.isEmpty(detectType)) {
+            return FALLBACK_JSON;
+        }
+        switch (detectType.trim()) {
+            case "3":
+                return FALLBACK_JSON_LIGHT;
+            case "4":
+                return FALLBACK_JSON_MOTION_LIGHT;
+            default:
+                return FALLBACK_JSON;
+        }
+    }
 
     private FaceActionConfigDefaults() {
     }

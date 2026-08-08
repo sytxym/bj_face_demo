@@ -1,0 +1,649 @@
+
+
+人脸识别SDK接口文档
+（Android平台）
+V4.18
+
+序号
+修改日期
+文档版本号
+修改章节/页码
+修改内容摘要
+1
+2026.2.9
+V3.8
+11
+增加入参: 是否人脸在正中检测区域才采集 AEFaceParam.ROI_CenterSwitch
+2
+2026.2.9
+V3.8
+7
+返回出参增加SDK版本号 version
+3
+2026.3.31
+V4.16
+11
+增加入参：IS_LAND_Switch 是否横屏，默认竖屏0, 横屏1
+4
+2026.6.26
+V4.18
+
+动作炫彩完整流程、接口说明及示例
+
+目 录
+TOC \o &quot;1-3&quot; \h \u  HYPERLINK \l _Toc8407 人脸识别SDK接口文档 PAGEREF _Toc8407 \h 1
+ HYPERLINK \l _Toc20478 前 言 PAGEREF _Toc20478 \h 3
+ HYPERLINK \l _Toc1211 1、概述 PAGEREF _Toc1211 \h 3
+ HYPERLINK \l _Toc20007 2、文档目的 PAGEREF _Toc20007 \h 4
+ HYPERLINK \l _Toc30567 4.1、环境支持 PAGEREF _Toc30567 \h 5
+ HYPERLINK \l _Toc30159 4.2、权限声明 PAGEREF _Toc30159 \h 5
+ HYPERLINK \l _Toc11280 4.3、SDK引入 PAGEREF _Toc11280 \h 5
+ HYPERLINK \l _Toc21776 5、动作炫彩活体常量说明 PAGEREF _Toc21776 \h 6
+ HYPERLINK \l _Toc5693 6、接口函数定义 PAGEREF _Toc5693 \h 6
+ HYPERLINK \l _Toc32736 6.1、SDK统一入口类 — AEFacePack PAGEREF _Toc32736 \h 6
+ HYPERLINK \l _Toc22120 6.1.1 SDK初始化 PAGEREF _Toc22120 \h 6
+ HYPERLINK \l _Toc1961 6.1.2 SDK回调设置 PAGEREF _Toc1961 \h 6
+ HYPERLINK \l _Toc18377 6.1.3 SDK参数设置 PAGEREF _Toc18377 \h 7
+ HYPERLINK \l _Toc29810 6.1.4 SDK启动 PAGEREF _Toc29810 \h 7
+ HYPERLINK \l _Toc11596 6.1.5 SDK反初始化 PAGEREF _Toc11596 \h 7
+ HYPERLINK \l _Toc29805 6.1.6 SDK版本获取 PAGEREF _Toc29805 \h 7
+ HYPERLINK \l _Toc32623 6.2、回调接口 — AEFaceInterface PAGEREF _Toc32623 \h 8
+ HYPERLINK \l _Toc23787 6.2.1 onFinish 回调 PAGEREF _Toc23787 \h 8
+ HYPERLINK \l _Toc10716 6.3、炫彩+动作活体参数详细说明 PAGEREF _Toc10716 \h 9
+ HYPERLINK \l _Toc12296 6.6、返回码定义 PAGEREF _Toc12296 \h 11
+ HYPERLINK \l _Toc16118 6.7、返回数据结构 AEFaceBean PAGEREF _Toc16118 \h 12
+ HYPERLINK \l _Toc13447 7、炫彩活体完整流程概览 PAGEREF _Toc13447 \h 12
+ HYPERLINK \l _Toc6327 8、调用示例 PAGEREF _Toc6327 \h 13
+
+前 言
+本文档中的所有内容为北京智慧眼科技股份有限公司的机密和专属所有。未经明确书面许可，任何组织或个人不得以任何目的、任何形式及任何手段复制或传播本文档部分或全部内容。
+1、概述
+本SDK开发包提供人脸识别方案，使开发者可以迅速开发基于人脸识别的客户端软件。本文档默认读者已经掌握Android应用程序开发的相关知识。
+本 SDK开发包 提供 动作+炫彩（Action + Flash）活体检测能力。相比于传统纯动作活体，炫彩活体通过在屏幕上投射不同颜色的光，采集人脸在不同光照条件下的反射数据，经过本地 SDK 算法处理后再交由服务端进行活体判断，具有更高的安全性。
+动作+炫彩（ALIVEMODE_MOTION_LIGHT）模式：先要求用户完成一个随机动作（眨眼或张嘴），动作通过后再进入炫彩颜色序列采集，实现双重活体校验。
+2、文档目的
+本文档对炫彩活体及动作+炫彩活体的 Android SDK 接口进行使用说明，覆盖：
+SDK 门面接口及参数详解
+炫彩颜色序列的获取与配置
+回调数据格式与服务端验证
+代码示例
+本文档读者为使用 Android 人脸 SDK 开发活体检测功能的产品设计师、软件工程师。
+术语与定义
+术语
+说明
+炫彩活体（ThunderAlive）
+通过屏幕闪烁不同颜色的光，采集人脸在不同光照下的反射特征来判断是否为活体
+动作活体（MotionAlive）
+通过要求用户做指定动作（眨眼、张嘴等）来判断是否为活体
+动作+炫彩活体
+先完成动作活体检测，再进入炫彩活体采集，双重校验
+人脸图像 
+ face image
+从人脸识别传感器获取的实际图像数据。
+人脸特征
+ face feature
+用于描述人脸特征的一系列编码数据。
+人脸特征提取 
+face feature extract
+从人脸图像中通过图像识别技术获取人脸特征的过程
+人脸特征模板
+ face template
+通过对同一人脸进行多次采集形成的人脸特征集合
+人脸认证 
+face verify
+比较提交的人脸特征样本和引用对象总体的一对多的过程，确定提交的人脸特征样本和引用对象总体中的参考模板是否匹配，来确定所匹配的模板的注册者的身份。
+人脸验证
+ face identify
+比较一个提交的人脸特征样本和一个人脸特征参考模板，来确定提交的人脸特征样本和参考模板是否匹配的一比一的过程。
+阈值 
+ HYPERLINK &quot;http://dict.baidu.com/s?wd=threshold&quot; threshold
+建立相似度或相关性（即分数）的预定义值，用于认定一个生物特征样本和一个生物特征参考模板是否匹配。
+人脸传感器
+ face sensor
+用来从个体采集原始人脸原始图像样本的设备。
+
+符号和缩略语
+FMR
+认假率/错误匹配率（False Match Rate）
+FNMR
+ 拒真率（False Non-Match Rate）
+EER
+ 相等错误率（Equal Error Rate）
+API 
+应用编程接口(Application Programing interface)
+DLL
+ 动态链接库(Dynamic Linkable Library)
+OCX
+对象类别扩充组件（Object Linking and Embedding(OLE) Control eXtension）
+
+4、环境准备
+4.1、环境支持
+Android 2.3 及以上
+支持 Camera 硬件
+建议 armeabi-v7a / arm64-v8a 架构
+4.2、权限声明
+&lt;uses-permission android:name=&quot;android.permission.MOUNT_UNMOUNT_FILESYSTEMS&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.READ_EXTERNAL_STORAGE&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.ACCESS_NETWORK_STATE&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.ACCESS_WIFI_STATE&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.WAKE_LOCK&quot; /&gt;&lt;uses-permission android:name=&quot;android.permission.CAMERA&quot; /&gt;&lt;uses-feature android:name=&quot;android.hardware.camera&quot; /&gt;&lt;uses-feature android:name=&quot;android.hardware.camera.autofocus&quot; android:required=&quot;false&quot; /&gt;
+4.3、SDK引入
+在项目的 build.gradle 中添加 SDK aar 依赖：
+android {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+dependencies {
+    //引入SDK AAR
+    implementation(name: 'mobileSDK_release_v4.18_202606291424', ext: 'aar')
+    // 供sdk内部使用
+    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+}
+5、动作炫彩活体常量说明
+定义在 AEFaceParam.java（com.aeye.face.AEFaceParam）：
+public static final String ALIVEMODE = &quot;ALIVEMode&quot;;public static final int ALIVEMODE_MOTION_LIGHT = 2;  // 动作+炫彩活体
+6、接口函数定义
+6.1、SDK统一入口类 — AEFacePack
+位置：com.aeye.face.AEFacePack
+单例模式，通过 AEFacePack.getInstance() 获取实例。
+调用顺序AEYE_Init() → AEYE_SetParameter() → AEYE_SetListener() → AEYE_BeginRecog()
+6.1.1 SDK初始化
+public int AEYE_Init(Context context)
+参数：
+参数
+类型
+说明
+context
+Context
+应用上下文（建议传 Activity 实例）
+
+说明：初始化所有底层引擎（人脸检测、质量评估、动作活体、防破解），加载模型文件，并在 Android 6.0+ 检查 Camera/WAKE_LOCK 权限。必须在 AEYE_BeginRecog() 之前调用。
+调用顺序要求：AEYE_Init() → AEYE_SetParameter() → AEYE_SetListener() → AEYE_BeginRecog()
+返回值：0 成功，1 失败。
+6.1.2 SDK回调设置
+public int AEYE_SetListener(AEFaceInterface listener)
+参数：
+参数
+类型
+说明
+listener
+AEFaceInterface
+实现回调接口的对象
+
+返回值：0 成功。
+6.1.3 SDK参数设置
+public int AEYE_SetParameter(Bundle paras)
+参数：
+参数
+类型
+说明
+paras
+Bundle
+配置参数 Bundle，参数名使用 AEFaceParam 常量
+
+所有参数详细说明请参见 6.3 炫彩+动作活体参数详细说明。
+返回值：0 成功。
+6.1.4 SDK启动
+public int AEYE_BeginRecog(Context context)
+参数：
+参数
+类型
+说明
+context
+Context
+Activity 上下文
+
+行为：根据 ALIVEMODE 参数值，启动对应的 Activity：
+返回值：0 成功，1 失败（context 为空）。
+6.1.5 SDK反初始化
+public int AEYE_Destory(Context context)
+说明：销毁所有引擎实例，释放 native 层资源。建议在 Activity 的 onDestroy() 中调用。
+6.1.6 SDK版本获取
+public String AEYE_GetVersion()
+返回值：SDK 版本号字符串。如 &quot;FCALDV221C004_HRXJ20230418&quot;。
+6.2、回调接口 — AEFaceInterface
+位置：com.aeye.face.AEFaceInterface
+public interface AEFaceInterface {    void onStart(int value, String data);    
+    void onPrompt(int value, String data);       void onProcess(int value, String data);      void onFinish(int value, String data);   //  活体检测完成回调}
+6.2.1 onFinish 回调
+void onFinish(int value, String data)
+参数 value：
+value 值
+常量名
+说明
+0
+AEFacePack.SUCCESS
+采集成功（开启活体代表活体成功）
+-1
+AEFacePack.ERROR_FAIL
+采集失败（开启活体代表活体失败）
+-4
+AEFacePack.ERROR_TIMEOUT
+超时失败
+-9
+AEFacePack.ERROR_CANCEL
+用户取消
+-10
+AEFacePack.ERROR_CAMERA
+摄像头打开失败
+-11
+AEFacePack.ERROR_DANGER_DEVICE
+本机设备存有隐患
+
+参数 data：JSON 字符串，结构如下：
+序号
+参数名
+类型
+说明
+1
+images
+String[]
+各颜色序列的人脸照片（BASE64，SM4加密）
+其中image0为活体识别通过后人脸比对使用照片
+2
+rect
+String[]
+人脸区域位置 Rect.flattenToString() 格式
+[RectStr0, RectStr1, ……]
+3
+alive
+String[]
+用来做后台活体判断的数据，需传给后台并返回才能识别活体结果
+[data0, data1 ……]
+4
+picnum
+int
+照片总数量
+5
+bioType
+String
+照片类型
+6
+channel
+String
+采集途径
+7
+isCompress
+boolean
+是否压缩
+8
+isCrypt
+boolean
+是否加密
+9
+compress_pic
+String[]
+对应images压缩处理,用于特定业务类型有数据大小限制时使用（使用BASE64编码）
+[image0, image1 ……]
+其中image0为活体识别通过后人脸比对使用照片
+10
+enCryptType
+int
+加密方式：0-不加密 1-国密(SM4) 2-AES
+11
+lightData
+String
+炫彩活体加密数据（提交服务端验证的关键数据）
+12
+sequnce
+String
+颜色序列号（从服务端获取的 sequnce）
+13
+alignData
+String
+对齐人脸数据
+14
+detail
+Object
+SDK 调用详细信息
+
+code
+int
+返回码：0正常 1用户取消 2超时 3活体检测失败 4遮挡 5光照 6人脸模糊
+
+message
+String
+结果描述
+
+reason
+String
+失败原因描述
+
+pose
+int
+人脸姿态对应码
+
+poseStr
+String
+人脸姿态描述
+
+poseIndex
+int
+人脸姿态对应位置
+15
+version
+String
+SDK 版本号
+16
+serverScore
+double
+服务端活体得分（0~1）
+17
+serverInfo
+String
+服务端结果描述
+18
+serverSeq
+String
+服务端流水号
+
+6.2.2 onStart / onPrompt / onProcess 回调
+目前这些接口暂未使用！
+6.3、炫彩+动作活体参数详细说明
+以下参数通过 Bundle 传入 AEFacePack.AEYE_SetParameter(Bundle paras)。
+（默认是本SDK内部已经设置好了，请根据需求改，否则不要改动）:
+AEFaceParam 参数名
+类型
+默认值
+说明
+ALIVEMODE
+int
+—
+必须设置。活体模式：2=动作+炫彩
+ThunderFlashUrl
+String
+null
+必填。炫彩活体服务器地址如（
+https://ai-human.a-eye.cn/xxxx/ws）
+ThunderAppId
+String
+50002
+必填。传入给服务器校验的appld
+ThunderAppSecret
+String
+
+必填。传入给服务器校验的appSecret
+AliveSwitch
+int
+1
+活体开关：1=开启 0=关闭
+VoiceSwitch
+int
+1
+语音提示开关：1=开启 0=关闭
+QualitySwitch
+int
+1
+质量评估开关：1=开启 0=关闭。开启后会提示光线、人脸远近等
+ShowIntroduce
+int
+0
+活体引导页开关：1=显示 0=不显示
+ShowPrepare
+int
+0
+321倒计时准备界面：1=显示 0=不显示
+ShowBackButton
+int
+0
+显示左上角返回按键：1=显示 0=隐藏
+TitleTopBar
+String
+&quot;&quot;
+标题文字，最多6个中文字符
+ColorTopBarBg
+int
+0xff00f000
+标题栏背景色（ARGB格式）
+ColorBottomBarBg
+int
+0x00000000
+底部栏背景色
+CameraId
+int
+1(前置)
+摄像头ID：1=前置 0=后置
+SingleAliveMotionTime
+int
+6
+单个动作超时时间（秒），范围 1-10。炫彩模式下也作用于颜色切换等待
+ModelOverTime
+int
+30
+总超时时间（秒），范围 10-60。设置后覆盖 SingleAliveMotionTime
+ContinueFailDetectNum
+int
+3
+连续丢失帧数阈值（2-5），越低越灵敏
+ContinueSuccessDetectNum
+int
+3
+连续检测到人脸帧数（2-5），达到后开始采集
+TimeoutNotice
+int
+1
+超时弹提示框：1=弹窗（可重新开始或取消）0=直接结束返回-4
+FaceStartTimer
+int
+0
+人脸出现触发计时：1=出现人脸才开始计时 0=启动即计时
+StrictMode
+int
+0
+严格模式：1=开启（禁止活体过程中丢失人脸）0=关闭
+SimpleAnim
+int
+0
+减少动画效果：1=简约 0=默认动画
+AlwaysReturnPic
+int
+0
+活体失败是否返回照片：1=返回 0=不返回
+AliveMask
+int
+0
+遮挡判断：1=开启 0=关闭
+EnCryptType
+int
+0
+图像数据加密：0=不加密 1=国密(SM4) 2=AES
+ROI_CenterSwitch
+boolean
+true
+人脸检测区域居中开关：只人脸在正中检测区域才采集
+IS_LAND_Switch
+int
+0
+横竖屏：0=竖屏 1=横屏
+
+动作活体相关参数（仅 ALIVEMODE_MOTION_LIGHT 动作阶段有效）：
+AEFaceParam 参数名
+类型
+默认值
+说明
+AliveMotionNum
+int
+2
+动作个数（1-5）。在 MOTION_LIGHT 模式下该值无效（固定1个动作）
+AliveLevel
+int
+2
+活体难度（1-3），数字越大越难，动作要求越准确
+AliveFirstMotion
+int
+5
+活体首动作：0随机 2摇头 3抬头 4低头 5张嘴 6眨眼
+AliveFixMotionSwitch
+int
+0
+固定动作开关：1=固定（仅张嘴和眨眼）0=随机。已不再使用
+AliveMotion
+int[]
+{2,3,4,5,6}
+活体动作集合
+
+6.6、返回码定义
+常量
+值
+说明
+AEFacePack.SUCCESS
+0
+采集/活体成功
+AEFacePack.ERROR_FAIL
+-1
+采集/活体失败
+AEFacePack.ERROR_TIMEOUT
+-4
+超时
+AEFacePack.ERROR_CANCEL
+-9
+用户取消
+AEFacePack.ERROR_CAMERA
+-10
+摄像头打开失败
+AEFacePack.ERROR_DANGER_DEVICE
+-11
+设备存有安全隐患
+
+detail 对象中的 code 值（更细化的返回信息）：
+code 值
+说明
+0
+正常
+1
+用户取消
+2
+超时
+3
+活体检测失败
+4
+遮挡
+5
+光照条件差
+6
+人脸模糊
+
+6.7、返回数据结构 AEFaceBean
+位置：com.aeye.face.AEFaceBean
+当 onFinish(0, data) 回调时，data 为 JSON 字符串，可通过 JSON.parseObject(data, AEFaceBean.class) 解析。
+关键字段：
+public class AEFaceBean {    public String[] images;         // 各颜色序列人脸图（BASE64，可能 SM4 加密）    public String[] alive;          // 活体辅助数据    public String[] rect;           // 人脸框区域    public int picnum;              // 图片数量（通常为5）    public String  lightData;       //  炫彩活体加密数据（提交服务端用）    public String  sequnce;         //  颜色序列号（提交服务端用）    public String  alignData;       // 对齐人脸数据    // 解析方法    public Bitmap getLightBitmap(int index);  // 获取第 index 张颜色序列的人脸图（自动 SM4 解密）    public Rect getRect(int index);           // 获取人脸框}
+7、炫彩活体完整流程概览
+客户端                          SDK (AEFacePack)                         服务端
+  │                                │                                      │
+  ├─ AEYE_Init(context) ──────────►                                      │
+  ├─ AEYE_SetParameter(paras) ────►                                     │
+  ├─ AEYE_SetListener(this) ──────►                                      │
+  ├─ AEYE_BeginRecog(context) ────►                                      │
+  │                                │                                      │
+  │                    ┌───────────┴──────────┐                           │
+  │                    │ SDK 内部自动获取颜色    │                           │
+  │                    │ (ThunderAliveHttpClient)│                         │
+  │                    └───────────┬──────────┘                           │
+  │                                ├── POST /thunderAliveColor ──────────►│
+  │                                │◄── {color seq  }   ──────────────────┤
+  │                                │                                      │
+  │                                │
+  │                                │                                      │
+  │                    ┌───────────┴──────────┐                           │
+  │                    │ 动作检测(MOTION_LIGHT) │                           │
+  │                    │ 炫彩序列采集           │                           │
+  │                    │ native算法处理         │                           │
+  │                    └───────────┬──────────┘                           │
+  │                                ├── POST /thunderAliveCheck ──────────►│
+  │                                │◄── {score,info,seq} ─────────────────┤
+  │                                │                                      │
+  │◄── onFinish(value, data) ─────┤  data含serverScore/serverInfo         │
+  │                                │                                      │
+  ├─ 跳转结果页展示图片和得分        │                                      │
+8、调用示例及数据说明
+
+public class MainActivity extends Activity implements AEFaceInterface {
+
+    private void startThunderAliveOneClick() {
+        // 1. 初始化SDK
+        AEFacePack.getInstance().AEYE_Init(this);
+        // 2. 构造参数
+        Bundle paras = new Bundle();
+        paras.putInt(AEFaceParam.ALIVEMODE, AEFaceParam.ALIVEMODE_MOTION_LIGHT);
+       paras.putString(AEFaceParam.ThunderFlashUrl, &quot;https://ai-human.a-eye.cn/xxxxx/ws&quot;);
+        paras.putString(AEFaceParam.ThunderAppId, &quot;50002&quot;);
+        paras.putString(AEFaceParam.ThunderAppSecret, &quot;xxxxxxxxx&quot;);
+        paras.putInt(AEFaceParam.AliveSwitch, 1);
+        paras.putInt(AEFaceParam.VoiceSwitch, 1);
+        paras.putInt(AEFaceParam.QualitySwitch, 1);
+        paras.putInt(AEFaceParam.ContinueSuccessDetectNum, 3);
+        paras.putInt(AEFaceParam.ContinueFailDetectNum, 3);
+        paras.putInt(AEFaceParam.SingleAliveMotionTime, 10);
+        paras.putInt(AEFaceParam.ModelOverTime, 30);
+
+        // 3. 注册回调
+        AEFacePack.getInstance().AEYE_SetListener(this);
+        // 4. 设置参数
+        AEFacePack.getInstance().AEYE_SetParameter(paras);
+        // 5.  一键启动（SDK内部: 获取颜色→活体采集→服务端验证）
+        AEFacePack.getInstance().AEYE_BeginRecog(this);
+        // 6. 显示加载动画
+        showProgress(&quot;炫彩活体加载中...&quot;);
+    }
+
+    @Override
+    public void onFinish(int value, String data) {
+        dismissProgress();
+
+        // 跳转结果页展示图片和得分
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra(&quot;VALUE&quot;, value);
+        if (data != null) {
+            mApp.setSnapData(data);
+        }
+        intent.putExtra(&quot;DATA&quot;, decodeError(value));
+        intent.putExtra(&quot;SERVER_VERIFIED&quot;, true);
+        // 提取服务端分数展示
+       ............
+        }
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+......     
+        AEFacePack.getInstance().AEYE_Destory(this);
+    }
+}
+
+onFinish 数据格式（服务端验证结果）
+成功
+{
+  &quot;images&quot;: [&quot;/9j/4AAQ...&quot;, &quot;/9j/4AAQ...&quot;, ...],
+  &quot;picnum&quot;: 5,
+  &quot;lightData&quot;: &quot;BASE64_ENCODED_LIGHT_DATA...&quot;,
+  &quot;sequnce&quot;: &quot;1234567890&quot;,
+  &quot;serverScore&quot;: 0.9969,
+  &quot;serverInfo&quot;: &quot;活体验证成功&quot;,
+  &quot;serverSeq&quot;: &quot;20260629123456789&quot;
+}
+活体未通过
+{
+  &quot;images&quot;: [&quot;/9j/4AAQ...&quot;, &quot;/9j/4AAQ...&quot;, ...],
+  &quot;picnum&quot;: 5,
+  &quot;lightData&quot;: &quot;...&quot;,
+  &quot;serverScore&quot;: 0.6234,
+  &quot;serverInfo&quot;: &quot;活体未通过!&quot;,
+  &quot;serverSeq&quot;: &quot;20260629123456790&quot;
+}
+取消/超时/本地失败场景
+{
+  &quot;images&quot;: [&quot;/9j/4AAQ...&quot;, ...],
+  &quot;picnum&quot;: 3,
+  &quot;detail&quot;: {
+    &quot;code&quot;: 2,
+    &quot;message&quot;: &quot;超时&quot;,
+    &quot;reason&quot;: &quot;活体检测时间超限&quot;
+  },
+  &quot;serverScore&quot;: 0,
+  &quot;serverInfo&quot;: &quot;&quot;,
+  &quot;serverSeq&quot;: &quot;&quot;
+}
+

@@ -7,8 +7,6 @@ import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.FaceApiService;
 import com.aeye.face.config.FaceActionConfig;
 import com.aeye.face.config.FaceActionConfigManager;
-import com.aeye.face.confirm.InfoConfirmManager;
-import com.aeye.face.confirm.InfoConfirmPayload;
 import com.aeye.face.uitls.DeviceInfoCollector;
 
 import org.json.JSONObject;
@@ -89,15 +87,15 @@ public final class FaceVerifyLogManager {
     private static JSONObject buildCommonBody(Context context) {
         JSONObject body = DeviceInfoCollector.collect(context);
         try {
-            InfoConfirmPayload user = InfoConfirmManager.getCached();
+            // 用户基本信息由外部业务 App 传入（预览接口已取消）
+            FaceUserInfo user = FaceVerifySession.getUserInfo();
             FaceActionConfig config = FaceActionConfigManager.getCached();
 
             putIfNotEmpty(body, "userId", FaceVerifySession.getUserId());
             if (user != null) {
-                putIfNotEmpty(body, "name", user.getRealName());
-                putIfNotEmpty(body, "certType", user.getIdType());
-                putIfNotEmpty(body, "certNo", user.getIdNumber());
-                putIfNotEmpty(body, "userType", user.getUserType());
+                putIfNotEmpty(body, "name", user.getCertName());
+                putIfNotEmpty(body, "certType", user.getCertType());
+                putIfNotEmpty(body, "certNo", user.getCertNo());
             }
             if (config != null) {
                 putIfNotEmpty(body, "businessCode", config.getBusinessCode());

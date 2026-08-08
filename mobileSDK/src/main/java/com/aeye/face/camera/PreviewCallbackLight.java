@@ -25,7 +25,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.aeye.face.lightView.DecodeData;
-import com.aeye.face.lightView.RecognizeLightActivity;
+import com.aeye.face.view.RecognizeActivity;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -73,8 +73,8 @@ public class PreviewCallbackLight implements Camera.PreviewCallback {
 //      }
 //    }).start();
      this.decodeData.setData(data);
-     this.decodeData.setCurrentColor(RecognizeLightActivity.getColorForSo());
-     this.decodeData.setCurrentColorIndex(RecognizeLightActivity.getCurrentIndex());
+     this.decodeData.setCurrentColor(RecognizeActivity.getColorForSo());
+     this.decodeData.setCurrentColorIndex(RecognizeActivity.getCurrentIndex());
    if (!useOneShotPreviewCallback) {
      camera.setPreviewCallback(null);
    }

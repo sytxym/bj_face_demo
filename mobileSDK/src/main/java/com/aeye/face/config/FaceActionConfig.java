@@ -6,10 +6,27 @@ package com.aeye.face.config;
  */
 public final class FaceActionConfig {
 
+    /**
+     * 动作模式 {@code actionType}（后台数字码）：1 顺序、2 随机。仅认数字码。
+     */
     /** 动作模式：按 enable* 顺序依次执行 */
-    public static final String ACTION_SEQUENCE = "SEQUENCE";
+    public static final String ACTION_SEQUENCE = "1";
     /** 动作模式：从动作池中随机 */
-    public static final String ACTION_RANDOM = "RANDOM";
+    public static final String ACTION_RANDOM = "2";
+
+    /**
+     * 检测类型 {@code detectType}（后台数字码）：
+     * 1 静默活体、2 动作活体、3 炫彩活体、4 动作+炫彩活体。仅认数字码。
+     * 见 {@link FaceActionConfigSdkMapper#mapDetectTypeToAliveMode(String)}。
+     */
+    /** 检测类型：静默活体 */
+    public static final String DETECT_SILENT = "1";
+    /** 检测类型：动作活体（默认） */
+    public static final String DETECT_MOTION = "2";
+    /** 检测类型：炫彩活体 */
+    public static final String DETECT_LIGHT = "3";
+    /** 检测类型：动作+炫彩活体 */
+    public static final String DETECT_MOTION_LIGHT = "4";
 
     private long actionConfigId;
     private String businessCode;
@@ -120,9 +137,9 @@ public final class FaceActionConfig {
         this.memo = memo;
     }
 
-    /** SEQUENCE=固定顺序；其余视为随机 */
+    /** 1=固定顺序；其余（含 2 / 空）视为随机 */
     public boolean isSequenceActionType() {
-        return ACTION_SEQUENCE.equalsIgnoreCase(actionType);
+        return ACTION_SEQUENCE.equals(actionType);
     }
 
     public boolean isRandomActionType() {

@@ -13,11 +13,10 @@ android {
 //        targetSdkVersion 26
 
         //20200107
-        versionCode 417
-        versionName "v4.17"
+        versionCode 418
+        versionName "v4.18"
         buildConfigField("String", "BUILD_TIME", getBuildTime())
         buildConfigField("String", "versionName", versionName2())
-//        邮政只要armeabi架构
         ndk {
             //选择要添加的对应cpu类型的.so库。
             abiFilters "armeabi"
@@ -52,6 +51,15 @@ android {
         if (variant.buildType.name == "release") {
             variant.outputs.configureEach { output ->
                 output.outputFileName = "customs-face-sdk-android-${versionName1()}-${releaseTime()}.aar"
+            }
+        }
+    }
+
+    // 保留 RecognizeLightActivity 源码作参考，炫彩入口已统一到 RecognizeActivity
+    sourceSets {
+        main {
+            java {
+                exclude 'com/aeye/face/lightView/RecognizeLightActivity.java'
             }
         }
     }
@@ -104,4 +112,7 @@ dependencies {
     implementation files('libs/face_unhack.jar')
 //    implementation files('libs/sdk_assist.jar')
     implementation files('libs/smsdk.jar')
+    // 炫彩接口响应解析
+//    implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
+    implementation 'com.alibaba:fastjson:1.2.83'
 }

@@ -41,3 +41,8 @@
 
 # 本地算法 jar 反射/JNI 调用（若存在）
 -dontwarn com.aeye.**
+
+# fastjson2（炫彩响应 Bean 反序列化）
+-keep class com.alibaba.fastjson2.** { *; }
+-keepattributes Signature,*Annotation*
+-dontwarn com.alibaba.fastjson2.**

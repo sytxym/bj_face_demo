@@ -17,6 +17,7 @@
 package com.aeye.face.camera;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.aeye.face.AEFacePack;
 
@@ -242,6 +243,7 @@ public final class CameraManager {
 		if (camera != null) {
 			camera.release();
 			camera = null;
+			focusSupported = null;
 		}
 	}
 
@@ -283,11 +285,20 @@ public final class CameraManager {
 	public void requestPreviewFrame(Handler handler, int message) {
 		if (camera != null && previewing) {
 			previewCallBackMotion.setHandler(handler, message);
-			if (useOneShotPreviewCallback) {
-				camera.setOneShotPreviewCallback(previewCallBackMotion);
-			} else {
-				camera.setPreviewCallback(previewCallBackMotion);
-			}
+			// setOneShotPreviewCallback 也是到 cameraserver 的 binder 调用（每帧一次），
+			// HAL 异常时可能阻塞，移到相机线程执行
+			final Camera cam = camera;
+			CameraOps.post(() -> {
+				try {
+					if (useOneShotPreviewCallback) {
+						cam.setOneShotPreviewCallback(previewCallBackMotion);
+					} else {
+						cam.setPreviewCallback(previewCallBackMotion);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
 		}
 	}
 
@@ -302,14 +313,40 @@ public final class CameraManager {
 	public void requestAutoFocus(Handler handler, int message) {
 		if (camera != null && previewing) {
 			autoFocusCallback.setHandler(handler, message);
-			// Log.d(TAG, "Requesting auto-focus callback");
-			try {
-				camera.autoFocus(autoFocusCallback);
-			} catch (Exception e) {
-			    e.printStackTrace();
-            }
+			// autoFocus 是同步 binder 调用，HAL 异常时可能永久阻塞（内核不可中断），
+			// 必须放到相机线程执行；定焦镜头（多数前置摄像头）直接跳过
+			final Camera cam = camera;
+			CameraOps.post(() -> {
+				try {
+					if (!isFocusSupported(cam)) {
+						return;
+					}
+					cam.autoFocus(autoFocusCallback);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
 		}
 	}
+
+	/** 是否支持自动对焦（结果缓存；getParameters 同为 binder 调用，只在相机线程执行） */
+	private boolean isFocusSupported(Camera cam) {
+		Boolean supported = focusSupported;
+		if (supported == null) {
+			try {
+				List<String> modes = cam.getParameters().getSupportedFocusModes();
+				supported = modes != null
+						&& (modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)
+						|| modes.contains(Camera.Parameters.FOCUS_MODE_MACRO));
+			} catch (Exception e) {
+				supported = false;
+			}
+			focusSupported = supported;
+		}
+		return supported;
+	}
+
+	private volatile Boolean focusSupported;
 
 	/**
 	 * Calculates the framing rect which the UI should draw to show the user

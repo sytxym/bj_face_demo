@@ -162,8 +162,9 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 信息卡片：上排三列（值在上、标签在下），下排证件号通栏 -->
+            <!-- 信息卡片：用户信息改由外部业务 App 传入，确认页不再展示，整块隐藏 -->
             <LinearLayout
+                android:id="@+id/ll_user_info_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -172,7 +173,8 @@
                 android:paddingStart="16dp"
                 android:paddingTop="18dp"
                 android:paddingEnd="16dp"
-                android:paddingBottom="18dp">
+                android:paddingBottom="18dp"
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"

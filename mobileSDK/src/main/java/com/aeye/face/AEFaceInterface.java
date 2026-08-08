@@ -22,15 +22,13 @@ public interface AEFaceInterface {
 	/**
 	 * 活体/核验结束（原生宿主使用）。
 	 *
-	 * @param value SDK 内部结果码，见 {@link AEFacePack#SUCCESS} 等
-	 * @param data  采集数据 JSON；自 vNext 起含 {@code uniResult} 字段供 UniApp 解析，原生可忽略
+	 * @param value      SDK 内部结果码，见 {@link AEFacePack#SUCCESS} 等（向后兼容，保持不变）
+	 * @param data       采集数据 JSON（含 images 等，可上传后台核验）
+	 * @param resultCode 三端统一结果码（字符串，含前导零）：核验成功 {@code "0"}、
+	 *                   核验失败 {@code "0414009"}、核验超时 {@code "0414010"}、
+	 *                   用户取消 {@code "0414011"}、摄像头异常 {@code "0414012"}、
+	 *                   设备不安全 {@code "0414013"}、选择其他核验方式 {@code "0414014"}。
+	 *                   与鸿蒙端、iOS 端对齐，业务端以此为准。
 	 */
-	public void onFinish(int value, String data);
-
-	/**
-	 * UniApp 统一结果回调，格式 {@code {"code":0,"message":"认证成功"}}。
-	 * 默认空实现；uni 插件重写此方法，原生宿主无需处理。
-	 */
-	default void onUniFinish(String uniResultJson) {
-	}
+	public void onFinish(int value, String data, String resultCode);
 };

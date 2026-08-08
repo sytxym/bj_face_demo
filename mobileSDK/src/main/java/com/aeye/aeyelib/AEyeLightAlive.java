@@ -100,18 +100,19 @@ public class AEyeLightAlive {
 
     /**
      * 插入闪光中的图片
-     * @param rgbImg        i->image
-     * @param color         i-2->color
-     * @param state         i-2->state
-     * @param isNotBoundary
-     * @param quality
      *
      * @return
      */
+    public boolean isInitialized() {
+        return isInit;
+    }
+
     public int AEYE_SetImageData(byte[] rgbImg, int color, int state, boolean isNotBoundary, int[] quality,int frameId,int mRotate) {
         Log.e(TAG, "AEYE_SetImageData isInit=" + isInit);
         if (!isInit) {
-            throw new RuntimeException("AEyeLightAlive not init");
+            // 重试/生命周期竞态时可能尚未 AliveInit；返回错误码而非抛异常，避免解码线程 FATAL
+            Log.e(TAG, "AEYE_SetImageData: not init, skip frame");
+            return -1;
         }
         int ret,rotate = 0;
         //算法要求， 小于0的乘以-1， 大于0的用360减

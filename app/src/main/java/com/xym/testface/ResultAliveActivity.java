@@ -96,35 +96,59 @@ public class ResultAliveActivity extends Activity implements OnClickListener {
         try {
             Log.i("terry", "displayImage: " + str);
             AEFaceBean bean = JSON.parseObject(str, AEFaceBean.class);
-//            save(bean, str);
-            String aliveData = bean.getAlive(0);
-            if (bean.alive != null) {
-                for (int i = 1; i < bean.alive.length; i++) {
-                    aliveData = aliveData + "|" + bean.getAlive(i);
-                }
+            if (bean == null) {
+                msgAlive.setText(R.string.result_no_face_detected);
+                return;
             }
             int imageCount = bean.images != null ? bean.images.length : 0;
             int aliveLen = bean.alive != null ? bean.alive.length : 0;
             Log.e("TAG", "***** picnum: " + bean.picnum
                     + ", images.length: " + imageCount
-                    + ", alive.length: " + aliveLen);
-//            startAlive(aliveData, bean.decryptKey);
+                    + ", alive.length: " + aliveLen
+                    + ", light=" + bean.isLightAliveResult());
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         Log.i("terry", "data: " + str);
-//                        FileUtils.writeFile(str,System.currentTimeMillis()+".txt");
-                        testAlive(str);
-                        bitmapFrontFace = bean.getFrontFaceBitmap();
-                        bitmap0 = bean.getAliveBitmap(0);
-                        bitmap1 = bean.getAliveBitmap(1);
-                        bitmap2 = bean.getAliveBitmap(2);
-                        bitmap3 = bean.getAliveBitmap(3);
+                        if (bean.isLightAliveResult()) {
+                            // 炫彩：images 为 SM4，需 getLightBitmap；lightData 为 cues 图
+                            int n = bean.picnum > 0 ? bean.picnum : imageCount;
+                            if (n > 0) {
+                                bitmapFrontFace = bean.getLightBitmap(0);
+                            }
+                            if (n > 1) {
+                                bitmap0 = bean.getLightBitmap(1);
+                            }
+                            if (n > 2) {
+                                bitmap1 = bean.getLightBitmap(2);
+                            }
+                            if (n > 3) {
+                                bitmap2 = bean.getLightBitmap(3);
+                            }
+                            if (n > 4) {
+                                bitmap3 = bean.getLightBitmap(4);
+                            }
+                            if (bean.lightData != null && !bean.lightData.isEmpty()) {
+                                // 若无第 0 帧，用 lightData 填正面槽
+                                Bitmap lightBmp = BitmapUtils.convertStringToBitmap(bean.lightData);
+                                if (bitmapFrontFace == null) {
+                                    bitmapFrontFace = lightBmp;
+                                } else if (bitmap3 == null) {
+                                    bitmap3 = lightBmp;
+                                }
+                            }
+                        } else {
+                            testAlive(str);
+                            bitmapFrontFace = bean.getFrontFaceBitmap();
+                            bitmap0 = bean.getAliveBitmap(0);
+                            bitmap1 = bean.getAliveBitmap(1);
+                            bitmap2 = bean.getAliveBitmap(2);
+                            bitmap3 = bean.getAliveBitmap(3);
+                        }
                         Message msg = new Message();
                         msg.what = 1;
                         mHandler.sendMessage(msg);
-//                        save(bean,"1");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

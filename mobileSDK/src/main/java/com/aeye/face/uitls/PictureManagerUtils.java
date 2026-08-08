@@ -75,7 +75,7 @@ public class PictureManagerUtils {
     public void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
         Log.e(TAG,"add on PictureInfo ......");
         if ((curPos <= m_picNum) && (m_picNum < m_MaxPicNum)) {
-            m_Faces[m_picNum] = bitRect.faceRect;
+            m_Faces[m_picNum] = bitRect.imgRect;
             BitmapAddToList(bitRect.faceBitmap, m_Pics, m_PicSigns);
             if (m_picNum == 0) {
                 Bitmap bitmap = MBitmapUtil.scaleBitmap(bitRect.faceBitmap, 120);

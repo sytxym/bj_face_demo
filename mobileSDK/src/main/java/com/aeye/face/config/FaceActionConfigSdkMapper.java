@@ -1,12 +1,13 @@
 package com.aeye.face.config;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.aeye.face.AEFaceParam;
 import com.aeye.sdk.AEFaceAlive;
 
 /**
- * 将 {@link FaceActionConfig} 映射为 SDK 活体动作相关 Bundle 参数（供宿主在启动活体前合并进总参数）。
+ * 将 {@link FaceActionConfig} 映射为 SDK 活体相关 Bundle 参数（供宿主在启动活体前合并进总参数）。
  */
 public final class FaceActionConfigSdkMapper {
 
@@ -22,23 +23,62 @@ public final class FaceActionConfigSdkMapper {
     }
 
     /**
-     * 写入动作活体相关参数：AliveSwitch、AliveFixMotionSwitch、AliveMotionNum、AliveMotion。
+     * 写入活体模式与动作参数：AliveSwitch、ALIVEMODE、AliveFixMotionSwitch、AliveMotionNum、AliveMotion。
      */
     public static void applyToBundle(Bundle paras, FaceActionConfig config) {
         if (paras == null || config == null) {
             return;
         }
+        int aliveMode = mapDetectTypeToAliveMode(config.getDetectType());
+        paras.putInt(AEFaceParam.ALIVEMODE, aliveMode);
+        if (aliveMode == AEFaceParam.ALIVEMODE_SILENT) {
+            paras.putInt(AEFaceParam.AliveSwitch, 0);
+            return;
+        }
         paras.putInt(AEFaceParam.AliveSwitch, 1);
-        paras.putInt(AEFaceParam.ALIVEMODE, AEFaceParam.ALIVEMODE_MOTION);
+        // 纯炫彩不写动作池；动作 / 动作+炫彩写入动作参数
+        if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
+            return;
+        }
         boolean fixedPool = config.isSequenceActionType();
         paras.putInt(AEFaceParam.AliveFixMotionSwitch, fixedPool ? 1 : 0);
         int motionNum = Math.max(0, Math.min(5, config.getActionCount()));
+        // 动作+炫彩：文档约定固定 1 个动作
+        if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+            motionNum = 1;
+        }
         paras.putInt(AEFaceParam.AliveMotionNum, motionNum);
         if (fixedPool) {
             int[] motions = buildFixedPoolMotionIds(config);
             if (motions.length > 0) {
                 paras.putIntArray(AEFaceParam.AliveMotion, motions);
             }
+        }
+    }
+
+    /**
+     * 配置接口 {@code detectType} → {@link AEFaceParam} ALIVEMODE。仅认后台数字码：
+     * <ul>
+     *   <li>1 → 静默</li>
+     *   <li>2 / 空 → 动作</li>
+     *   <li>3 → 炫彩</li>
+     *   <li>4 → 动作+炫彩</li>
+     * </ul>
+     */
+    public static int mapDetectTypeToAliveMode(String detectType) {
+        if (TextUtils.isEmpty(detectType)) {
+            return AEFaceParam.ALIVEMODE_MOTION;
+        }
+        switch (detectType.trim()) {
+            case "1":
+                return AEFaceParam.ALIVEMODE_SILENT;
+            case "3":
+                return AEFaceParam.ALIVEMODE_LIGHT;
+            case "4":
+                return AEFaceParam.ALIVEMODE_MOTION_LIGHT;
+            case "2":
+            default:
+                return AEFaceParam.ALIVEMODE_MOTION;
         }
     }
 

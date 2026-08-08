@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.animation.LinearInterpolator;
 
 import com.aeye.face.uitls.FLogUtil;
+import com.aeye.face.view.RecognizeActivity;
 import com.sdk.core.R;
 
 
@@ -27,9 +28,9 @@ public class CheckFaceView extends View{
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private float mTextSize = 60f;
-    private Bitmap mInnerCircleBitmap = null;//内环圆
-    private Bitmap mOutCircleBitmap = null;//外环圆
-    private float mDegress = 0;//旋转角度
+    private Bitmap mInnerCircleBitmap = null;//???
+    private Bitmap mOutCircleBitmap = null;//???
+    private float mDegress = 0;//????
     private ValueAnimator valueAnimator;
 
     private int outColor = -11520;
@@ -38,7 +39,7 @@ public class CheckFaceView extends View{
     private boolean isHasFace = false,isChangeFromSetColor = false;
     private Paint paintOval;
     private Paint mPaintCircle;
-    //圆环的矩形区域
+    //???????
     private RectF mRectF;
     int mRingWidth = 20;
     int mCurrentProgress =0;
@@ -46,6 +47,9 @@ public class CheckFaceView extends View{
 
     private static int canvasWidth = 0,canvasHeight;
     private static RectF ovalRect;
+    /** ?? RecognizeActivity??????????????? null ????????? */
+    private RectF previewHole;
+
     public static int getCanvasWidth(){
         return canvasWidth;
     }
@@ -55,6 +59,26 @@ public class CheckFaceView extends View{
 
     public static RectF getOvalRect(){
         return ovalRect;
+    }
+
+    /**
+     * ?????????????????? View ?????
+     */
+    public void setPreviewHole(@Nullable RectF holeInViewCoords) {
+        if (holeInViewCoords == null) {
+            previewHole = null;
+            ovalRect = null;
+        } else {
+            previewHole = new RectF(holeInViewCoords);
+            ovalRect = new RectF(holeInViewCoords);
+        }
+        postInvalidate();
+    }
+
+    public void clearPreviewHole() {
+        previewHole = null;
+        ovalRect = null;
+        postInvalidate();
     }
 
     public CheckFaceView(Context context) {
@@ -89,12 +113,12 @@ public class CheckFaceView extends View{
         mPaintCircle = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintCircle.setAntiAlias(true);
         mPaintCircle.setColor(Color.parseColor("#ffffff"));
-        //空心
+        //??
         mPaintCircle.setStyle(Paint.Style.STROKE);
-        //宽度
+        //??
         mPaintCircle.setStrokeWidth(20);
         mCurrentProgress =0;
-        int countTime =  RecognizeLightActivity.getSplitTime() * 5;
+        int countTime =  RecognizeActivity.getSplitTime() * 5;
         valueAnimator = getValA(countTime);
     }
 
@@ -109,7 +133,7 @@ public class CheckFaceView extends View{
 //            stopCountDown();
 //        }
         isChangeFromSetColor = true;
-        FLogUtil.printLog( "CheckFaceView setOutColor color=" + outColor+", mCurrentProgress : "+mCurrentProgress+" current Index: "+ RecognizeLightActivity.getCurrentIndex());
+        FLogUtil.printLog( "CheckFaceView setOutColor color=" + outColor+", mCurrentProgress : "+mCurrentProgress+" current Index: "+ RecognizeActivity.getCurrentIndex());
         Log.e(TAG,"&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         this.outColor = outColor;
         isRest = true;
@@ -123,7 +147,7 @@ public class CheckFaceView extends View{
         return valueAnimator;
     }
     /**
-     * 开始倒计时
+     * ?????
      */
     public void startCountDown(  ){
         mCurrentProgress =0;
@@ -135,7 +159,7 @@ public class CheckFaceView extends View{
             public void onAnimationUpdate(ValueAnimator animation) {
                 float i = Float.valueOf(String.valueOf(animation.getAnimatedValue()));
                 mCurrentProgress = (int) (360 * (i / 20f));
-                if(RecognizeLightActivity.getmFaceOK()!=1){
+                if(RecognizeActivity.getmFaceOK()!=1){
                     stopCountDown();
                 }
 //                FLogUtil.printLog("Recog colorIndex=" + RecognizeActivity.getCurrentIndex()+", mCurrentProgress : "+mCurrentProgress);
@@ -174,71 +198,76 @@ public class CheckFaceView extends View{
         drawCircleMask(canvas);
         if(colorChangeHandler !=null && isChangeFromSetColor  ){
             isChangeFromSetColor = false;
-            //真正变换界面颜色需要几十毫秒延迟，在延迟后再index+1 以及记录颜色值
-            colorChangeHandler.sendEmptyMessageDelayed(RecognizeLightActivity.MSG_CODE_COLOR_INDEX_UPDATE,60);
+            //??????????????????????index+1 ???????
+            colorChangeHandler.sendEmptyMessageDelayed(RecognizeActivity.MSG_CODE_COLOR_INDEX_UPDATE,60);
         }
 //        FLogUtil.printLog( "onDraw ==================== mCurrentProgress : "+mCurrentProgress);
 //        drawBitmapCircle(canvas);
-//        canvas.drawText("请把脸移入圈内",getWidth() / 2, (float) (getWidth() * 1.2),mTextPaint);
+//        canvas.drawText("???????",getWidth() / 2, (float) (getWidth() * 1.2),mTextPaint);
     }
 
     /**
-     * 绘制圆圈遮罩
+     * ??????
      * @param canvas
      */
     private void drawCircleMask(Canvas canvas) {
-        canvas.save();
-        int currentColor = !isRest ? defaultColor : outColor;
-        mPaint.setColor(currentColor);
-        //目标图Dst
         int width = getWidth();
         int height = getHeight();
+        // 用 saveLayer 提供 CLEAR 挖孔所需的独立图层。不能改用 LAYER_TYPE_SOFTWARE：
+        // 那会让整屏色光每次变色都走 CPU 光栅化，拖慢屏幕实际变色时刻，
+        // 与 MSG_CODE_COLOR_INDEX_UPDATE 的 60ms 计时错位，算法会判定色序不对。
+        int layer = canvas.saveLayer(0, 0, width, height, null);
+        int currentColor = !isRest ? defaultColor : outColor;
+        mPaint.setColor(currentColor);
 
-        canvas.drawRect(new Rect(0,0, width, height), mPaint);
-        //设置混合模式
+        canvas.drawRect(new Rect(0, 0, width, height), mPaint);
         mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+
+        // 与取景圆孔对齐的镂空
+        if (previewHole != null && previewHole.width() > 0 && previewHole.height() > 0) {
+            canvas.drawOval(previewHole, mPaint);
+            ovalRect = new RectF(previewHole);
+            mPaint.setXfermode(null);
+            canvas.restoreToCount(layer);
+            return;
+        }
+
         int circleCenterYPer = 6;
-        //源图Src，重叠区域右下角部分
         int cx = width / 2;
         int cy = height / 3;
-        int top2screent = height/4;
+        int top2screent = height / 4;
         int radius = 2 * width / 5;
-        radius = height/circleCenterYPer;//竞品的数据
-//        Log.e(TAG, "drawCircleMask  : width = "+width+" height = "+height +",radius : "+radius);
-        cy = top2screent+radius/2;
-        cy = 2*height/circleCenterYPer;//竞品的数据
+        radius = height / circleCenterYPer;
+        cy = top2screent + radius / 2;
+        cy = 2 * height / circleCenterYPer;
         canvas.drawCircle(cx, cy, radius, mPaint);
-        int ovalLeft =cx - 2*radius /3 ;
-        int ovalRight = cx + 2*radius /3;
-        int ovalTop = cy- (4*radius/5);
-        int ovalBottom = cy +(4*radius/5);
+        int ovalLeft = cx - 2 * radius / 3;
+        int ovalRight = cx + 2 * radius / 3;
+        int ovalTop = cy - (4 * radius / 5);
+        int ovalBottom = cy + (4 * radius / 5);
 
-        //以下为竞品的数据
-        ovalLeft = cx - 6*radius/7;
-        ovalRight = cx + 6*radius/7;
-        ovalTop = cy - 9*radius/9;
-        ovalBottom = cy +9*radius/9;
+        ovalLeft = cx - 6 * radius / 7;
+        ovalRight = cx + 6 * radius / 7;
+        ovalTop = cy - 9 * radius / 9;
+        ovalBottom = cy + 9 * radius / 9;
 
-        RectF rel = new RectF(ovalLeft,ovalTop,ovalRight,ovalBottom);
-        //绘制椭圆
+        RectF rel = new RectF(ovalLeft, ovalTop, ovalRight, ovalBottom);
         canvas.drawOval(rel, paintOval);
-//        canvas.drawArc(rel,0,360,false,paintOval);
         ovalRect = rel;
 
         int circleLeft = cx - radius;
-        int circleRight = cx +radius;
+        int circleRight = cx + radius;
         int circleTop = ovalTop;
         int circleBottom = ovalBottom;
         mRectF = new RectF(circleLeft + mRingWidth / 2, circleTop + mRingWidth / 2,
                 circleRight - mRingWidth / 2, circleBottom - mRingWidth / 2);
-        canvas.drawArc(mRectF, -90, mCurrentProgress , false, mPaintCircle);
-        //清除混合模式
+        canvas.drawArc(mRectF, -90, mCurrentProgress, false, mPaintCircle);
         mPaint.setXfermode(null);
-        canvas.restore();
+        canvas.restoreToCount(layer);
     }
 
     /**
-     * 画圆圈外部的圆圈图片
+     * ??????????
      */
     private void drawBitmapCircle(Canvas canvas) {
         if(mInnerCircleBitmap == null){

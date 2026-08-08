@@ -48,10 +48,10 @@ public final class FaceImmersiveStatusBar {
     /**
      * 顶栏延伸至状态栏区域，并同步下方占位高度（与顶栏总高一致）。
      *
-     * @param toolbar                 顶栏容器（需 {@code android:id="@+id/face_toolbar"}）
-     * @param contentGapBelowToolbar  顶栏下方的占位 View，可为 null
+     * @param toolbar                  顶栏容器（需 {@code android:id="@+id/face_toolbar"}）
+     * @param contentGapsBelowToolbar  顶栏下方的占位 View（可多个，如主内容区与文案浮层）
      */
-    public static void bindToolbar(Activity activity, View toolbar, View contentGapBelowToolbar) {
+    public static void bindToolbar(Activity activity, View toolbar, View... contentGapsBelowToolbar) {
         if (toolbar == null) {
             return;
         }
@@ -66,11 +66,16 @@ public final class FaceImmersiveStatusBar {
                 v.setLayoutParams(lp);
             }
             v.setPadding(v.getPaddingLeft(), top, v.getPaddingRight(), v.getPaddingBottom());
-            if (contentGapBelowToolbar != null) {
-                ViewGroup.LayoutParams gapLp = contentGapBelowToolbar.getLayoutParams();
-                if (gapLp != null) {
-                    gapLp.height = totalHeight;
-                    contentGapBelowToolbar.setLayoutParams(gapLp);
+            if (contentGapsBelowToolbar != null) {
+                for (View gap : contentGapsBelowToolbar) {
+                    if (gap == null) {
+                        continue;
+                    }
+                    ViewGroup.LayoutParams gapLp = gap.getLayoutParams();
+                    if (gapLp != null) {
+                        gapLp.height = totalHeight;
+                        gap.setLayoutParams(gapLp);
+                    }
                 }
             }
             return windowInsets;

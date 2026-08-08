@@ -42,7 +42,7 @@ import com.aeye.face.AEFaceParam;
 import com.aeye.face.config.IDConstants;
 import com.aeye.face.lightView.DecodeData;
 import com.aeye.face.lightView.LightCacheBean;
-import com.aeye.face.lightView.RecognizeLightActivity;
+import com.aeye.face.view.RecognizeActivity;
 import com.aeye.face.uitls.FLogUtil;
 import com.aeye.face.uitls.PictureManagerUtilsLight;
 import com.aeye.sdk.AEFaceAlive;
@@ -66,12 +66,14 @@ public class DecodeHandlerLight extends Handler {
 	public static final int MSG_DECODE = 111;
 	public static final int MSG_QUIT = 122;
 	public static final int MSG_SIDE = 133;
+	/** 仅重置炫彩色序跟踪，保留解码循环与动作活体结果 */
+	public static final int MSG_RESET_COLOR = 144;
 
 	public static final int FACE_MAX = 5;
 	/** 记录 摄像头的方向 **/
 	private SharedPreferences sp;
 	/**  **/
-	private final RecognizeLightActivity activity;
+	private final RecognizeActivity activity;
 	/** 检测 次数 **/
 	private int loseCount = 0;
 	private int faceCount = 0;
@@ -119,7 +121,7 @@ public class DecodeHandlerLight extends Handler {
 	boolean isMotionAliveSuc = false;
 
 	/** 构造 */
-	public DecodeHandlerLight(RecognizeLightActivity activity) {
+	public DecodeHandlerLight(RecognizeActivity activity) {
 		this.activity = activity;
 		sp = activity.getSharedPreferences(ConfigData.SP_CAMERA_INFO,
 				Context.MODE_PRIVATE);
@@ -166,6 +168,21 @@ public class DecodeHandlerLight extends Handler {
 		}
 	}
 
+	/**
+	 * 只回退色序跟踪状态，不动 state / isMotionAliveSuc：
+	 * 走 {@link #resetData()} 会把解码循环置为暂停并清掉动作活体结果，闪光将无法开始。
+	 */
+	private void resetColorTracking() {
+		takeRect = null;
+		aliveCount = 1;
+		currentColorIndex = -1;
+		currentColorCount = 0;
+		lastColor = -1;
+		cacheBeanArrayList.clear();
+		bestPos = 0;
+		mInsertframId = -1;
+	}
+
 	@Override
 	public void handleMessage(Message message) {
 		switch (message.what) {
@@ -178,6 +195,10 @@ public class DecodeHandlerLight extends Handler {
 
 			case MSG_RESET:
 				resetData();
+				break;
+
+			case MSG_RESET_COLOR:
+				resetColorTracking();
 				break;
 
 			case IDConstants.id_request_side:
@@ -225,28 +246,53 @@ public class DecodeHandlerLight extends Handler {
 		}
 	}
 
+//	private void insertPoint(int mFramId,Rect rect) {
+//		FLogUtil.printLog("===================== get best bitmap ===================== start");
+//		FLogUtil.printLog("===================== get best bitmap rect ====================="+rect.toString());
+//		Bitmap bitmap = AEyeLightAlive.getInstance().AEYE_CurrentSetImageData(mFramId);
+//
+//		if(bitmap !=null) {
+//			FLogUtil.printLog("===================== get best bitmap size ====================="+bitmap.getWidth()+"*"+bitmap.getHeight());
+////			Rect[] rects =  AEFaceDetect.getInstance().AEYE_FaceDetect(bitmap);
+////
+////			if(rects !=null) {
+////				FLogUtil.printLog("===================== get best bitmap rects  ===================" + rects[0]+" , center X,Y : "+rects[0].centerX()+","+rects[0].centerY());
+////				float[] mLandMark = getBestBitLocation(rects[0], bitmap);
+////				if(mLandMark !=null)
+////				AEyeLightAlive.getInstance().insetKeyPoints(mFramId, mLandMark);
+////			}
+////			else{
+//				FLogUtil.printLog("===================== get best bitmap rect null ===================");
+//				int x = rect.centerX()*2;
+//				int y  = rect.centerY()*2;
+//				int width = rect.width();
+//				int left = x -width, top = y - width, right = x +width,bottom = y +width;
+//				Rect scaleRect = new Rect(left,top,right,bottom);
+//				float[] mLandMark = getBestBitLocation(scaleRect, bitmap);
+//				AEyeLightAlive.getInstance().insetKeyPoints(mFramId, mLandMark);
+////			}
+//		}else{
+//			activity.finishActivityByOther(-15,"闪光颜色获取最佳图失败！");
+//		}
+//	}
+
 	private void insertPoint(int mFramId,Rect rect) {
 		FLogUtil.printLog("===================== get best bitmap ===================== start");
 		Bitmap bitmap = AEyeLightAlive.getInstance().AEYE_CurrentSetImageData(mFramId);
-		FLogUtil.printLog("===================== get best bitmap ====================="+bitmap);
 
+		FLogUtil.printLog("===================== get best bitmap rect  =====================  "+rect.toString());
 		if(bitmap !=null) {
-			Rect[] rects =  AEFaceDetect.getInstance().AEYE_FaceDetect(bitmap);
-
-			if(rects !=null) {
-				FLogUtil.printLog("===================== get best bitmap rects  ===================" + rects[0]+" , center X,Y : "+rects[0].centerX()+","+rects[0].centerY());
-				float[] mLandMark = getBestBitLocation(rects[0], bitmap);
-				if(mLandMark !=null)
-				AEyeLightAlive.getInstance().insetKeyPoints(mFramId, mLandMark);
-			}
-			else{
-				FLogUtil.printLog("===================== get best bitmap rect null ===================");
-				int x = rect.centerX()*2;
-				int y  = rect.centerY()*2;
-				int width = rect.width();
-				int left = x -width, top = y - width, right = x +width,bottom = y +width;
-				Rect scaleRect = new Rect(left,top,right,bottom);
-				float[] mLandMark = getBestBitLocation(scaleRect, bitmap);
+			FLogUtil.printLog("===================== get best bitmap end====================="+bitmap.getWidth()+"*"+bitmap.getHeight());
+			// 与 demo 一致：五帧统一用预览半分辨率人脸框放大到 1080x1920 最佳图坐标系，
+			// 不在最佳图上重做 AEYE_FaceDetect（口径不一致会导致对齐偏移 → 服务端报「颜色序列不对」）
+			int x = rect.centerX() * 2;
+			int y = rect.centerY() * 2;
+			int width = rect.width();
+			int left = x - width, top = y - width, right = x + width, bottom = y + width;
+			Rect scaleRect = new Rect(left, top, right, bottom);
+			FLogUtil.printLog("===================== insertPoint scaleRect ===================: " + scaleRect);
+			float[] mLandMark = getBestBitLocation(scaleRect, bitmap);
+			if (mLandMark != null) {
 				AEyeLightAlive.getInstance().insetKeyPoints(mFramId, mLandMark);
 			}
 		}else{
@@ -311,8 +357,8 @@ public class DecodeHandlerLight extends Handler {
 		if (faceInfo.isAlive || !activity.getDecodeStatus() || data==null) {
 			return;
 		}
-		FLogUtil.printLog( "TIME  decode  begin  "+ RecognizeLightActivity.isRecord+" , isGetLastBitmap :"+ RecognizeLightActivity.isGetLastBitmap);
-		if(!RecognizeLightActivity.isRecord && RecognizeLightActivity.isGetLastBitmap){
+		FLogUtil.printLog( "TIME  decode  begin  "+ RecognizeActivity.isRecord+" , isGetLastBitmap :"+ RecognizeActivity.isGetLastBitmap);
+		if(!RecognizeActivity.isRecord && RecognizeActivity.isGetLastBitmap){
 			return;
 		}
 		long time = System.currentTimeMillis();
@@ -388,6 +434,7 @@ public class DecodeHandlerLight extends Handler {
 //				faceFar = false;
 					if (faceFar) {
 						activity.showFaceOut(false);
+						activity.showFaceTooFar();
 						aliveCount = 1;
 						currentColorIndex = -1;
 						removeCurrentMessage();
@@ -395,8 +442,16 @@ public class DecodeHandlerLight extends Handler {
 						activity.showFaceOut(true);
 						faceInfo.imgRect = rect[0];
 
+						// 纯炫彩：先通知 UI 启动色光，未启动前只做人脸跟踪，不插帧采集
+						if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_LIGHT
+								&& !activity.isLightFlashStarted()) {
+							activity.getLightHandler().restartDecode();
+							checkAgain();
+							return;
+						}
+
 						int quality = AEFaceQuality.QUALITY_OK;
-						if (quality == AEFaceQuality.QUALITY_OK || quality == RecognizeLightActivity.QUALITY_SIDE) {
+						if (quality == AEFaceQuality.QUALITY_OK || quality == RecognizeActivity.QUALITY_SIDE) {
 							loseCount = 0;
 							faceCount++;
 							lastColor = decodeData.getCurrentColorIndex();
@@ -414,7 +469,7 @@ public class DecodeHandlerLight extends Handler {
 								aliveCount++;
 
 								int ret = 0;
-								if (!RecognizeLightActivity.isRecord && !RecognizeLightActivity.isGetLastBitmap) {
+								if (!RecognizeActivity.isRecord && !RecognizeActivity.isGetLastBitmap) {
 									activity.isGetLastBitmap = true;
 									LightCacheBean insetBean = cacheBeanArrayList.get(0);
 									Log.e("LIULU", "insert last two pic : " + insetBean.getCurrentColor() + " , state : " + insetBean.getState() + " ,framId : " + mInsertframId);
@@ -422,7 +477,7 @@ public class DecodeHandlerLight extends Handler {
 //								ret = AEyeLightAlive.getInstance().AEYE_SetImageData(bgrImg, decodeData.getCurrentColor(), state, true, qua,mInsertframId);
 									FLogUtil.printLog(" ******* last Bitmap, currentIndex : " + decodeData.getCurrentColorIndex());
 									//判断进入转换下个颜色序列
-									activity.getHandler().addAliveImage(faceInfo);
+									activity.getLightHandler().addAliveImage(faceInfo);
 									setPicReturn();
 									if (ret == 0 || ret == 8) {
 										activity.finishActivityBySuccessful();
@@ -437,7 +492,7 @@ public class DecodeHandlerLight extends Handler {
 											//取中间颜色的图片保存
 											if(PictureManagerUtilsLight.getPictureManager().getCurNum()<=currentColorIndex) {
 												FLogUtil.printLog(" add pic : "+currentColorIndex);
-												activity.getHandler().addAliveImage(faceInfo);
+												activity.getLightHandler().addAliveImage(faceInfo);
 												setPicReturn();
 											}
 										}
@@ -507,7 +562,7 @@ public class DecodeHandlerLight extends Handler {
 				removeCurrentMessage();
 			}
 //		}
-		activity.getHandler().restartDecode();
+		activity.getLightHandler().restartDecode();
 		checkAgain();
 	}
 
@@ -787,7 +842,7 @@ public class DecodeHandlerLight extends Handler {
 		faceCount = 0;
 		faceInfo.imgRect = null;
 		if (cfgShowRect) {
-			activity.getHandler().sendMessage(activity.getHandler().
+			activity.getLightHandler().sendMessage(activity.getLightHandler().
 					obtainMessage(IDConstants.id_draw_faceRect, faceInfo.width, faceInfo.height, null));
 		}
 		if (haveFace) {
@@ -860,21 +915,21 @@ public class DecodeHandlerLight extends Handler {
 			}
 		} else */if (face.left < minX || face.right > maxX ||
 				face.top < minY || face.bottom > maxY || rate < 1.1) {
-			if (activity.getHandler().getCurPos() == AEFaceAlive.POSE_MOUTH_OPEN ||
+			if (activity.getLightHandler().getCurPos() == AEFaceAlive.POSE_MOUTH_OPEN ||
 					face.top < (minY / 2) || face.bottom > maxY + (minY / 2) || rate < 1.1) {
 				ENV_COUNT_MAX = 1;
 			} else {
 				ENV_COUNT_MAX = 5;
 			}
-			if (envDelay(RecognizeLightActivity.QUALITY_OUT)) {
-				result = RecognizeLightActivity.QUALITY_OUT;
-				envLast = RecognizeLightActivity.QUALITY_OUT;
+			if (envDelay(RecognizeActivity.QUALITY_OUT)) {
+				result = RecognizeActivity.QUALITY_OUT;
+				envLast = RecognizeActivity.QUALITY_OUT;
 			}
 		} else {
-			if (activity.getHandler().isSideFaceing()) {
-				if (envDelay(RecognizeLightActivity.QUALITY_SIDE)) {
-					result = RecognizeLightActivity.QUALITY_SIDE;
-					envLast = RecognizeLightActivity.QUALITY_SIDE;
+			if (activity.getLightHandler().isSideFaceing()) {
+				if (envDelay(RecognizeActivity.QUALITY_SIDE)) {
+					result = RecognizeActivity.QUALITY_SIDE;
+					envLast = RecognizeActivity.QUALITY_SIDE;
 				}
 			} else {
 				if (envDelay(AEFaceQuality.QUALITY_OK)) {
@@ -888,7 +943,7 @@ public class DecodeHandlerLight extends Handler {
 
 //	private void startDelay(long time) {
 //		delayAlive = true;
-//		if (activity.getHandler().getCurSide() > 1) {
+//		if (activity.getLightHandler().getCurSide() > 1) {
 //			activity.showPoseSuccessMsg(true);
 //		}
 //		postDelayed(new Runnable() {
@@ -896,7 +951,7 @@ public class DecodeHandlerLight extends Handler {
 //			@Override
 //			public void run() {
 //				delayAlive = false;
-//				if (activity.getHandler().getCurSide() > 1) {
+//				if (activity.getLightHandler().getCurSide() > 1) {
 //					activity.showPoseSuccessMsg(false);
 //				}
 //			}
@@ -904,13 +959,13 @@ public class DecodeHandlerLight extends Handler {
 //	}
 
 	private void checkAgain() {
-		Message message = Message.obtain(activity.getHandler(),
+		Message message = Message.obtain(activity.getLightHandler(),
 				IDConstants.id_decode_failed);
-		message.arg1 = RecognizeLightActivity.getCurrentIndex();
-		message.arg2 = RecognizeLightActivity.getColorForSo();
-//		FLogUtil.printLog(" start check again ************" + RecognizeLightActivity.getColorForSo());
+		message.arg1 = RecognizeActivity.getCurrentIndex();
+		message.arg2 = RecognizeActivity.getColorForSo();
+//		FLogUtil.printLog(" start check again ************" + RecognizeActivity.getColorForSo());
 		message.sendToTarget();
-//		FLogUtil.printLog(" start check send to target  ************" + RecognizeLightActivity.getColorForSo());
+//		FLogUtil.printLog(" start check send to target  ************" + RecognizeActivity.getColorForSo());
 	}
 
 
