@@ -63,7 +63,7 @@
     <color name="face_theme_primary_pressed">#002266</color>
     <color name="face_info_card_bg">#E6F0FF</color>
     <color name="face_hint_sub">#666666</color>
-    <color name="face_scan_ring_base">#CCCCCC</color>
+    <color name="face_scan_ring_base">#E8E8E8</color>
     <color name="face_scan_ring_progress">#094194</color>
     <color name="face_result_success">#22C55E</color>
     <color name="face_result_fail">#E53935</color>
