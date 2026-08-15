@@ -72,7 +72,7 @@ public class PictureManagerUtils {
         mAliveSign.clear();
     }
 
-    public void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
+    public synchronized void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
         Log.e(TAG,"add on PictureInfo ......");
         if ((curPos <= m_picNum) && (m_picNum < m_MaxPicNum)) {
             m_Faces[m_picNum] = bitRect.imgRect;

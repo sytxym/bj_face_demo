@@ -21,12 +21,22 @@ public final class AEFaceSdk {
     private static volatile boolean isNewColorIntenface = false;
     /** 是否在 Logcat 输出网络请求 URL、参数与响应（默认开启，便于调试）。 */
     private static volatile boolean httpLogEnabled = true;
-    /** 日志 source：2 掌上单一窗口 APP，5 掌上海关 APP（默认 5）。 */
-    private static volatile String logSource = "5";
+    /** 日志 source：见 {@link #setLogSource(String)} 取值说明（掌上海关 APP 默认 6）。 */
+    private static volatile String logSource = "6";
     /** 炫彩服务端基地址（可为空，启动时也可由 Bundle ThunderFlashUrl 覆盖） */
     private static volatile String thunderFlashUrl = "";
     private static volatile String thunderAppId = "";
     private static volatile String thunderAppSecret = "";
+    /**
+     * 网关接入开关：{@code true} 时，{@code com.aeye.face.api.gateway.GatewayEndpoint} 清单内的接口
+     * （动作配置查询/人脸核验/核验日志/新增认证记录/认证状态更新/炫彩获取颜色）改为经网关转发，
+     * 老炫彩接口 {@code /alg-api/liveness/thunderAliveColor|thunderAliveCheck} 不受此开关影响，
+     * 始终直连（这两个接口后续会整体下线，不纳入网关改造范围）。
+     * 默认 {@code false}，与现网直连行为完全一致，联调网关时显式打开即可，出问题可随时关回直连。
+     */
+    private static volatile boolean useGateway = false;
+    /** 网关地址，如 {@code https://xxx/empgatewayserver/interface/gateway.do}；开启网关前必须设置。 */
+    private static volatile String gatewayUrl = "";
 
     private AEFaceSdk() {
     }
@@ -95,9 +105,12 @@ public final class AEFaceSdk {
     }
 
     /**
-     * 核验日志 {@code source} 字段，宿主启动时传入。
+     * 核验来源 {@code source} 字段，宿主启动时传入。
+     * <p>取值：1 单一窗口 PC；2 掌上单一窗口 APP；3 掌上单一窗口微信小程序；
+     * 4 掌上单一窗口支付宝小程序；5 掌上海关 PC；6 掌上海关 APP；
+     * 7 掌上海关微信小程序；8 掌上海关支付宝小程序；9 其他。</p>
      *
-     * @param source 2：掌上单一窗口 APP；5：掌上海关 APP
+     * @param source 来源标识，如掌上海关 APP 传 {@code "6"}
      */
     public static void setLogSource(String source) {
         if (!TextUtils.isEmpty(source)) {
@@ -107,6 +120,26 @@ public final class AEFaceSdk {
 
     public static String getLogSource() {
         return logSource;
+    }
+
+    /** 开启/关闭网关转发，见 {@link #useGateway} 字段说明。 */
+    public static void setUseGateway(boolean enabled) {
+        useGateway = enabled;
+    }
+
+    public static boolean isUseGateway() {
+        return useGateway;
+    }
+
+    /**
+     * 配置网关地址。{@link #setUseGateway(boolean)} 打开前必须设置，否则网关请求会直接抛异常失败。
+     */
+    public static void setGatewayUrl(String url) {
+        gatewayUrl = url != null ? url.trim() : "";
+    }
+
+    public static String getGatewayUrl() {
+        return gatewayUrl;
     }
 
     public static void ensureInitialized() {

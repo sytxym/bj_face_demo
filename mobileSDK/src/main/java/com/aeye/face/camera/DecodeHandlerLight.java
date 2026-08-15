@@ -154,6 +154,8 @@ public class DecodeHandlerLight extends Handler {
 		cfgShowRect = AEFacePack.getInstance().isShowFaceRect();
 		CfgMotionPicNum = AEFacePack.getInstance().getMotionPicNum();
 		currentColorIndex=-1;
+		currentColorCount = 0;
+		lastColor = -1;
 		bitmapFull = null;
 //		captured = 0;
 //		captured1 = 0;
@@ -442,9 +444,10 @@ public class DecodeHandlerLight extends Handler {
 						activity.showFaceOut(true);
 						faceInfo.imgRect = rect[0];
 
-						// 纯炫彩：先通知 UI 启动色光，未启动前只做人脸跟踪，不插帧采集
-						if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_LIGHT
-								&& !activity.isLightFlashStarted()) {
+						// 纯炫彩 / 动作+炫彩：未启动色光前只做人脸跟踪，不插帧采集。
+						// 动作刚通过时 isMotionAliveSuc 已为 true，若这里不拦截会把未闪光的预览帧
+						// 送给炫彩算法，随即失败并跳到结果页（闪光还没开始）。
+						if (!activity.isLightFlashStarted()) {
 							activity.getLightHandler().restartDecode();
 							checkAgain();
 							return;
@@ -469,7 +472,11 @@ public class DecodeHandlerLight extends Handler {
 								aliveCount++;
 
 								int ret = 0;
-								if (!RecognizeActivity.isRecord && !RecognizeActivity.isGetLastBitmap) {
+								boolean lastFrame = !RecognizeActivity.isRecord
+										&& !RecognizeActivity.isGetLastBitmap
+										&& activity.isLightFlashStarted()
+										&& !cacheBeanArrayList.isEmpty();
+								if (lastFrame) {
 									activity.isGetLastBitmap = true;
 									LightCacheBean insetBean = cacheBeanArrayList.get(0);
 									Log.e("LIULU", "insert last two pic : " + insetBean.getCurrentColor() + " , state : " + insetBean.getState() + " ,framId : " + mInsertframId);

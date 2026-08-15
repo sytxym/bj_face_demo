@@ -1,7 +1,7 @@
 package com.aeye.face.api;
 
 /**
- * 人脸核验接口 Mock 数据（统一外层 {@code ok/data/data} 结构，与后台契约一致）。
+ * 人脸核验 Mock 数据：仅外层 {@code ok=true}，{@code data=null}。
  */
 final class FaceIdentDefaults {
 
@@ -9,14 +9,7 @@ final class FaceIdentDefaults {
             + "\"ok\":true,"
             + "\"errorCode\":null,"
             + "\"mygType\":null,"
-            + "\"data\":{"
-            + "\"data\":{"
-            + "\"authRecordId\":102458,"
-            + "\"userId\":\"U10086\","
-            + "\"code\":200,"
-            + "\"isPass\":\"1\""
-            + "}"
-            + "},"
+            + "\"data\":null,"
             + "\"errors\":null,"
             + "\"messageList\":[],"
             + "\"messageType\":null"

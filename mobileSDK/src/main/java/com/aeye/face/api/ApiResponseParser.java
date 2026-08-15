@@ -15,20 +15,34 @@ public final class ApiResponseParser {
     private ApiResponseParser() {
     }
 
+    /**
+     * 仅校验外层 {@code ok} 字段（{@code data} 可为 null）。
+     * 适用于 faceIdent、saveFaceVerifyLog、updateRecord 等无业务 data 的接口。
+     */
+    public static void assertOk(String json) {
+        parse(json, false);
+    }
+
     public static ApiResult parse(String json) {
-        if (TextUtils.isEmpty(json)) {
-            throw new IllegalArgumentException("响应为空");
-        }
-        final JSONObject root;
-        try {
-            root = new JSONObject(json);
-        } catch (JSONException e) {
-            throw new IllegalArgumentException("JSON 解析失败: " + e.getMessage());
-        }
-        return parse(root);
+        return parse(json, true);
     }
 
     public static ApiResult parse(JSONObject root) {
+        return parse(root, true);
+    }
+
+    private static ApiResult parse(String json, boolean requireBusinessData) {
+        if (TextUtils.isEmpty(json)) {
+            throw new IllegalArgumentException("响应为空");
+        }
+        try {
+            return parse(new JSONObject(json), requireBusinessData);
+        } catch (JSONException e) {
+            throw new IllegalArgumentException("JSON 解析失败: " + e.getMessage());
+        }
+    }
+
+    private static ApiResult parse(JSONObject root, boolean requireBusinessData) {
         if (root == null) {
             throw new IllegalArgumentException("响应为空");
         }
@@ -41,7 +55,7 @@ public final class ApiResponseParser {
             throw new IllegalArgumentException(error);
         }
         JSONObject businessData = extractBusinessData(root);
-        if (businessData == null) {
+        if (requireBusinessData && businessData == null) {
             throw new IllegalArgumentException("data 为空");
         }
         return new ApiResult(

@@ -1,6 +1,7 @@
 package com.aeye.face.view;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -46,6 +47,18 @@ public class ScanRingOverlayView extends View {
     private final Paint ringSolid = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint outsideWhite = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path outerPath = new Path();
+    /** 圆外白底 + 灰轨缓存：旋转蓝弧时不再每帧重绘整屏遮罩 */
+    private Bitmap staticLayer;
+    private int staticLayerW;
+    private int staticLayerH;
+    private int staticLayerMode = Integer.MIN_VALUE;
+    private boolean staticLayerHole;
+    private final Matrix scanGradientMatrix = new Matrix();
+    private SweepGradient scanGradient;
+    private int scanGradientSolid;
+    private float scanGradientSweepNorm = -1f;
+    private float scanGradientCx;
+    private float scanGradientCy;
 
     public ScanRingOverlayView(Context context) {
         super(context);
@@ -116,6 +129,7 @@ public class ScanRingOverlayView extends View {
             return;
         }
         holeMaskEnabled = enabled;
+        recycleStaticLayer();
         invalidate();
     }
 
@@ -135,7 +149,11 @@ public class ScanRingOverlayView extends View {
     }
 
     public void setMode(int mode) {
+        if (this.mode == mode) {
+            return;
+        }
         this.mode = mode;
+        recycleStaticLayer();
         invalidate();
     }
 
@@ -149,7 +167,14 @@ public class ScanRingOverlayView extends View {
         } else if (p > 1f) {
             p = 1f;
         }
+        if (this.progress == p) {
+            return;
+        }
+        boolean wasFilling = this.progress > 0f;
         this.progress = p;
+        if (wasFilling != (p > 0f)) {
+            recycleStaticLayer();
+        }
         if (mode == MODE_SCANNING) {
             invalidate();
         }
@@ -179,61 +204,111 @@ public class ScanRingOverlayView extends View {
     }
 
     @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        recycleStaticLayer();
+        scanGradient = null;
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        recycleStaticLayer();
+        scanGradient = null;
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         int w = getWidth();
         int h = getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
         float cx = w / 2f;
         float cy = h / 2f;
         int panelPx = Math.min(w, h);
         float radius = computeRingCenterRadius(panelPx);
-        float baseStroke = getResources().getDimension(R.dimen.face_scan_ring_base_stroke);
         float progressStroke = getResources().getDimension(R.dimen.face_scan_ring_progress_stroke);
         float resultStroke = getResources().getDimension(R.dimen.face_scan_ring_result_stroke);
-        float holeR = computePreviewHoleRadius(getContext(), panelPx);
-
-        int cBase = ContextCompat.getColor(getContext(), R.color.face_scan_ring_base);
-        int cOk = ContextCompat.getColor(getContext(), R.color.face_result_success);
-        int cFailRing = ContextCompat.getColor(getContext(), R.color.face_scan_ring_fail);
-
         RectF baseOval = new RectF(cx - radius, cy - radius, cx + radius, cy + radius);
 
         if (mode == MODE_SUCCESS) {
-            drawOutsideHoleMask(canvas, w, h, cx, cy, holeR);
+            ensureStaticLayer(w, h, cx, cy, panelPx, radius);
+            drawStaticLayer(canvas);
             ringSolid.setStrokeWidth(resultStroke);
             ringSolid.setStrokeCap(Paint.Cap.ROUND);
-            ringSolid.setColor(cOk);
+            ringSolid.setColor(ContextCompat.getColor(getContext(), R.color.face_result_success));
             canvas.drawOval(baseOval, ringSolid);
             return;
         }
         if (mode == MODE_FAIL) {
-            drawOutsideHoleMask(canvas, w, h, cx, cy, holeR);
+            ensureStaticLayer(w, h, cx, cy, panelPx, radius);
+            drawStaticLayer(canvas);
             ringSolid.setStrokeWidth(resultStroke);
             ringSolid.setStrokeCap(Paint.Cap.ROUND);
-            ringSolid.setColor(cFailRing);
+            ringSolid.setColor(ContextCompat.getColor(getContext(), R.color.face_scan_ring_fail));
             canvas.drawOval(baseOval, ringSolid);
             return;
         }
 
-        drawOutsideHoleMask(canvas, w, h, cx, cy, holeR);
-
-        ringThin.setStrokeWidth(baseStroke);
-        ringThin.setColor(cBase);
-        ringThin.setStrokeCap(Paint.Cap.ROUND);
-        canvas.drawOval(baseOval, ringThin);
+        ensureStaticLayer(w, h, cx, cy, panelPx, radius);
+        drawStaticLayer(canvas);
 
         if (scanArcEnabled || progress > 0f) {
             ringArc.setStrokeWidth(progressStroke);
             ringArc.setStrokeCap(Paint.Cap.ROUND);
             float startDeg = arcStartAngle;
-            float sweep;
-            if (progress > 0f) {
-                sweep = 360f * progress;
-            } else {
-                sweep = SCAN_ARC_SWEEP_DEG;
-            }
+            float sweep = progress > 0f ? (360f * progress) : SCAN_ARC_SWEEP_DEG;
             drawGradientScanArc(canvas, baseOval, cx, cy, startDeg, sweep, ringArc);
         }
+    }
+
+    private void drawStaticLayer(Canvas canvas) {
+        if (staticLayer != null && !staticLayer.isRecycled()) {
+            canvas.drawBitmap(staticLayer, 0f, 0f, null);
+        }
+    }
+
+    /** 缓存不随蓝弧旋转变化的部分：圆外白底 + 灰轨。 */
+    private void ensureStaticLayer(int w, int h, float cx, float cy, int panelPx, float radius) {
+        if (staticLayer != null && !staticLayer.isRecycled()
+                && staticLayerW == w && staticLayerH == h
+                && staticLayerMode == mode && staticLayerHole == holeMaskEnabled) {
+            return;
+        }
+        recycleStaticLayer();
+        Bitmap bmp;
+        try {
+            bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        } catch (OutOfMemoryError e) {
+            return;
+        }
+        Canvas cache = new Canvas(bmp);
+        float holeR = computePreviewHoleRadius(getContext(), panelPx);
+        drawOutsideHoleMask(cache, w, h, cx, cy, holeR);
+        if (mode == MODE_SCANNING) {
+            float baseStroke = getResources().getDimension(R.dimen.face_scan_ring_base_stroke);
+            ringThin.setStrokeWidth(baseStroke);
+            ringThin.setColor(ContextCompat.getColor(getContext(), R.color.face_scan_ring_base));
+            ringThin.setStrokeCap(Paint.Cap.ROUND);
+            cache.drawOval(new RectF(cx - radius, cy - radius, cx + radius, cy + radius), ringThin);
+        }
+        staticLayer = bmp;
+        staticLayerW = w;
+        staticLayerH = h;
+        staticLayerMode = mode;
+        staticLayerHole = holeMaskEnabled;
+    }
+
+    private void recycleStaticLayer() {
+        if (staticLayer != null && !staticLayer.isRecycled()) {
+            staticLayer.recycle();
+        }
+        staticLayer = null;
+        staticLayerW = 0;
+        staticLayerH = 0;
+        staticLayerMode = Integer.MIN_VALUE;
     }
 
     /**
@@ -245,15 +320,22 @@ public class ScanRingOverlayView extends View {
             return;
         }
         int solid = ContextCompat.getColor(getContext(), R.color.face_scan_ring_progress);
-        int transparent = Color.argb(0, Color.red(solid), Color.green(solid), Color.blue(solid));
         float sweepNorm = Math.min(sweepDeg / 360f, 1f);
-        SweepGradient gradient = new SweepGradient(cx, cy,
-                new int[]{solid, transparent},
-                new float[]{0f, sweepNorm});
-        Matrix matrix = new Matrix();
-        matrix.setRotate(startDeg, cx, cy);
-        gradient.setLocalMatrix(matrix);
-        paint.setShader(gradient);
+        if (scanGradient == null || scanGradientSolid != solid
+                || scanGradientSweepNorm != sweepNorm
+                || scanGradientCx != cx || scanGradientCy != cy) {
+            int transparent = Color.argb(0, Color.red(solid), Color.green(solid), Color.blue(solid));
+            scanGradient = new SweepGradient(cx, cy,
+                    new int[]{solid, transparent},
+                    new float[]{0f, sweepNorm});
+            scanGradientSolid = solid;
+            scanGradientSweepNorm = sweepNorm;
+            scanGradientCx = cx;
+            scanGradientCy = cy;
+        }
+        scanGradientMatrix.setRotate(startDeg, cx, cy);
+        scanGradient.setLocalMatrix(scanGradientMatrix);
+        paint.setShader(scanGradient);
         canvas.drawArc(oval, startDeg, sweepDeg, false, paint);
         paint.setShader(null);
     }

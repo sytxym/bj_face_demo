@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.aeye.face.AEFaceSdk;
+import com.aeye.face.api.gateway.GatewayCrypto;
 import com.aeye.face.api.model.ApiResult;
 import com.aeye.face.api.model.ColorResponseBean;
 import com.aeye.face.api.model.FaceIdentResult;
@@ -87,41 +88,34 @@ public final class FaceApiService {
     // ---------- 新增认证记录 ----------
 
     /**
-     * 组装 {@code /qrCode/insertRecord} 请求体。
-     * <p>注册场景无 userId 时传 {@code certNo}；其他场景传 {@code userId}。
-     * {@code busType}/{@code busId} 来自动作配置接口返回值。</p>
+     * 组装 {@code /fivweb/qrCode/insertRecord} 请求体。
+     * <p>{@code userId}/{@code businessCode} 来自 {@link FaceVerifySession}；
+     * {@code busId} 由外部业务 App 经 {@link FaceUserInfo} 传入。</p>
      */
-    public static String buildInsertRecordRequestJson(Context context,
-                                                      FaceActionConfig config,
-                                                      String userId,
-                                                      String certNo) throws JSONException {
-        if (config == null) {
-            throw new IllegalArgumentException("动作配置为空");
+    public static String buildInsertRecordRequestJson() throws JSONException {
+        String userId = FaceVerifySession.getUserId();
+        if (TextUtils.isEmpty(userId)) {
+            FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
+            if (userInfo != null) {
+                userId = userInfo.getUserId();
+            }
+        }
+        if (TextUtils.isEmpty(userId)) {
+            throw new IllegalArgumentException("userId 为空");
+        }
+        String businessCode = FaceVerifySession.getBusinessCode();
+        if (TextUtils.isEmpty(businessCode)) {
+            throw new IllegalArgumentException("businessCode 为空");
+        }
+        FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
+        String busId = userInfo != null ? userInfo.getBusId() : null;
+        if (TextUtils.isEmpty(busId)) {
+            throw new IllegalArgumentException("busId 为空");
         }
         JSONObject req = new JSONObject();
-        if (FaceActionConfigDefaults.isRegisterScene(config.getBusinessCode())) {
-            if (TextUtils.isEmpty(userId)) {
-                if (TextUtils.isEmpty(certNo)) {
-                    throw new IllegalArgumentException("注册场景 certNo 为空");
-                }
-                req.put("certNo", certNo.trim());
-            } else {
-                req.put("userId", userId.trim());
-            }
-        } else {
-            if (TextUtils.isEmpty(userId)) {
-                throw new IllegalArgumentException("userId 为空");
-            }
-            req.put("userId", userId.trim());
-        }
-        req.put("busType", config.getBusinessCode());
-        req.put("busId", String.valueOf(config.getActionConfigId()));
-        JSONObject device = DeviceInfoCollector.collect(context);
-        req.put("brand", device.optString("brand", ""));
-        req.put("model", device.optString("model", ""));
-        req.put("osType", device.optString("osType", DeviceInfoCollector.OS_TYPE_ANDROID));
-        req.put("osVersion", device.optString("osVersion", ""));
-        req.put("deviceId", device.optString("deviceId", ""));
+        req.put("userId", userId.trim());
+        req.put("businessCode", businessCode.trim());
+        req.put("busId", busId.trim());
         req.put("source", AEFaceSdk.getLogSource());
         return req.toString();
     }
@@ -156,9 +150,17 @@ public final class FaceApiService {
                 authRecordId = null;
             }
         }
+        String status = data.optString("status", null);
+        if (TextUtils.isEmpty(status) && data.has("status")) {
+            status = String.valueOf(data.optInt("status", -1));
+            if ("-1".equals(status)) {
+                status = null;
+            }
+        }
         return new QrInsertRecordResult(
                 data.optString("userId", null),
-                authRecordId);
+                authRecordId,
+                status);
     }
 
     // ---------- 人脸核验 ----------
@@ -251,27 +253,18 @@ public final class FaceApiService {
             }
         }
         req.put("colorPics", colorPics != null ? colorPics : new JSONArray());
+        applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
 
     public static FaceIdentResult mockFaceIdentPass(String userId, String authRecordId) throws Exception {
-        JSONObject mock = new JSONObject(FaceIdentDefaults.MOCK_RESPONSE_JSON);
-        JSONObject businessData = ApiResponseParser.extractBusinessData(mock);
-        if (businessData == null) {
-            throw new IllegalArgumentException("Mock 响应 data 为空");
-        }
-        if (!TextUtils.isEmpty(userId)) {
-            businessData.put("userId", userId);
-        }
-        if (!TextUtils.isEmpty(authRecordId)) {
-            businessData.put("authRecordId", parseAuthRecordId(authRecordId));
-        }
-        return parseFaceIdentResponse(mock.toString());
+        return parseFaceIdentResponse(FaceIdentDefaults.MOCK_RESPONSE_JSON);
     }
 
     /**
      * 从活体 JSON 组装核验请求体。
      * facePic1=正脸(images[0])，facePic2~facePic6=抓拍图(images[1]~[5])。
+     * 文档要求 certName/certType/certNo/country、facePic1~6 做 SM2 字段级加密。
      */
     public static String buildFaceIdentRequestJson(String livenessJson,
                                                    String userId,
@@ -308,33 +301,13 @@ public final class FaceApiService {
         if (live.has("alignData") && !TextUtils.isEmpty(live.optString("alignData"))) {
             req.put("alignData", live.optString("alignData"));
         }
+        applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
 
-    public static FaceIdentResult parseFaceIdentResponse(String json) throws JSONException {
-        JSONObject root = new JSONObject(json);
-        if (root.has("isPass")) {
-            return fromFaceIdentJson(root);
-        }
-        if (root.has("ok")) {
-            ApiResult apiResult = ApiResponseParser.parse(root);
-            JSONObject data = apiResult.getBusinessData();
-            if (data == null) {
-                throw new IllegalArgumentException("核验响应 data 为空");
-            }
-            return fromFaceIdentJson(data);
-        }
-        throw new IllegalArgumentException("无法解析人脸核验响应");
-    }
-
-    private static FaceIdentResult fromFaceIdentJson(JSONObject json) {
-        String isPass = json.optString("isPass", "0");
-        return new FaceIdentResult(
-                "1".equals(isPass),
-                json.optString("userId", null),
-                json.optLong("authRecordId", 0L),
-                isPass,
-                json.optInt("code", 0));
+    public static FaceIdentResult parseFaceIdentResponse(String json) {
+        ApiResponseParser.assertOk(json);
+        return FaceIdentResult.pass();
     }
 
     /**
@@ -359,6 +332,71 @@ public final class FaceApiService {
         }
     }
 
+    /**
+     * faceIdent 接口文档要求 SM2 字段级加密的敏感字段：
+     * certName/certType/certNo/country、facePic1~facePic6、colorPics（数组每项）。
+     * 走网关时加密后的 JSON 还会作为 biz_content 整体再做一次 SM2 加密。
+     */
+    private static final String[] FACE_IDENT_SM2_STRING_FIELDS = {
+            "certName", "certType", "certNo", "country",
+            "facePic1", "facePic2", "facePic3", "facePic4", "facePic5", "facePic6"
+    };
+
+    private static void applyFaceIdentFieldEncryption(JSONObject req) throws JSONException {
+        if (!AEFaceSdk.isUseGateway()) {
+            return;
+        }
+        for (String key : FACE_IDENT_SM2_STRING_FIELDS) {
+            encryptFaceIdentFieldIfPresent(req, key);
+        }
+        encryptColorPicsIfPresent(req);
+    }
+
+    private static void encryptFaceIdentFieldIfPresent(JSONObject req, String key) throws JSONException {
+        if (!req.has(key) || req.isNull(key)) {
+            return;
+        }
+        String plain = req.optString(key, null);
+        if (TextUtils.isEmpty(plain)) {
+            return;
+        }
+        req.put(key, sm2EncryptField(key, plain));
+    }
+
+    /** colorPics 为 List&lt;String&gt;，文档要求数组内每一项单独 SM2 加密。 */
+    private static void encryptColorPicsIfPresent(JSONObject req) throws JSONException {
+        if (!req.has("colorPics") || req.isNull("colorPics")) {
+            return;
+        }
+        JSONArray colorPics = req.optJSONArray("colorPics");
+        if (colorPics == null || colorPics.length() == 0) {
+            return;
+        }
+        JSONArray encrypted = new JSONArray();
+        for (int i = 0; i < colorPics.length(); i++) {
+            Object item = colorPics.opt(i);
+            if (item == null || item == JSONObject.NULL) {
+                encrypted.put(JSONObject.NULL);
+                continue;
+            }
+            String plain = String.valueOf(item);
+            if (TextUtils.isEmpty(plain)) {
+                encrypted.put(JSONObject.NULL);
+                continue;
+            }
+            encrypted.put(sm2EncryptField("colorPics[" + i + "]", plain));
+        }
+        req.put("colorPics", encrypted);
+    }
+
+    private static String sm2EncryptField(String fieldName, String plain) {
+        String encrypted = GatewayCrypto.sm2EncryptToHex(plain);
+        if (TextUtils.isEmpty(encrypted)) {
+            throw new IllegalStateException("faceIdent 字段 SM2 加密失败: " + fieldName);
+        }
+        return encrypted;
+    }
+
     private static long parseAuthRecordId(String authRecordId) {
         try {
             return Long.parseLong(authRecordId.trim());
@@ -370,19 +408,19 @@ public final class FaceApiService {
     // ---------- 核验日志 ----------
 
     /**
-     * 上报核验日志，返回结构与配置接口一致；data 为空对象，客户端无需处理。
+     * 上报核验日志；成功仅看外层 {@code ok}，{@code data} 可为 null。
      */
     public static void saveFaceVerifyLog(String baseUrl, String jsonBody) throws Exception {
         String response = SdkHttpClient.postJson(baseUrl, FaceApiPaths.SAVE_FACE_VERIFY_LOG, jsonBody);
-        ApiResponseParser.parse(response);
+        ApiResponseParser.assertOk(response);
     }
 
     /**
-     * 更新二维码认证记录状态；返回结构与配置/日志接口一致，data 为空对象。
+     * 更新二维码认证记录状态；成功仅看外层 {@code ok}，{@code data} 可为 null。
      */
     public static void updateQrCodeRecord(String baseUrl, String jsonBody) throws Exception {
         String response = SdkHttpClient.postJson(baseUrl, FaceApiPaths.QR_CODE_UPDATE_RECORD, jsonBody);
-        ApiResponseParser.parse(response);
+        ApiResponseParser.assertOk(response);
     }
 
     // ---------- 炫彩 Thunder（flashUrl 基地址） ----------

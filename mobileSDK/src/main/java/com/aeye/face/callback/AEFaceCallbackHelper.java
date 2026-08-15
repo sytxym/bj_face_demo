@@ -18,10 +18,15 @@ public final class AEFaceCallbackHelper {
 
     public static void dispatchFinish(AEFaceInterface listener, int sdkValue,
                                       String data, String detailMessage) {
+        dispatchFinish(listener, sdkValue, data, detailMessage, false);
+    }
+
+    public static void dispatchFinish(AEFaceInterface listener, int sdkValue,
+                                      String data, String detailMessage, boolean submitFailure) {
         if (listener == null) {
             return;
         }
-        String enriched = FaceUniResultMapper.mergeIntoData(sdkValue, data, detailMessage);
+        String enriched = FaceUniResultMapper.mergeIntoData(sdkValue, data, detailMessage, submitFailure);
         String resultCode = FaceUniResultMapper.unifiedResultCode(sdkValue);
         listener.onFinish(sdkValue, enriched, resultCode);
     }

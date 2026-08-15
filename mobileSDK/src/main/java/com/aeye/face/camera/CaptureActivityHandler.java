@@ -130,8 +130,15 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 
                 if (succeedNum < AEFacePack.getInstance().getPictureNumber()) {
                     Log.e(TAG, "add picture");
-                    PictureManagerUtils.getPictureManager().addOnePictureInfo(
-                            bitRect, succeedNum);
+                    final int pos = succeedNum;
+                    if (bitRect != null && bitRect.isAlive) {
+                        PictureManagerUtils.getPictureManager().addOnePictureInfo(
+                                bitRect, pos);
+                    } else if (bitRect != null) {
+                        final AEFaceInfo info = bitRect;
+                        new Thread(() -> PictureManagerUtils.getPictureManager()
+                                .addOnePictureInfo(info, pos), "aeye-pic-encode").start();
+                    }
                 }
                 succeedNum++;
 
@@ -140,7 +147,7 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
                         AEFacePack.getInstance().isAliveOff()) {
                     break;
                 }
-                if (bitRect.isAlive) {
+                if (bitRect != null && bitRect.isAlive) {
 //				if (succeedNum >= AEFacePack.getInstance()
 //						.getPictureNumber()) {
                     // 返回数据

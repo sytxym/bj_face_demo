@@ -33,6 +33,8 @@ public class DemoApplication extends Application {
 
     private OkHttpClient mHttpClient;
     public static  String  serverAddr="https://ai-human.a-eye.cn"; // 模拟器访问电脑 localhost 用 10.0.2.2；真机调试改为电脑局域网 IP
+
+    public static  String  gateWayUrl= "https://zshgapp.customs.gov.cn/empgatewayserver/interface/gateway.do";
     public static ArrayList<String> riskType = new ArrayList<>();
     private String snapData;
     @Override
@@ -40,8 +42,10 @@ public class DemoApplication extends Application {
         super.onCreate();
 
         AEFaceSdk.init(serverAddr,true);
-        AEFaceSdk.setLogSource("5"); // 掌上海关 APP
+        AEFaceSdk.setLogSource("6"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
+//        AEFaceSdk.setGatewayUrl(gateWayUrl);
+//        AEFaceSdk.setUseGateway(true);
         // 炫彩接口切换（调试用）：true=新接口（assistant/thunderAliveColor 拉色 + faceIdent 带炫彩字段）；
         // false=老接口（alg-api/liveness/thunderAliveColor 拉色 + thunderAliveCheck 核验，不调 faceIdent）
         AEFaceSdk.setNewColorIntenface(false);

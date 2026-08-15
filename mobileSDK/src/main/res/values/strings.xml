@@ -68,12 +68,13 @@
     <string name="info_field_id_number">ID number</string>
     <string name="info_start_verify">Start verification</string>
     <string name="info_light_loading">Loading colorful liveness…</string>
-    <string name="face_verify_passed">Verification passed</string>
-    <string name="face_verify_submitting">Submitting verification…</string>
+    <string name="face_verify_passed">Submitted successfully</string>
+    <string name="face_verify_submitting">Submitting…</string>
     <string name="face_verify_network_timeout">Network timeout. Please try again.</string>
     <string name="face_verify_network_error">Network error. Please try again later.</string>
-    <string name="face_verify_failed">Verification failed</string>
-    <string name="face_verify_fail_default">Face does not match the ID number. Please verify again.</string>
+    <string name="face_verify_failed">Submission failed</string>
+    <string name="face_liveness_failed">Verification failed</string>
+    <string name="face_verify_fail_default">Submission failed. Please try again.</string>
     <string name="face_retry_verify">Re-verify</string>
     <string name="face_other_verify">Other verification methods</string>
     <string name="face_fail_timeout_detail">Please: face the phone, ensure good lighting, and keep your face unobstructed</string>

@@ -18,6 +18,8 @@ public final class QrRecordStatus {
     public static final String NOT_PASS = "4";
     /** 已通过 */
     public static final String PASSED = "5";
+    /** 任务已取消 */
+    public static final String TASK_CANCELLED = "6";
 
     /**
      * 失败原因 {@code failedType}：仅异常退出、动作活体未通过 3 次需传，其余场景不传。

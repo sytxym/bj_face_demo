@@ -36,6 +36,16 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    // mobileSDK 网关国密能力引入了 org.bouncycastle:bcprov-jdk18on，
+    // 其 jar 内 META-INF/versions/9/OSGI-INF/MANIFEST.MF 与部分依赖（如 jspecify）重名，
+    // 打包期需要显式排重，否则 mergeDebugJavaResource 会失败。
+    // 集成本 SDK 的宿主 App 如遇到同样的合并冲突，也需在自己的 app/build.gradle 加这段配置。
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
+        }
+    }
 }
 
 dependencies {

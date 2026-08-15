@@ -100,7 +100,7 @@ public final class FaceVerifyManager {
                 if (result != null && result.isPass()) {
                     callback.onPassed(result);
                 } else {
-                    callback.onFailed("人脸核验未通过");
+                    callback.onFailed("提交失败");
                 }
             } catch (TimeoutException e) {
                 future.cancel(true);
@@ -140,7 +140,7 @@ public final class FaceVerifyManager {
 
     private static String friendlyMessage(Throwable error) {
         if (error == null) {
-            return "人脸核验失败";
+            return "提交失败";
         }
         if (error instanceof SocketTimeoutException
                 || error instanceof TimeoutException
@@ -170,6 +170,6 @@ public final class FaceVerifyManager {
                 return msg;
             }
         }
-        return "人脸核验失败";
+        return "提交失败";
     }
 }

@@ -1,41 +1,22 @@
 package com.aeye.face.api.model;
 
 /**
- * 人脸核验接口 {@code /assistant/faceIdent} 业务结果。
+ * 人脸核验接口 {@code /fivweb/assistant/faceIdent} 结果。
+ * <p>后台仅返回外层 {@code ok}，{@code data} 恒为 null，成功即 {@link #pass()}。</p>
  */
 public final class FaceIdentResult {
 
     private final boolean pass;
-    private final String userId;
-    private final long authRecordId;
-    private final String isPass;
-    private final int code;
 
-    public FaceIdentResult(boolean pass, String userId, long authRecordId, String isPass, int code) {
+    private FaceIdentResult(boolean pass) {
         this.pass = pass;
-        this.userId = userId;
-        this.authRecordId = authRecordId;
-        this.isPass = isPass;
-        this.code = code;
+    }
+
+    public static FaceIdentResult pass() {
+        return new FaceIdentResult(true);
     }
 
     public boolean isPass() {
         return pass;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public long getAuthRecordId() {
-        return authRecordId;
-    }
-
-    public String getIsPass() {
-        return isPass;
-    }
-
-    public int getCode() {
-        return code;
     }
 }

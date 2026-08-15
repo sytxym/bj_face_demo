@@ -28,14 +28,13 @@ public final class QrInsertRecordManager {
     }
 
     /**
-     * 使用已缓存的动作配置、外部传入的用户基本信息与设备信息调用 {@code /qrCode/insertRecord}。
+     * 动作配置拉取成功后、预览页打开前调用 {@code /fivweb/qrCode/insertRecord} 创建认证记录。
      */
     public static void insert(Context context, Callback callback) {
         if (context == null) {
             postError(callback, "Context 为空");
             return;
         }
-        final Context appContext = context.getApplicationContext();
         new Thread(() -> {
             try {
                 AEFaceSdk.ensureInitialized();
@@ -43,14 +42,7 @@ public final class QrInsertRecordManager {
                 if (config == null) {
                     throw new IllegalStateException("动作配置未加载");
                 }
-                // 注册场景兜底 certNo：取外部业务 App 传入的用户基本信息（预览接口已取消）
-                FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
-                String certNo = userInfo != null ? userInfo.getCertNo() : null;
-                String body = FaceApiService.buildInsertRecordRequestJson(
-                        appContext,
-                        config,
-                        FaceVerifySession.getUserId(),
-                        certNo);
+                String body = FaceApiService.buildInsertRecordRequestJson();
                 QrInsertRecordResult result = FaceApiService.insertQrCodeRecord(
                         AEFaceSdk.getApiBaseUrl(), body);
                 if (TextUtils.isEmpty(result.getAuthRecordId())) {

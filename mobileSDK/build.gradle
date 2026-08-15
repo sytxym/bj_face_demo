@@ -115,4 +115,7 @@ dependencies {
     // 炫彩接口响应解析
 //    implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
     implementation 'com.alibaba:fastjson:1.2.83'
+    // 网关请求 SM2/SM3 国密算法：仅用轻量 crypto.* API（不注册 Security Provider，
+    // 避免与 Android 内置 BC 冲突），来自 Maven Central 公开构件，SDK 对外分发无私仓依赖。
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 }

@@ -2,6 +2,10 @@ package com.aeye.face.api;
 
 import android.text.TextUtils;
 
+import com.aeye.face.AEFaceSdk;
+import com.aeye.face.api.gateway.GatewayEndpoint;
+import com.aeye.face.api.gateway.GatewayHttpClient;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +50,7 @@ public final class SdkHttpClient {
     public static String get(String baseUrl, String path, Map<String, String> queryParams) throws Exception {
         String requestUrl = buildUrl(baseUrl, path, queryParams);
         ApiLogger.logRequest("GET", requestUrl, queryParams);
-        return execute("GET", requestUrl, null, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+        return execute("GET", requestUrl, null, JSON_CONTENT_TYPE, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
     }
 
     // ==================== POST JSON ====================
@@ -57,15 +61,39 @@ public final class SdkHttpClient {
 
     /**
      * 自定义超时的 POST-JSON（炫彩等大图上传接口用更长超时）。
+     * <p>{@code path} 命中 {@link GatewayEndpoint} 清单且 {@link AEFaceSdk#isUseGateway()} 打开时，
+     * 改走网关转发（{@link GatewayHttpClient}），业务方完全无感知；未命中清单的接口
+     * （含老炫彩 {@code /alg-api/liveness/*}）始终直连，不受网关开关影响。</p>
      */
     public static String postJson(String baseUrl, String path, String jsonBody,
                                   int connectTimeoutMs, int readTimeoutMs) throws Exception {
+        GatewayEndpoint endpoint = GatewayEndpoint.byPath(path);
+        if (endpoint != null && AEFaceSdk.isUseGateway()) {
+            return GatewayHttpClient.postJson(
+                    AEFaceSdk.getGatewayUrl(), endpoint, jsonBody, connectTimeoutMs, readTimeoutMs);
+        }
         String requestUrl = buildUrl(baseUrl, path, null);
         ApiLogger.logPostRequest(requestUrl, summarizeJsonBody(jsonBody));
-        return execute("POST", requestUrl, jsonBody, connectTimeoutMs, readTimeoutMs);
+        return execute("POST", requestUrl, jsonBody, JSON_CONTENT_TYPE, connectTimeoutMs, readTimeoutMs);
+    }
+
+    // ==================== POST FORM（网关信封专用） ====================
+
+    /**
+     * 网关信封请求：{@code application/x-www-form-urlencoded} 提交，{@code formBody} 需已完成
+     * URL 编码（{@link GatewayHttpClient} 组包时已处理）。复用 {@link #execute} 的失效连接重试、
+     * 日志、异常映射，不再单独实现一套 HTTP 逻辑。
+     */
+    public static String postForm(String url, String formBody,
+                                  int connectTimeoutMs, int readTimeoutMs) throws Exception {
+        ApiLogger.logPostRequest(url, "[gateway form, len=" + formBody.length() + "]");
+        return execute("POST", url, formBody, FORM_CONTENT_TYPE, connectTimeoutMs, readTimeoutMs);
     }
 
     // ==================== 统一执行 ====================
+
+    private static final String JSON_CONTENT_TYPE = "application/json;charset=utf-8";
+    private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded;charset=utf-8";
 
     /** 复用到失效 keep-alive 连接（Broken pipe / connection reset 等）时的自动重试次数 */
     private static final int STALE_CONN_RETRY_MAX = 1;
@@ -76,12 +104,12 @@ public final class SdkHttpClient {
      * 客户端在旧连接上写大请求体（faceIdent 多图 base64）会偶发 {@code Broken pipe}。
      * 此类错误说明请求体未完整送达、服务端未处理，重试一次是安全的。</p>
      */
-    private static String execute(String method, String requestUrl, String jsonBody,
+    private static String execute(String method, String requestUrl, String body, String contentType,
                                   int connectTimeoutMs, int readTimeoutMs) throws Exception {
         Exception lastError = null;
         for (int attempt = 0; attempt <= STALE_CONN_RETRY_MAX; attempt++) {
             try {
-                return executeOnce(method, requestUrl, jsonBody, connectTimeoutMs, readTimeoutMs);
+                return executeOnce(method, requestUrl, body, contentType, connectTimeoutMs, readTimeoutMs);
             } catch (Exception e) {
                 if (attempt < STALE_CONN_RETRY_MAX && isStaleConnectionError(e)) {
                     ApiLogger.logRetry(requestUrl, attempt + 1, e);
@@ -114,7 +142,7 @@ public final class SdkHttpClient {
                 || lower.contains("software caused connection abort");
     }
 
-    private static String executeOnce(String method, String requestUrl, String jsonBody,
+    private static String executeOnce(String method, String requestUrl, String body, String contentType,
                                       int connectTimeoutMs, int readTimeoutMs) throws Exception {
         long startMs = System.currentTimeMillis();
         HttpURLConnection conn = null;
@@ -130,8 +158,8 @@ public final class SdkHttpClient {
             conn.setRequestProperty("Connection", "close");
             if ("POST".equals(method)) {
                 conn.setDoOutput(true);
-                conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                byte[] payload = jsonBody != null ? jsonBody.getBytes(StandardCharsets.UTF_8) : new byte[0];
+                conn.setRequestProperty("Content-Type", contentType);
+                byte[] payload = body != null ? body.getBytes(StandardCharsets.UTF_8) : new byte[0];
                 conn.setFixedLengthStreamingMode(payload.length);
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(payload);
@@ -139,12 +167,12 @@ public final class SdkHttpClient {
                 }
             }
             int httpCode = conn.getResponseCode();
-            String body = readBody(conn, httpCode, requestUrl);
-            ApiLogger.logResponse(requestUrl, httpCode, body, System.currentTimeMillis() - startMs);
+            String responseBody = readBody(conn, httpCode, requestUrl);
+            ApiLogger.logResponse(requestUrl, httpCode, responseBody, System.currentTimeMillis() - startMs);
             if (httpCode < 200 || httpCode >= 300) {
-                throw new IllegalStateException("HTTP " + httpCode + ": " + body);
+                throw new IllegalStateException("HTTP " + httpCode + ": " + responseBody);
             }
-            return body;
+            return responseBody;
         } catch (SocketTimeoutException e) {
             ApiLogger.logError(requestUrl, e);
             throw new SocketTimeoutException("网络超时，请重试");

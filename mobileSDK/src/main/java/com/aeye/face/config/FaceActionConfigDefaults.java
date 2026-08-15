@@ -36,7 +36,8 @@ public final class FaceActionConfigDefaults {
     public static final String DEFAULT_BUSINESS_CODE = CODE_NATURAL_REGISTER;
 
     /**
-     * 注册场景：无 userId 时 insertRecord 传 certNo，有 userId 时仍传 userId。
+     * 注册场景（businessCode 01/08）：insertRecord 仍要求传 {@code userId}，
+     * 注册完成后后台可在响应中返回新的 {@code userId}。
      */
     public static boolean isRegisterScene(String businessCode) {
         if (TextUtils.isEmpty(businessCode)) {

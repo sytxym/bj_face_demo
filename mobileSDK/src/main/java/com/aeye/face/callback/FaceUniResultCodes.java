@@ -10,10 +10,10 @@ package com.aeye.face.callback;
  */
 public final class FaceUniResultCodes {
 
-    // ===== 统一结果码（三端一致，随 data.resultCode 下发）=====
-    /** 核验成功 */
+    /** 统一结果码（三端一致，随 data.resultCode 下发） */
+    /** 提交成功（faceIdent 接口 ok=true，最终核验结果由业务 App 二次确认） */
     public static final String RESULT_SUCCESS = "0";
-    /** 核验失败 */
+    /** 失败（活体未通过或提交失败等，见 resultMsg 区分） */
     public static final String RESULT_VERIFY_FAILED = "0414009";
     /** 核验超时 */
     public static final String RESULT_TIMEOUT = "0414010";
@@ -26,8 +26,13 @@ public final class FaceUniResultCodes {
     /** 选择其他核验方式 */
     public static final String RESULT_OTHER_VERIFY = "0414014";
 
-    public static final String RESULT_MSG_SUCCESS = "核验成功";
-    public static final String RESULT_MSG_VERIFY_FAILED = "核验失败";
+    public static final String RESULT_MSG_SUCCESS = "提交成功";
+    /** 活体检测失败 */
+    public static final String RESULT_MSG_LIVENESS_FAILED = "验证失败";
+    /** @deprecated 请用 {@link #RESULT_MSG_LIVENESS_FAILED} 或 {@link #RESULT_MSG_SUBMIT_FAILED} */
+    public static final String RESULT_MSG_VERIFY_FAILED = "验证失败";
+    /** faceIdent 提交失败 */
+    public static final String RESULT_MSG_SUBMIT_FAILED = "提交失败";
     public static final String RESULT_MSG_TIMEOUT = "核验超时";
     public static final String RESULT_MSG_USER_CANCEL = "用户取消";
     public static final String RESULT_MSG_CAMERA_ERROR = "摄像头异常";

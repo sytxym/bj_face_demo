@@ -43,6 +43,11 @@ public final class FaceUniResultMapper {
 
     /** 统一结果码对应的默认中文文案 */
     public static String unifiedResultMessage(int sdkValue) {
+        return unifiedResultMessage(sdkValue, false);
+    }
+
+    /** @param submitFailure 仅对 {@link com.aeye.face.AEFacePack#ERROR_FAIL} 生效：true=提交失败，false=验证失败 */
+    public static String unifiedResultMessage(int sdkValue, boolean submitFailure) {
         switch (sdkValue) {
             case AEFacePack.SUCCESS:
                 return FaceUniResultCodes.RESULT_MSG_SUCCESS;
@@ -58,18 +63,25 @@ public final class FaceUniResultMapper {
                 return FaceUniResultCodes.RESULT_MSG_OTHER_VERIFY;
             case AEFacePack.ERROR_FAIL:
             default:
-                return FaceUniResultCodes.RESULT_MSG_VERIFY_FAILED;
+                return submitFailure
+                        ? FaceUniResultCodes.RESULT_MSG_SUBMIT_FAILED
+                        : FaceUniResultCodes.RESULT_MSG_LIVENESS_FAILED;
         }
     }
 
     /** 把统一结果码写入 data JSON 顶层（业务 APP 直接读 {@code resultCode} / {@code resultMsg}） */
     private static void putUnifiedResult(JSONObject target, int sdkValue, String detailMessage) {
+        putUnifiedResult(target, sdkValue, detailMessage, false);
+    }
+
+    private static void putUnifiedResult(JSONObject target, int sdkValue,
+                                         String detailMessage, boolean submitFailure) {
         if (target == null) {
             return;
         }
         try {
             target.put("resultCode", unifiedResultCode(sdkValue));
-            target.put("resultMsg", unifiedResultMessage(sdkValue));
+            target.put("resultMsg", unifiedResultMessage(sdkValue, submitFailure));
             if (!TextUtils.isEmpty(detailMessage) && sdkValue != AEFacePack.SUCCESS) {
                 target.put("resultDetail", detailMessage.trim());
             }
@@ -100,9 +112,14 @@ public final class FaceUniResultMapper {
     }
 
     public static String mergeIntoData(int sdkValue, String data, String detailMessage) {
+        return mergeIntoData(sdkValue, data, detailMessage, false);
+    }
+
+    public static String mergeIntoData(int sdkValue, String data,
+                                       String detailMessage, boolean submitFailure) {
         if (TextUtils.isEmpty(data)) {
             JSONObject wrapper = new JSONObject();
-            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
             return wrapper.toString();
         }
         if (isInvalidDataJson(data)) {
@@ -111,12 +128,12 @@ public final class FaceUniResultMapper {
                 wrapper.put("legacyData", data);
             } catch (JSONException ignored) {
             }
-            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
             return wrapper.toString();
         }
         try {
             JSONObject root = new JSONObject(data);
-            putUnifiedResult(root, sdkValue, detailMessage);
+            putUnifiedResult(root, sdkValue, detailMessage, submitFailure);
             return root.toString();
         } catch (JSONException e) {
             JSONObject wrapper = new JSONObject();
@@ -124,7 +141,7 @@ public final class FaceUniResultMapper {
                 wrapper.put("legacyData", data);
             } catch (JSONException ignored) {
             }
-            putUnifiedResult(wrapper, sdkValue, detailMessage);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
             return wrapper.toString();
         }
     }
