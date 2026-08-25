@@ -13,8 +13,8 @@ public enum GatewayEndpoint {
 
     /** 动作活体配置查询 */
     ACTION_CONFIG_LIST(FaceApiPaths.ACTION_CONFIG_LIST, "listActionConfigByBusinessType"),
-    /** 人脸核验（动作活体 + 炫彩活体共用同一 path，interfaceId 均为 faceIdent1） */
-    FACE_IDENT(FaceApiPaths.FACE_IDENT, "faceIdent1"),
+    /** 人脸核验（动作活体 + 炫彩活体共用同一 path，interfaceId 均为 faceIdent） */
+    FACE_IDENT(FaceApiPaths.FACE_IDENT, "faceIdent"),
     /** 核验日志上报 */
     SAVE_FACE_VERIFY_LOG(FaceApiPaths.SAVE_FACE_VERIFY_LOG, "saveFaceVerifyLog"),
     /** 新增认证记录 */

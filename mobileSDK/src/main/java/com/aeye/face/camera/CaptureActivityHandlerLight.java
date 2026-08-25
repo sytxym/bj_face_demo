@@ -26,6 +26,7 @@ import com.aeye.android.data.AEFaceInfo;
 import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.android.uitls.ImageUtils;
 import com.aeye.face.AEFacePack;
+import com.aeye.face.AEFaceParam;
 import com.aeye.face.config.IDConstants;
 import com.aeye.face.uitls.PictureManagerUtilsLight;
 import com.aeye.face.view.RecognizeActivity;
@@ -218,6 +219,28 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 
 	/** 重新预览时请求自动焦点和预览帧 */
 	public void restartPreviewAndDecode() {
+		activity.setDecodeStatus(true);
+		poseTotal = AEFacePack.getInstance().getAlivePose();
+		if (poseTotal == null || poseTotal.length == 0) {
+			poseTotal = new int[]{
+					AEFaceAlive.POSE_FACE_SHAKE,
+					AEFaceAlive.POSE_FACE_UP,
+					AEFaceAlive.POSE_FACE_DOWN,
+					AEFaceAlive.POSE_MOUTH_OPEN,
+					AEFaceAlive.POSE_EYE_BLINK
+			};
+		}
+		if (!AEFacePack.getInstance().isAliveOff()) {
+			int motion = AEFacePack.getInstance().getAliveMotions();
+			poseArray = computePoseArray(motion);
+			if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+				prepareMotionLightFirstPose();
+			} else {
+				mCurPos = 0;
+			}
+		} else if (AEFacePack.getInstance().isModelAllSide()) {
+			poseIndex = IDConstants.SIDE_MIN;
+		}
 		state = State.PREVIEW;
 		Handler decodeHandler = decodeThread.getHandler();
 		if (decodeHandler != null) {
@@ -226,15 +249,49 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		}
 		CameraManagerLight.get(activity).requestAutoFocus(this,
 				IDConstants.id_auto_focus);
-		activity.setDecodeStatus(true);
-		poseTotal = AEFacePack.getInstance().getAlivePose();
-		if (!AEFacePack.getInstance().isAliveOff()) {
-			int motion = AEFacePack.getInstance().getAliveMotions();
-			poseArray = computePoseArray(motion);
-			mCurPos = 0;//poseArray[0];//
-		} else if (AEFacePack.getInstance().isModelAllSide()) {
-			poseIndex = IDConstants.SIDE_MIN;
+	}
+
+	/**
+	 * 动作+炫彩：按配置动作序列落到第一个动作，并设置算法 poseNum。
+	 */
+	private void prepareMotionLightFirstPose() {
+		if (activity == null || poseArray == null || poseArray.length == 0) {
+			mCurPos = 0;
+			return;
 		}
+		poseIndex = 0;
+		mCurPos = poseArray[0];
+		activity.setPose(mCurPos);
+		int poseNum = poseArray.length;
+		AEFaceAlive.getInstance().AEYE_Alive_setAliveParamVIS(poseNum,
+				AEFacePack.getInstance().getAliveLevel());
+		AEFaceAlive.getInstance().AEYE_Alive_SetPose(mCurPos);
+	}
+
+	/**
+	 * 当前动作已通过（DetectVIS_Single 返回 10），切到序列下一个。
+	 * @return 还有下一个动作
+	 */
+	public boolean advanceMotionLightPose() {
+		if (activity == null || poseArray == null || poseIndex + 1 >= poseArray.length) {
+			return false;
+		}
+		poseIndex++;
+		mCurPos = poseArray[poseIndex];
+		activity.setPose(mCurPos);
+		AEFaceAlive.getInstance().AEYE_Alive_SetPose(mCurPos);
+		return true;
+	}
+
+	/** 丢脸或重试：动作进度从头开始，并重置算法 mPoseCount。 */
+	public void resetMotionLightProgress() {
+		if (activity == null || activity.getAliveMode() != AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+			return;
+		}
+		if (poseArray == null || poseArray.length == 0) {
+			return;
+		}
+		prepareMotionLightFirstPose();
 	}
 	
 	public boolean startOneSide() {

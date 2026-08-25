@@ -7,7 +7,7 @@ package com.aeye.face.api;
 public final class FaceApiPaths {
 
     /** 新接口统一上下文前缀 */
-    public static final String API_CONTEXT = "/fivweb";
+    public static final String API_CONTEXT = "/fiv";
 
     /** POST {@code {"businessCode":"..."}} 动作活体配置 */
     public static final String ACTION_CONFIG_LIST = API_CONTEXT + "/faceActionConfig/listActionConfigByBusinessType";

@@ -47,7 +47,8 @@ public final class GatewayHttpClient {
         }
 
         String plainBizContent = TextUtils.isEmpty(bizJsonBody) ? "{}" : bizJsonBody;
-        String bizContent = Sm2Cipher.encryptToHex(plainBizContent, GatewayConfig.SM2_PUBLIC_KEY);
+        String bizContent = plainBizContent;
+//        String bizContent = Sm2Cipher.encryptToHex(plainBizContent, GatewayConfig.SM2_PUBLIC_KEY);
         if (TextUtils.isEmpty(bizContent)) {
             throw new IllegalStateException("网关请求 biz_content SM2 加密失败[" + endpoint.getInterfaceId() + "]");
         }
@@ -134,8 +135,8 @@ public final class GatewayHttpClient {
     /**
      * 把网关信封解包为 SDK 自身的 {@code {"ok":true,"data":{"data":...}}} 结构。
      * <p>网关外层字段目前按 {@code success/code/msg/data} 假设（与内部网关 SDK 的
-     * {@code GatewayResponse} 一致）；{@code data} 统一按 SM2 解密处理。
-     * 实际联调网关后如外层字段格式不同，只需调整本方法。</p>
+     * {@code GatewayResponse} 一致）。{@code data} 可能是 SM2 hex 密文（生产），
+     * 也可能是明文 JSON 字符串（联调）；已是 {@code ok/data} 业务信封时直接透传。</p>
      */
     private static String adaptResponse(GatewayEndpoint endpoint, String rawResponse) throws Exception {
         if (TextUtils.isEmpty(rawResponse)) {
@@ -155,17 +156,17 @@ public final class GatewayHttpClient {
         }
 
         String dataField = resp.optString("data", "");
-        String plainJson = dataField;
-        if (!TextUtils.isEmpty(dataField)) {
-            String decrypted = Sm2Cipher.decryptFromHex(dataField, GatewayConfig.SM2_PRIVATE_KEY);
-            if (TextUtils.isEmpty(decrypted)) {
-                throw new IllegalStateException("网关响应 data SM2 解密失败[" + endpoint.getInterfaceId() + "]");
-            }
-            plainJson = decrypted;
-        }
+        String plainJson = unwrapGatewayData(dataField, endpoint.getInterfaceId());
         Log.d(TAG, "postJson response -> interfaceId=" + endpoint.getInterfaceId()
-                + ", data_encrypted(hex,len=" + dataField.length() + ")=" + summarize(dataField)
+                + ", data_raw(len=" + dataField.length() + ")=" + summarize(dataField)
                 + ", data_plain(len=" + plainJson.length() + ")=" + summarize(plainJson));
+
+        if (!TextUtils.isEmpty(plainJson)) {
+            JSONObject businessEnvelope = tryParseObject(plainJson);
+            if (businessEnvelope != null && businessEnvelope.has("ok")) {
+                return businessEnvelope.toString();
+            }
+        }
 
         Object businessNode = TextUtils.isEmpty(plainJson) ? new JSONObject() : parseLoosely(plainJson);
 
@@ -175,6 +176,32 @@ public final class GatewayHttpClient {
         envelope.put("ok", true);
         envelope.put("data", inner);
         return envelope.toString();
+    }
+
+    /**
+     * 解包网关 {@code data}：联调环境常为明文 JSON；生产环境为 SM2 hex 密文。
+     */
+    private static String unwrapGatewayData(String dataField, String interfaceId) throws Exception {
+        if (TextUtils.isEmpty(dataField)) {
+            return "";
+        }
+        String trimmed = dataField.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            return trimmed;
+        }
+        String decrypted = Sm2Cipher.decryptFromHex(trimmed, GatewayConfig.SM2_PRIVATE_KEY);
+        if (TextUtils.isEmpty(decrypted)) {
+            throw new IllegalStateException("网关响应 data SM2 解密失败[" + interfaceId + "]");
+        }
+        return decrypted;
+    }
+
+    private static JSONObject tryParseObject(String text) {
+        try {
+            return new JSONObject(text);
+        } catch (JSONException e) {
+            return null;
+        }
     }
 
     /** 解密后的业务数据可能是对象/数组/纯字符串，逐一尝试，保证任何形状都能正确透传。 */

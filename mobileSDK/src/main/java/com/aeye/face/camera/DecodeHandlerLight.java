@@ -398,9 +398,17 @@ public class DecodeHandlerLight extends Handler {
 						faceInfo.imgRect,
 						faceInfo);
 				Log.e(TAG, "AEYE_AliveDetect : " + ret);
-				isMotionAliveSuc = (ret==0)?true:false;
-				if(isMotionAliveSuc){
+				if (ret == 0) {
+					isMotionAliveSuc = true;
 					activity.setMotionAliveSuc();
+				} else if (ret == 10) {
+					CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
+					if (lightHandler != null && lightHandler.advanceMotionLightPose()) {
+						activity.onMotionLightPoseChanged(lightHandler.getCurPos(), true);
+					} else {
+						isMotionAliveSuc = true;
+						activity.setMotionAliveSuc();
+					}
 				}
 			}
 		}
@@ -555,7 +563,8 @@ public class DecodeHandlerLight extends Handler {
 					}
 //			}
 				}else{
-					//有人脸，活体没过，界面增加提示
+					// 动作阶段有人脸：提示当前动作，并启动与纯动作相同的圆形旋转扫描弧
+					activity.showFaceOut(true);
 					activity.showTipAfterHasFace();
 				}
 			} else { // 如果没找到 人脸 的 具体位置 就继续寻找
@@ -563,6 +572,10 @@ public class DecodeHandlerLight extends Handler {
 				currentColorIndex = -1;
 				if(activity.getAliveMode()== AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
 					isMotionAliveSuc = false;
+					CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
+					if (lightHandler != null) {
+						lightHandler.resetMotionLightProgress();
+					}
 				}
 				activity.showNoFace();
 				activity.clearPicNumber();

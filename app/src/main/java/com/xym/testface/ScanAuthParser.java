@@ -40,7 +40,7 @@ public final class ScanAuthParser {
         if (TextUtils.isEmpty(userId)) {
             throw new JSONException("userId 为空");
         }
-        String authIdentRecordId = json.optString("authIdentRecordId", null);
+        String authIdentRecordId = json.optString("authRecordId", null);
         return new Result(authIdentRecordId, userId);
     }
 }

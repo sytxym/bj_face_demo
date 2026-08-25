@@ -18,6 +18,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.AnimationDrawable;
@@ -51,6 +52,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -80,6 +82,8 @@ import com.aeye.face.uitls.AudioUtils;
 import com.aeye.face.uitls.ColorInfo;
 import com.aeye.face.uitls.DataUtil;
 import com.aeye.face.uitls.DeviceSafeCheckUtils;
+import com.aeye.face.uitls.FaceNoticeDialog;
+import com.aeye.face.uitls.UsbDeveloperModeGuard;
 import com.aeye.face.uitls.FLogUtil;
 import com.aeye.face.uitls.FileUtil;
 import com.aeye.face.uitls.MLog;
@@ -105,7 +109,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -169,6 +172,8 @@ public class RecognizeActivity extends Activity implements
     private boolean m_hasFinishReturn = false;
     /** Activity 是否已经结束 **/
     private boolean mFinish = false;
+    /** USB 调试拦截：跳过相机初始化，确认后结束流程 */
+    private boolean mUsbDebugBlocked;
     /** 保持屏幕唤醒的锁 **/
     WakeLock m_WakeLock = null;
     /** 人脸状态标志：-1无人脸，0不确定，1有人脸；解码线程写、主线程读 **/
@@ -204,6 +209,9 @@ public class RecognizeActivity extends Activity implements
     private boolean mRingHoleUiEnabled;
     /** 定格最后一帧预览 **/
     private ImageView ivPreviewFreeze;
+    /** 提交核验：冻帧圆形遮罩 + loading */
+    private View faceSubmitOverlay;
+    private ProgressBar pbSubmitLoading;
     private boolean mPreviewFrozen;
     private Bitmap mFrozenPreviewBitmap;
     /** 失败详情提示 **/
@@ -248,10 +256,13 @@ public class RecognizeActivity extends Activity implements
     private boolean mInPlaceFailIsSubmit;
     private long mNoFaceSinceElapsedMs = -1L;
     private Runnable mNoFaceFailRunnable;
-    /** 是否已上报二维码终态（4 未通过 / 5 已通过 / 2 异常退出） */
+    /** 是否已上报二维码终态（4 未通过 / 2 异常退出）；提交成功只置位、不上报 status=5 */
     private boolean mQrRecordFinalized;
-    /** 本会话动作活体未通过次数；满 3 次上报 isPass=4 + failedType=1 */
+    /** 本会话动作活体未通过次数；满 3 次上报 status=4 + failedType=1 */
     private int mLivenessFailCount;
+    /** 「重新核验」点击次数；超过 3 次弹出温馨提示，不再重试 */
+    private static final int MAX_FAIL_RETRY_CLICKS = 3;
+    private int mFailRetryClickCount;
 
     // ========== 炫彩活体（LIGHT / MOTION_LIGHT）运行时状态 ==========
     /** 用于界面颜色变换成功后颜色值设置，此颜色值用于传入 so */
@@ -406,6 +417,15 @@ public class RecognizeActivity extends Activity implements
                 findViewById(R.id.face_toolbar_gap),
                 findViewById(R.id.face_chrome_toolbar_gap));
 
+        if (UsbDeveloperModeGuard.shouldBlock(this)) {
+            mUsbDebugBlocked = true;
+            mFinish = true;
+            UsbDeveloperModeGuard.showBlockDialogAndExit(this, () ->
+                    finishActivityByOther(AEFacePack.ERROR_DANGER_DEVICE,
+                            getString(R.string.aeye_usb_debug_block_message)));
+            return;
+        }
+
         if (getIntent().hasExtra(AEFaceParam.ALIVEMODE)) {
             aliveMode = getIntent().getIntExtra(AEFaceParam.ALIVEMODE, AEFaceParam.ALIVEMODE_MOTION);
         }
@@ -415,14 +435,6 @@ public class RecognizeActivity extends Activity implements
         if (isLightAliveMode()) {
             initColorFromServer();
             clearPicNumber();
-            if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
-                AEFaceAlive.getInstance().AEYE_Alive_setAliveParamVIS(1,
-                        AEFacePack.getInstance().getAliveLevel());
-                SecureRandom secureRandom = new SecureRandom();
-                pose = (secureRandom.nextInt(2) == 0)
-                        ? AEFaceAlive.POSE_EYE_BLINK
-                        : AEFaceAlive.POSE_MOUTH_OPEN;
-            }
         }
 
         introduceView = (FrameLayout) findViewById(R.id.introduceView);
@@ -480,6 +492,9 @@ public class RecognizeActivity extends Activity implements
 
         scanRingMain = findViewById(R.id.scan_ring_overlay);
         ivPreviewFreeze = findViewById(R.id.iv_preview_freeze);
+        faceSubmitOverlay = findViewById(R.id.face_submit_overlay);
+        pbSubmitLoading = findViewById(R.id.pb_submit_loading);
+        applySubmitOverlayCircleClip();
         mRingHoleUiEnabled = AEFacePack.getInstance().isWhiteBackgroud()
                 && !AEFacePack.getInstance().isLand();
         if (scanRingMain != null) {
@@ -910,6 +925,9 @@ public class RecognizeActivity extends Activity implements
     /**初始化SurfaceView预览、倒计时*/
     protected void onResume() {
         super.onResume();
+        if (mUsbDebugBlocked) {
+            return;
+        }
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
         SurfaceHolder surfaceHolder = surfaceView.getHolder();
 //        setSurfaceSize(surfaceView, 720, 960);
@@ -1027,6 +1045,7 @@ public class RecognizeActivity extends Activity implements
         if (ivPreviewFreeze != null) {
             ivPreviewFreeze.setVisibility(View.GONE);
         }
+        hideSubmitOverlay();
         releaseFrozenPreviewBitmap();
     }
 
@@ -1037,6 +1056,63 @@ public class RecognizeActivity extends Activity implements
         mFrozenPreviewBitmap = null;
         if (ivPreviewFreeze != null) {
             ivPreviewFreeze.setImageBitmap(null);
+        }
+    }
+
+    /** 遮罩裁成与扫描环圆孔一致，避免方块压在灰轨外。 */
+    private void applySubmitOverlayCircleClip() {
+        if (faceSubmitOverlay == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        faceSubmitOverlay.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
+                clipSubmitOverlayToPreviewHole());
+        faceSubmitOverlay.post(this::clipSubmitOverlayToPreviewHole);
+    }
+
+    private void clipSubmitOverlayToPreviewHole() {
+        if (faceSubmitOverlay == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        final int w = faceSubmitOverlay.getWidth();
+        final int h = faceSubmitOverlay.getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+        faceSubmitOverlay.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int vw = view.getWidth();
+                int vh = view.getHeight();
+                if (vw <= 0 || vh <= 0) {
+                    return;
+                }
+                float holeR = ScanRingOverlayView.computePreviewHoleRadius(
+                        view.getContext(), vw);
+                int cx = vw / 2;
+                int cy = vh / 2;
+                int radius = Math.round(holeR);
+                outline.setOval(cx - radius, cy - radius, cx + radius, cy + radius);
+            }
+        });
+        faceSubmitOverlay.setClipToOutline(true);
+    }
+
+    private void showSubmitOverlay() {
+        if (faceSubmitOverlay == null) {
+            return;
+        }
+        faceSubmitOverlay.setVisibility(View.VISIBLE);
+        if (pbSubmitLoading != null) {
+            pbSubmitLoading.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideSubmitOverlay() {
+        if (pbSubmitLoading != null) {
+            pbSubmitLoading.setVisibility(View.GONE);
+        }
+        if (faceSubmitOverlay != null) {
+            faceSubmitOverlay.setVisibility(View.GONE);
         }
     }
 
@@ -1105,22 +1181,18 @@ public class RecognizeActivity extends Activity implements
         if (ivNumber != null) {
             ivNumber.setVisibility(View.GONE);
         }
-        showAlivePose(0, aliveMode != AEFaceParam.ALIVEMODE_LIGHT, false);
-        showHint("aeye_camera_notice", HINT_COLOR_THEME);
-        int voiceId = R.raw.aeye_face;
-        if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
-            voiceId = R.raw.aeye_face;
-        } else if (pose == AEFaceAlive.POSE_EYE_BLINK) {
-            voiceId = R.raw.aeye_eye;
-            showHint("aeye_eye_blink", HINT_COLOR_THEME);
-        } else {
-            voiceId = R.raw.aeye_mouth;
-            showHint("aeye_mouth", HINT_COLOR_THEME);
-        }
-        if (voiceTriggle && voiceId != 0 && curVoice != voiceId) {
-            AudioUtils.playVoiceIdle(RecognizeActivity.this, voiceId);
-        }
         startRecog();
+        if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+            int curPose = lightHandler != null ? lightHandler.getCurPos() : pose;
+            setPose(curPose);
+            showAlivePose(curPose, true, false);
+        } else {
+            showAlivePose(0, false, false);
+            showHint("aeye_camera_notice", HINT_COLOR_THEME);
+            if (voiceTriggle) {
+                AudioUtils.playVoiceIdle(RecognizeActivity.this, R.raw.aeye_face);
+            }
+        }
         showFaceStatus(true, true);
     }
 
@@ -1189,6 +1261,7 @@ public class RecognizeActivity extends Activity implements
         // 两种模式在闪光开始前都保持 isRecord=false，避免解码线程提前插帧。
         isRecord = false;
         mLightFlashStarted = false;
+        prepareScanRingOverlay();
     }
 
     /**
@@ -1582,6 +1655,9 @@ public class RecognizeActivity extends Activity implements
     /**释放锁以让屏幕可以锁屏、退出预览*/
     protected void onPause() {
         super.onPause();
+        if (mUsbDebugBlocked) {
+            return;
+        }
         if (isLightAliveMode()) {
             try {
                 CameraManagerLight.get(this).stopPreview();
@@ -1614,11 +1690,7 @@ public class RecognizeActivity extends Activity implements
     @Override
     /**退出预览*/
     public void onDestroy() {
-        if (!mQrRecordFinalized) {
-            QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT,
-                    QrRecordStatus.FailedType.CANCELLED);
-            mQrRecordFinalized = true;
-        }
+        markQrRecordCancelled();
         AEFacePack.getInstance().unregisterFaceFlowActivity(this);
         super.onDestroy();
         clearPicNumber();
@@ -2045,6 +2117,19 @@ public class RecognizeActivity extends Activity implements
         beginLightFlashSequence();
     }
 
+    /**
+     * 动作+炫彩：当前动作通过，切换到下一个动作的提示/语音。
+     * 由解码线程回调，需切主线程。
+     */
+    public void onMotionLightPoseChanged(int poseId, boolean playVoice) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> onMotionLightPoseChanged(poseId, playVoice));
+            return;
+        }
+        setPose(poseId);
+        showAlivePose(poseId, playVoice, false);
+    }
+
     /** 炫彩闪光层是否正在展示 */
     private boolean isFlashing() {
         return faceBgView != null && faceBgView.getVisibility() == View.VISIBLE;
@@ -2061,11 +2146,10 @@ public class RecognizeActivity extends Activity implements
     public void showTipAfterHasFace() {
         if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
             showHint("aeye_camera_notice", HINT_COLOR_THEME);
-        } else if (pose == AEFaceAlive.POSE_EYE_BLINK) {
-            showHint("aeye_eye_blink", HINT_COLOR_THEME);
-        } else {
-            showHint("aeye_mouth", HINT_COLOR_THEME);
+            return;
         }
+        int curPose = lightHandler != null ? lightHandler.getCurPos() : pose;
+        showAlivePose(curPose, false, false);
     }
 
     /**
@@ -2275,7 +2359,8 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         stopRingProgress();
-        markQrRecordAbnormalExit();
+        // 其它错误结束流程：不上报 status=2；避免 onDestroy 误报任务取消
+        mQrRecordFinalized = true;
         FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false,
                 TextUtils.isEmpty(reason) ? String.valueOf(code) : reason);
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
@@ -2298,7 +2383,7 @@ public class RecognizeActivity extends Activity implements
 
     public void finishActivityByUserCancel() {
         stopRingProgress();
-        markQrRecordAbnormalExit();
+        markQrRecordCancelled();
         FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false,
                 getString(R.string.aeye_user_cancel));
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
@@ -2336,6 +2421,9 @@ public class RecognizeActivity extends Activity implements
         if (handler != null) {
             handler.cancelDecodeTask();
         }
+
+        // 动作活体本地通过即报结束日志，不绑定后续 faceIdent 提交结果
+        FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), true, null);
 
         // 本地核验模式：不调用我方人脸核验接口，活体通过即视为成功，直接回调结果与图片数组。
         if (FaceVerifySession.isLocalVerifyOnly()) {
@@ -2439,6 +2527,8 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         mPendingLightJson = lightJson;
+        // 炫彩 so 本地通过即报结束日志，不等 thunder / faceIdent
+        FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), true, null);
 
         if (FaceVerifySession.isLocalVerifyOnly()) {
             runOnUiThread(this::onFaceVerifyPassed);
@@ -2595,6 +2685,7 @@ public class RecognizeActivity extends Activity implements
         // 提交核验阶段显示旋转蓝弧：动作模式检测期已在转，炫彩/动作+炫彩需在此显式启动，
         // 否则「人脸核验中 / 核验通过」看不到圆弧提示。
         startVerifyingRingArc();
+        showSubmitOverlay();
         if (tvCheckHint == null) {
             return;
         }
@@ -2650,8 +2741,10 @@ public class RecognizeActivity extends Activity implements
         cancelVerifyTimeout();
         mFaceVerifying = false;
         mInPlaceSuccessUi = true;
-        markQrRecordPassed();
-        FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), true, null);
+        hideSubmitOverlay();
+        // faceIdent 仅为提交成功，最终核验由业务 App 二次确认，不报 status=5；
+        // 结束日志已在本地活体通过时上报，此处不再按提交结果重报。
+        mQrRecordFinalized = true;
         animateScanRingToSuccess();
         showInPlaceVerifySuccess();
         if (mSuccessFinishRunnable != null) {
@@ -2674,7 +2767,6 @@ public class RecognizeActivity extends Activity implements
                 ? getString(R.string.face_verify_fail_default)
                 : message;
         markQrRecordNotPass();
-        FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false, failReason);
         AEFacePack.getInstance().setPendingFailDetail(failReason);
         showInPlaceFailUi(false, failReason, true);
     }
@@ -2817,6 +2909,7 @@ public class RecognizeActivity extends Activity implements
         cancelVerifyTimeout();
         mFaceVerifying = false;
         freezePreviewFrame();
+        hideSubmitOverlay();
         cancelNoFaceFailTimer();
         mInPlaceFailUi = true;
         mInPlaceFailIsTimeout = timeout;
@@ -2856,6 +2949,10 @@ public class RecognizeActivity extends Activity implements
         final int titleRes = timeout
                 ? R.string.aeye_recog_timeout
                 : (submitFailure ? R.string.face_verify_failed : R.string.face_liveness_failed);
+        // 本地活体未通过/超时在出失败页时上报；faceIdent 提交失败不报（结束日志已在检测通过时打过）
+        if (!submitFailure) {
+            FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false, detail);
+        }
 
         syncHideCheckHint();
         hideVerifySubtitle();
@@ -2933,6 +3030,15 @@ public class RecognizeActivity extends Activity implements
     }
 
     private void onInPlaceFailRetry() {
+        mFailRetryClickCount++;
+        if (mFailRetryClickCount > MAX_FAIL_RETRY_CLICKS) {
+            FaceNoticeDialog.show(this,
+                    R.string.aeye_retry_too_many_title,
+                    R.string.aeye_retry_too_many_message,
+                    R.string.aeye_retry_too_many_confirm,
+                    this::handleUserExit);
+            return;
+        }
         FaceVerifySession.resetEndLogSent();
         mQrRecordFinalized = false;
         QrRecordStatusManager.update(QrRecordStatus.VERIFYING);
@@ -2967,7 +3073,7 @@ public class RecognizeActivity extends Activity implements
             AEFacePack.getInstance().returnToHostAuthHome();
             return;
         }
-        markQrRecordAbnormalExit();
+        markQrRecordCancelled();
         m_hasFinishReturn = true;
         cancelNoFaceFailTimer();
         stopRingProgress();
@@ -3015,13 +3121,13 @@ public class RecognizeActivity extends Activity implements
         final String failDetail = timeout
                 ? getString(R.string.face_fail_timeout_detail)
                 : AEFacePack.getInstance().getPendingFailDetail();
-        // 结束日志（会话内去重，超时场景在此补报）+ 二维码终态兜底（失败态已置未通过时为空操作）
+        // 结束日志兜底（会话内去重；活体失败已在出失败页时报过）+ 二维码终态兜底
         FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false,
                 TextUtils.isEmpty(failDetail)
                         ? getString(timeout ? R.string.aeye_recog_timeout
                         : (submitFail ? R.string.face_verify_failed : R.string.face_liveness_failed))
                         : failDetail);
-        markQrRecordAbnormalExit();
+        markQrRecordCancelled();
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null) {
             m_hasFinishReturn = true;
@@ -3231,15 +3337,7 @@ public class RecognizeActivity extends Activity implements
         return super.onKeyUp(keyCode, event);
     }
 
-    private void markQrRecordPassed() {
-        if (mQrRecordFinalized) {
-            return;
-        }
-        mQrRecordFinalized = true;
-        QrRecordStatusManager.update(QrRecordStatus.PASSED);
-    }
-
-    /** 后台比对等未通过：上报 isPass=4，不传 failedType */
+    /** 后台比对等未通过：上报 status=4，不传 failedType */
     private void markQrRecordNotPass() {
         markQrRecordNotPass(null);
     }
@@ -3255,18 +3353,18 @@ public class RecognizeActivity extends Activity implements
         QrRecordStatusManager.update(QrRecordStatus.NOT_PASS, failedType);
     }
 
-    /** 异常退出：isPass=2，必传 failedType=6（已取消） */
-    private void markQrRecordAbnormalExit() {
+    /** 用户返回 / 系统返回：status=6，必传 failedType=6（已取消） */
+    private void markQrRecordCancelled() {
         if (mQrRecordFinalized) {
             return;
         }
         mQrRecordFinalized = true;
-        QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT,
+        QrRecordStatusManager.update(QrRecordStatus.TASK_CANCELLED,
                 QrRecordStatus.FailedType.CANCELLED);
     }
 
     /**
-     * 累计动作活体未通过次数；满 3 次上报 {@code isPass=4} + {@code failedType=1}。
+     * 累计动作活体未通过次数；满 3 次上报 {@code status=4} + {@code failedType=1}。
      * 超时、后台比对失败不计入。
      */
     private void noteLivenessFailForQrRecord() {

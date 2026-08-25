@@ -12,6 +12,8 @@ public final class FaceVerifySession {
     private static String authRecordId;
     private static String businessCode;
     private static boolean authRecordIdFromHost;
+    /** 扫码认证流程（与直启区分入口；updateRecord 在扫码或宿主传入 authRecordId 时都会报）。 */
+    private static boolean qrScanFlow;
     private static boolean endLogSent;
     /**
      * 本地核验模式：仅做本地活体检测，不调用任何我方后台接口
@@ -44,10 +46,17 @@ public final class FaceVerifySession {
 
     public static void begin(String verifyUserId, String verifyAuthRecordId,
                              String verifyBusinessCode, boolean localOnly, String detectType) {
+        begin(verifyUserId, verifyAuthRecordId, verifyBusinessCode, localOnly, detectType, false);
+    }
+
+    public static void begin(String verifyUserId, String verifyAuthRecordId,
+                             String verifyBusinessCode, boolean localOnly, String detectType,
+                             boolean fromQrScan) {
         userId = verifyUserId;
         authRecordId = verifyAuthRecordId;
         businessCode = verifyBusinessCode;
         authRecordIdFromHost = !TextUtils.isEmpty(verifyAuthRecordId);
+        qrScanFlow = fromQrScan;
         endLogSent = false;
         localVerifyOnly = localOnly;
         detectTypeOverride = TextUtils.isEmpty(detectType) ? null : detectType.trim();
@@ -59,6 +68,7 @@ public final class FaceVerifySession {
         authRecordId = null;
         businessCode = null;
         authRecordIdFromHost = false;
+        qrScanFlow = false;
         endLogSent = false;
         localVerifyOnly = false;
         detectTypeOverride = null;
@@ -84,9 +94,14 @@ public final class FaceVerifySession {
         return detectTypeOverride;
     }
 
-    /** 扫码等场景由宿主传入 authRecordId 时为 true，无需调用 insertRecord，且才上报 updateRecord。 */
+    /** 宿主启动时已传入 authRecordId：跳过 insertRecord，faceIdent 使用该 ID，并上报任务状态（含 status=1）。 */
     public static boolean isAuthRecordIdFromHost() {
         return authRecordIdFromHost;
+    }
+
+    /** 扫码认证流程。 */
+    public static boolean isQrScanFlow() {
+        return qrScanFlow;
     }
 
     public static void setAuthRecordId(String verifyAuthRecordId) {

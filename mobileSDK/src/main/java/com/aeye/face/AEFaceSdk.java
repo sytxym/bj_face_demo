@@ -37,6 +37,11 @@ public final class AEFaceSdk {
     private static volatile boolean useGateway = false;
     /** 网关地址，如 {@code https://xxx/empgatewayserver/interface/gateway.do}；开启网关前必须设置。 */
     private static volatile String gatewayUrl = "";
+    /**
+     * USB 调试拦截：{@code true}（默认）时，检测到 USB 调试已开启则弹框并结束流程。
+     * Demo / 联调开发机可 {@link #setUsbDebugBlockEnabled(false)} 关闭。
+     */
+    private static volatile boolean usbDebugBlockEnabled = true;
 
     private AEFaceSdk() {
     }
@@ -140,6 +145,17 @@ public final class AEFaceSdk {
 
     public static String getGatewayUrl() {
         return gatewayUrl;
+    }
+
+    /**
+     * 是否拦截 USB 调试。默认 {@code true}；联调开发机可关。
+     */
+    public static void setUsbDebugBlockEnabled(boolean enabled) {
+        usbDebugBlockEnabled = enabled;
+    }
+
+    public static boolean isUsbDebugBlockEnabled() {
+        return usbDebugBlockEnabled;
     }
 
     public static void ensureInitialized() {

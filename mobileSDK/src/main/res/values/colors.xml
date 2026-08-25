@@ -69,5 +69,7 @@
     <color name="face_result_fail">#E53935</color>
     <!-- 失败态人脸圆环（产品稿浅粉/蜜桃色） -->
     <color name="face_scan_ring_fail">#F5B5B5</color>
+    <!-- 提交核验：冻帧上半透明遮罩 -->
+    <color name="face_submit_overlay">#99000000</color>
 
 </resources>

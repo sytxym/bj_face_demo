@@ -36,16 +36,16 @@ public final class FaceActionConfigSdkMapper {
             return;
         }
         paras.putInt(AEFaceParam.AliveSwitch, 1);
-        // 纯炫彩不写动作池；动作 / 动作+炫彩写入动作参数
+        // 纯炫彩不写动作池；动作 / 动作+炫彩写入动作参数（actionCount 最多 5）
         if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
             return;
         }
         boolean fixedPool = config.isSequenceActionType();
         paras.putInt(AEFaceParam.AliveFixMotionSwitch, fixedPool ? 1 : 0);
         int motionNum = Math.max(0, Math.min(5, config.getActionCount()));
-        // 动作+炫彩：文档约定固定 1 个动作
+        // 动作+炫彩与纯动作共用 actionCount（最多 5）；至少 1 个，避免 0 导致无法进入炫彩
         if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
-            motionNum = 1;
+            motionNum = Math.max(1, motionNum);
         }
         paras.putInt(AEFaceParam.AliveMotionNum, motionNum);
         if (fixedPool) {

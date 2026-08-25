@@ -7,6 +7,7 @@ import android.graphics.Outline;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.Button;
@@ -27,6 +28,9 @@ public class InfoConfirmActivity extends Activity {
 
     private ProgressDialog lightLoadingDialog;
     private Button startButton;
+    /** 已进入活体页，关闭确认页时不上报任务取消 */
+    private boolean leavingForRecognize;
+    private boolean cancelReported;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +67,7 @@ public class InfoConfirmActivity extends Activity {
         ivPerson.post(() -> applyCircleClip(ivPerson));
 
         ImageView back = findViewById(R.id.btn_back);
-        back.setOnClickListener(v -> finish());
+        back.setOnClickListener(v -> finishByUserCancel());
 
         startButton = findViewById(R.id.btn_start);
         startButton.setOnClickListener(v -> {
@@ -74,6 +78,7 @@ public class InfoConfirmActivity extends Activity {
 
             // 取景页启动后再关闭确认页，避免炫彩异步拉色期间闪回首页
             pack.setOnRecognizeLaunched(() -> {
+                leavingForRecognize = true;
                 dismissLightLoading();
                 if (!isFinishing()) {
                     finish();
@@ -122,6 +127,33 @@ public class InfoConfirmActivity extends Activity {
             }
         });
         imageView.setClipToOutline(true);
+    }
+
+    /**
+     * 用户点返回 / 系统返回：任务结束失效，上报 {@code status=6} + {@code failedType=6}。
+     * 进入活体页后关闭本页不报取消。
+     */
+    private void finishByUserCancel() {
+        if (!leavingForRecognize && !cancelReported) {
+            cancelReported = true;
+            QrRecordStatusManager.update(QrRecordStatus.TASK_CANCELLED,
+                    QrRecordStatus.FailedType.CANCELLED);
+        }
+        finish();
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            finishByUserCancel();
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finishByUserCancel();
     }
 
     @Override

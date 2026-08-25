@@ -15,7 +15,9 @@ import com.aeye.face.config.FaceActionOptions;
 import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.confirm.InfoConfirmManager;
 import com.aeye.face.confirm.InfoConfirmPayload;
+import com.aeye.face.callback.AEFaceCallbackHelper;
 import com.aeye.face.uitls.FacePermissionRequester;
+import com.aeye.face.uitls.UsbDeveloperModeGuard;
 import com.aeye.face.verify.FaceUserInfo;
 import com.aeye.face.verify.FaceVerifySession;
 import com.aeye.face.verify.QrInsertRecordManager;
@@ -89,7 +91,8 @@ public final class AEFaceVerifyFlow {
     }
 
     /**
-     * @param authRecordId 扫码场景传入 authIdentRecordId；宿主直启传 null，SDK 调用 insertRecord 创建
+     * @param authRecordId 扫码或直启由宿主传入；非空则跳过 insertRecord，并上报任务状态（含 status=1）。
+     *                     直启未传时 SDK 调用 insertRecord 创建，此时不上报 updateRecord。
      */
     public static void start(final Activity activity,
                              final String businessCode,
@@ -109,7 +112,7 @@ public final class AEFaceVerifyFlow {
      * SDK 配置（活体方式、动作等）仍使用配置接口返回的字段。</p>
      *
      * @param userInfo           外部业务 App 传入的用户基本信息（含 userId）
-     * @param authRecordId       扫码场景传入 authIdentRecordId；宿主直启传 null，SDK 调用 insertRecord 创建
+     * @param authRecordId       扫码场景传入 authIdentRecordId；宿主直启传 null 或由业务传入已有 ID
      * @param detectTypeOverride 覆盖后台配置的 detectType（如 LIGHT / MOTION_LIGHT）；为 null 时以后台配置为准
      */
     public static void start(final Activity activity,
@@ -120,9 +123,28 @@ public final class AEFaceVerifyFlow {
                              final String hostHomeActivityClass,
                              final AEFaceInterface listener,
                              final Callback callback) {
+        start(activity, businessCode, userInfo, authRecordId, detectTypeOverride, false,
+                hostHomeActivityClass, listener, callback);
+    }
+
+    /**
+     * 在线核验推荐入口（可区分扫码 / 直启）。
+     *
+     * @param fromQrScan true=扫码认证；false=直启。
+     *                   直启若传入 authRecordId，同样上报任务状态（含 status=1 进入确认页）。
+     */
+    public static void start(final Activity activity,
+                             final String businessCode,
+                             final FaceUserInfo userInfo,
+                             final String authRecordId,
+                             final String detectTypeOverride,
+                             final boolean fromQrScan,
+                             final String hostHomeActivityClass,
+                             final AEFaceInterface listener,
+                             final Callback callback) {
         startInternal(activity, businessCode,
                 userInfo != null ? userInfo.getUserId() : null,
-                userInfo, authRecordId, detectTypeOverride,
+                userInfo, authRecordId, detectTypeOverride, fromQrScan,
                 hostHomeActivityClass, listener, callback);
     }
 
@@ -139,7 +161,7 @@ public final class AEFaceVerifyFlow {
                              final String hostHomeActivityClass,
                              final AEFaceInterface listener,
                              final Callback callback) {
-        startInternal(activity, businessCode, userId, null, authRecordId, detectTypeOverride,
+        startInternal(activity, businessCode, userId, null, authRecordId, detectTypeOverride, false,
                 hostHomeActivityClass, listener, callback);
     }
 
@@ -149,6 +171,7 @@ public final class AEFaceVerifyFlow {
                                       final FaceUserInfo userInfo,
                                       final String authRecordId,
                                       final String detectTypeOverride,
+                                      final boolean fromQrScan,
                                       final String hostHomeActivityClass,
                                       final AEFaceInterface listener,
                                       final Callback callback) {
@@ -174,13 +197,13 @@ public final class AEFaceVerifyFlow {
             @Override
             public void run() {
                 startInternal(activity, businessCode, userId, userInfo, authRecordId,
-                        detectTypeOverride, hostHomeActivityClass, listener, callback);
+                        detectTypeOverride, fromQrScan, hostHomeActivityClass, listener, callback);
             }
         })) {
             return;
         }
 
-        FaceVerifySession.begin(userId, authRecordId, businessCode, false, detectTypeOverride);
+        FaceVerifySession.begin(userId, authRecordId, businessCode, false, detectTypeOverride, fromQrScan);
         FaceVerifySession.setUserInfo(userInfo);
         try {
             AEFaceSdk.ensureInitialized();
@@ -374,7 +397,7 @@ public final class AEFaceVerifyFlow {
                                                   final Runnable resume) {
         int env = AEFacePack.getInstance().AEYE_EnvCheckSilent(activity, 200 * 1024 * 1024);
         if (env == AEFacePack.ENV_CHECK_OK) {
-            return true;
+            return !blockIfUsbDebugging(activity, listener, callback);
         }
         if (env == AEFacePack.ENV_CHECK_LOW_MEMORY) {
             notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
@@ -405,6 +428,32 @@ public final class AEFaceVerifyFlow {
             }
         });
         return false;
+    }
+
+    /**
+     * USB 调试已开启时弹框并结束流程。
+     *
+     * @return true 表示已拦截，调用方应停止后续流程
+     */
+    private static boolean blockIfUsbDebugging(final Activity activity,
+                                               final AEFaceInterface listener,
+                                               final Callback callback) {
+        if (!UsbDeveloperModeGuard.shouldBlock(activity)) {
+            return false;
+        }
+        final String detail = activity.getString(com.sdk.core.R.string.aeye_usb_debug_block_message);
+        // 弹框前先让宿主收起「正在获取活体配置」等 loading
+        if (callback != null) {
+            callback.onPermissionRequesting();
+        }
+        UsbDeveloperModeGuard.showBlockDialogAndExit(activity, () -> {
+            AEFacePack.getInstance().finishAllFaceFlowActivities();
+            if (listener != null) {
+                AEFaceCallbackHelper.dispatchFinish(
+                        listener, AEFacePack.ERROR_DANGER_DEVICE, null, detail);
+            }
+        });
+        return true;
     }
 
     private static void notifyFlowError(AEFaceInterface listener, Callback callback,

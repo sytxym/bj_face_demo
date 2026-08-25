@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             + "\"userId\":\"demoUser001\","
             + "\"busId\":\"demoBus001\","
             + "\"businessCode\":\"" + DEMO_BUSINESS_CODE + "\","
+            + "\"authRecordId\":\"" + 22222 + "\","
             + "\"useType\":" + FaceVerifyLaunchParams.USE_TYPE_ONLINE
             + "}";
 
@@ -130,16 +131,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.btTestFace) {
-            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, null);
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, null, false);
         } else if (id == R.id.btScanAuth) {
             startScanAuth();
         } else if (id == R.id.btLocalFace) {
-            startFaceVerify(DEMO_LOCAL_LAUNCH_JSON, null, null, null);
+            startFaceVerify(DEMO_LOCAL_LAUNCH_JSON, null, null, null, false);
         } else if (id == R.id.btLocalLight) {
             // 与动作活体同一套后台流程，仅覆盖 detectType=LIGHT
-            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_LIGHT);
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_LIGHT, false);
         } else if (id == R.id.btLocalMotionLight) {
-            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_MOTION_LIGHT);
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_MOTION_LIGHT, false);
         }
     }
 
@@ -170,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             ScanAuthParser.Result scanResult = ScanAuthParser.parse(qrContent);
             startFaceVerify(DEMO_ONLINE_LAUNCH_JSON,
-                    scanResult.getUserId(), scanResult.getAuthIdentRecordId(), null);
+                    scanResult.getUserId(), scanResult.getAuthIdentRecordId(), null, true);
         } catch (Exception e) {
             Toast.makeText(this, R.string.scan_parse_error, Toast.LENGTH_LONG).show();
         }
@@ -185,9 +186,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * @param scanUserId         扫码场景覆盖 JSON 中的 userId；非扫码传 null
      * @param scanAuthRecordId   扫码场景传入的认证记录 ID；非扫码传 null
      * @param detectTypeOverride 非空时覆盖后台 detectType（联调炫彩用，仅在线核验生效）
+     * @param fromQrScan         true=扫码认证；false=直启人脸
      */
     private void startFaceVerify(String launchJson, String scanUserId,
-                                 String scanAuthRecordId, String detectTypeOverride) {
+                                 String scanAuthRecordId, String detectTypeOverride,
+                                 boolean fromQrScan) {
         FaceVerifyLaunchParams params;
         try {
             params = FaceVerifyLaunchParams.fromJson(launchJson);
@@ -233,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 userInfo,
                 authRecordId,
                 detectTypeOverride,
+                fromQrScan,
                 getClass().getName(),
                 this,
                 new AEFaceVerifyFlow.Callback() {
@@ -318,8 +322,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onFinish(int value, String data, String resultCode) {
         Log.d("terry", "onFinish: " + value + " resultCode=" + resultCode + " data" + data);
-        if (value == AEFacePack.ERROR_OTHER_VERIFY) {
-            // 二次核验流程由 SDK 内部处理，不在此跳转
+        if (value == AEFacePack.ERROR_OTHER_VERIFY
+                || value == AEFacePack.ERROR_DANGER_DEVICE) {
+            // 其他核验方式 / USB 调试拦截：已在 SDK 内提示并返回，不跳结果页
+            dismissLoading();
             return;
         }
         recogIntent = new Intent(this, ResultAliveActivity.class);

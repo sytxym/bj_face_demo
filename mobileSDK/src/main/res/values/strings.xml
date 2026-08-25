@@ -69,7 +69,7 @@
     <string name="info_start_verify">Start verification</string>
     <string name="info_light_loading">Loading colorful liveness…</string>
     <string name="face_verify_passed">Submitted successfully</string>
-    <string name="face_verify_submitting">Submitting…</string>
+    <string name="face_verify_submitting">Submitting, please wait</string>
     <string name="face_verify_network_timeout">Network timeout. Please try again.</string>
     <string name="face_verify_network_error">Network error. Please try again later.</string>
     <string name="face_verify_failed">Submission failed</string>
@@ -79,4 +79,10 @@
     <string name="face_other_verify">Other verification methods</string>
     <string name="face_fail_timeout_detail">Please: face the phone, ensure good lighting, and keep your face unobstructed</string>
     <string name="face_fail_no_face_detail">No face detected. Please keep your face inside the frame</string>
+    <string name="aeye_usb_debug_block_title">Security notice</string>
+    <string name="aeye_usb_debug_block_message">USB debugging is on. Face verification is temporarily unavailable. Please turn it off and try again.</string>
+    <string name="aeye_usb_debug_block_confirm">Got it</string>
+    <string name="aeye_retry_too_many_title">Notice</string>
+    <string name="aeye_retry_too_many_message">Too many retries. Please try again later.</string>
+    <string name="aeye_retry_too_many_confirm">OK</string>
 </resources>

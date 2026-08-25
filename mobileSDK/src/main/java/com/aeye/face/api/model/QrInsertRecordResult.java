@@ -1,7 +1,7 @@
 package com.aeye.face.api.model;
 
 /**
- * 新增认证记录 {@code /fivweb/qrCode/insertRecord} 业务结果。
+ * 新增认证记录 {@code /fiv/qrCode/insertRecord} 业务结果。
  */
 public final class QrInsertRecordResult {
 

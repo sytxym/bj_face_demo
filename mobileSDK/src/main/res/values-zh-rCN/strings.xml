@@ -70,7 +70,7 @@
     <string name="info_start_verify">开始核验</string>
     <string name="info_light_loading">炫彩活体加载中...</string>
     <string name="face_verify_passed">提交成功</string>
-    <string name="face_verify_submitting">提交中</string>
+    <string name="face_verify_submitting">提交中，请稍后</string>
     <string name="face_verify_network_timeout">网络超时，请重试</string>
     <string name="face_verify_network_error">网络异常，请稍后重试</string>
     <string name="face_verify_failed">提交失败</string>
@@ -80,4 +80,10 @@
     <string name="face_other_verify">其他核验方式</string>
     <string name="face_fail_timeout_detail">请注意：平视手机、光线充足、未被遮挡</string>
     <string name="face_fail_no_face_detail">未检测到人脸，请确保引导框内有人脸</string>
+    <string name="aeye_usb_debug_block_title">安全提示</string>
+    <string name="aeye_usb_debug_block_message">检测到 USB 调试模式已开启，为确保您的信息安全，人脸核验功能暂不可用。请关闭 USB 调试后重新尝试。</string>
+    <string name="aeye_usb_debug_block_confirm">知道了</string>
+    <string name="aeye_retry_too_many_title">温馨提示</string>
+    <string name="aeye_retry_too_many_message">重试次数过多，请稍后再试</string>
+    <string name="aeye_retry_too_many_confirm">知道了</string>
 </resources>

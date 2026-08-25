@@ -1,8 +1,12 @@
 package com.aeye.face.api;
 
-import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+import android.util.Base64;
 
+import com.aeye.android.uitls.BitmapUtils;
+import com.aeye.face.AEFaceParam;
 import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.gateway.GatewayCrypto;
 import com.aeye.face.api.model.ApiResult;
@@ -17,6 +21,7 @@ import com.aeye.face.confirm.InfoConfirmDefaults;
 import com.aeye.face.confirm.InfoConfirmParser;
 import com.aeye.face.confirm.InfoConfirmPayload;
 import com.aeye.face.uitls.DeviceInfoCollector;
+import com.aeye.face.uitls.SMUtil;
 import com.aeye.face.verify.FaceUserInfo;
 import com.aeye.face.verify.FaceVerifySession;
 
@@ -264,7 +269,7 @@ public final class FaceApiService {
     /**
      * 从活体 JSON 组装核验请求体。
      * facePic1=正脸(images[0])，facePic2~facePic6=抓拍图(images[1]~[5])。
-     * 文档要求 certName/certType/certNo/country、facePic1~6 做 SM2 字段级加密。
+     * 动作活体采集图为 PNG，提交前转为 JPEG 以降低网关 form 体积（与炫彩人脸图质量一致）。
      */
     public static String buildFaceIdentRequestJson(String livenessJson,
                                                    String userId,
@@ -281,12 +286,12 @@ public final class FaceApiService {
         }
         putIfNotEmpty(req, "businessCode", FaceVerifySession.getBusinessCode());
         appendUserIdentityFields(req);
-        req.put("facePic1", images.getString(0));
+        req.put("facePic1", toJpegFacePic(images.getString(0), live));
         for (int picIndex = 2; picIndex <= 6; picIndex++) {
             int imageIndex = picIndex - 1;
             String key = "facePic" + picIndex;
             if (images.length() > imageIndex) {
-                req.put(key, images.getString(imageIndex));
+                req.put(key, toJpegFacePic(images.getString(imageIndex), live));
             } else {
                 req.put(key, JSONObject.NULL);
             }
@@ -332,6 +337,53 @@ public final class FaceApiService {
         }
     }
 
+    /** 与炫彩人脸图一致：JPEG 质量 90，降低网关 form 体积。 */
+    private static final int FACE_IDENT_JPEG_QUALITY = 90;
+    private static final String DEFAULT_SM4_KEY = "E3A03D4A1586F6952F0E699344D0F4E2";
+
+    /**
+     * 动作活体 images[] 多为 PNG（可能再套 SM4）。提交 faceIdent 前转为 JPEG。
+     * 解码失败则回退原串，避免空图导致核验失败。
+     */
+    private static String toJpegFacePic(String raw, JSONObject live) {
+        if (TextUtils.isEmpty(raw)) {
+            return raw;
+        }
+        Bitmap bmp = decodeLivenessImage(raw, live);
+        if (bmp == null || bmp.isRecycled()) {
+            return raw;
+        }
+        try {
+            String jpeg = BitmapUtils.convertJpegToString(bmp, FACE_IDENT_JPEG_QUALITY);
+            return TextUtils.isEmpty(jpeg) ? raw : jpeg;
+        } finally {
+            bmp.recycle();
+        }
+    }
+
+    private static Bitmap decodeLivenessImage(String raw, JSONObject live) {
+        try {
+            boolean crypt = live != null && live.optBoolean("isCrypt", false);
+            int encType = live != null
+                    ? live.optInt("enCryptType", AEFaceParam.ENCRYPT_TYPE_NULL)
+                    : AEFaceParam.ENCRYPT_TYPE_NULL;
+            if (crypt && encType == AEFaceParam.ENCRYPT_TYPE_SM4) {
+                String key = live.optString("decryptKey", DEFAULT_SM4_KEY);
+                if (TextUtils.isEmpty(key)) {
+                    key = DEFAULT_SM4_KEY;
+                }
+                return SMUtil.DataSM4Decode(key, raw);
+            }
+            byte[] bytes = Base64.decode(raw, Base64.DEFAULT);
+            if (bytes == null || bytes.length == 0) {
+                return null;
+            }
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     /**
      * faceIdent 接口文档要求 SM2 字段级加密的敏感字段：
      * certName/certType/certNo/country、facePic1~facePic6、colorPics（数组每项）。
@@ -343,13 +395,13 @@ public final class FaceApiService {
     };
 
     private static void applyFaceIdentFieldEncryption(JSONObject req) throws JSONException {
-        if (!AEFaceSdk.isUseGateway()) {
-            return;
-        }
-        for (String key : FACE_IDENT_SM2_STRING_FIELDS) {
-            encryptFaceIdentFieldIfPresent(req, key);
-        }
-        encryptColorPicsIfPresent(req);
+//        if (!AEFaceSdk.isUseGateway()) {
+//            return;
+//        }
+//        for (String key : FACE_IDENT_SM2_STRING_FIELDS) {
+//            encryptFaceIdentFieldIfPresent(req, key);
+//        }
+//        encryptColorPicsIfPresent(req);
     }
 
     private static void encryptFaceIdentFieldIfPresent(JSONObject req, String key) throws JSONException {

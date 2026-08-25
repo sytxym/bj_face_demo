@@ -3,7 +3,9 @@ package com.aeye.face.config;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
+import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.FaceApiService;
 
 import java.util.concurrent.ExecutorService;
@@ -13,6 +15,8 @@ import java.util.concurrent.Executors;
  * SDK 默认配置加载：通过 {@link FaceApiService} 拉取；失败时回退 Mock。
  */
 public final class DefaultFaceActionConfigLoader implements FaceActionConfigLoader {
+
+    private static final String TAG = "FaceActionConfigLoader";
 
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
@@ -44,7 +48,11 @@ public final class DefaultFaceActionConfigLoader implements FaceActionConfigLoad
                 config = FaceApiService.parseActionConfig(
                         FaceApiService.fetchActionConfigJson(baseUrl, code));
                 fromRemote = true;
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                if (AEFaceSdk.isHttpLogEnabled()) {
+                    Log.w(TAG, "拉取动作活体配置失败 businessCode=" + code
+                            + ", useFallbackOnError=" + useFallbackOnError, e);
+                }
                 if (useFallbackOnError) {
                     config = FaceApiService.mockActionConfig(code);
                 }
