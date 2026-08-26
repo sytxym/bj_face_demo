@@ -59,7 +59,7 @@ public class BitmapUtils {
     }
 
     /**
-     * JPEG base64（NO_WRAP）。炫彩 thunderAliveCheck 上传用，体积远小于 PNG，降低弱网超时概率。
+     * JPEG base64（NO_WRAP）。炫彩 faceIdent 的人脸原图上传用，体积远小于 PNG，降低弱网超时概率。
      */
     public static String convertJpegToString(Bitmap bitmap, int quality) {
         if (bitmap == null || bitmap.isRecycled()) {

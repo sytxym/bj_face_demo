@@ -62,8 +62,8 @@ public final class SdkHttpClient {
     /**
      * 自定义超时的 POST-JSON（炫彩等大图上传接口用更长超时）。
      * <p>{@code path} 命中 {@link GatewayEndpoint} 清单且 {@link AEFaceSdk#isUseGateway()} 打开时，
-     * 改走网关转发（{@link GatewayHttpClient}），业务方完全无感知；未命中清单的接口
-     * （含老炫彩 {@code /alg-api/liveness/*}）始终直连，不受网关开关影响。</p>
+     * 改走网关转发（{@link GatewayHttpClient}），业务方完全无感知；未命中清单的接口始终直连，
+     * 不受网关开关影响。</p>
      */
     public static String postJson(String baseUrl, String path, String jsonBody,
                                   int connectTimeoutMs, int readTimeoutMs) throws Exception {

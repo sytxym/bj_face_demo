@@ -12,7 +12,6 @@ import com.aeye.face.api.gateway.GatewayCrypto;
 import com.aeye.face.api.model.ApiResult;
 import com.aeye.face.api.model.ColorResponseBean;
 import com.aeye.face.api.model.FaceIdentResult;
-import com.aeye.face.api.model.LightAliveResponse;
 import com.aeye.face.api.model.QrInsertRecordResult;
 import com.aeye.face.config.FaceActionConfig;
 import com.aeye.face.config.FaceActionConfigDefaults;
@@ -193,15 +192,14 @@ public final class FaceApiService {
     }
 
     /**
-     * 炫彩活体完成后提交人脸核验（新接口，isNewColorIntenface=true 时使用）。
+     * 炫彩活体完成后提交人脸核验。
      * <p>炫彩字段：{@code isColor=true}、{@code seq}（拉色接口返回的唯一序列）、
-     * {@code colorPics}（算法图，与老接口 thunderAliveCheck 的 {@code alivePics} 同数据）。
-     * {@code facePic1~facePic6} 与动作活体保持一致（人脸原图）。
+     * {@code colorPics}（算法色序图）。{@code facePic1~facePic6} 与动作活体保持一致（人脸原图）。
      * 基本信息字段（certName/certType/certNo/country/busId）取自外部业务 App
      * 传入的 {@link FaceUserInfo}。</p>
      *
      * @param facePics  解密后的人脸原图 base64 列表，映射 facePic1~facePic6
-     * @param colorPics 炫彩算法图 base64 列表（同老接口 alivePics 数据）
+     * @param colorPics 炫彩算法图 base64 列表
      */
     public static FaceIdentResult submitFaceIdentColor(String baseUrl,
                                                        String userId,
@@ -475,7 +473,7 @@ public final class FaceApiService {
         ApiResponseParser.assertOk(response);
     }
 
-    // ---------- 炫彩 Thunder（flashUrl 基地址） ----------
+    // ---------- 炫彩拉色 ----------
 
     /**
      * 炫彩接口含多张 base64 大图上传+服务端验活，超时需明显高于普通业务接口。
@@ -484,35 +482,7 @@ public final class FaceApiService {
     private static final int THUNDER_TIMEOUT_MS = 60_000;
 
     /**
-     * 获取炫彩颜色序列（同步）。
-     *
-     * @param flashUrl 炫彩服务基地址
-     * @param jsonBody 已组装的请求体（含 app_id / sn / riskType 等）
-     */
-    public static ColorResponseBean fetchThunderColor(String flashUrl, String jsonBody) throws Exception {
-        String response = SdkHttpClient.postJson(
-                flashUrl, FaceApiPaths.THUNDER_ALIVE_COLOR, jsonBody,
-                THUNDER_TIMEOUT_MS, THUNDER_TIMEOUT_MS);
-        return ColorResponseBean.parse(response);
-    }
-
-    /**
-     * 炫彩服务端活体验证（同步）。
-     *
-     * @param flashUrl 炫彩服务基地址
-     * @param jsonBody 已组装的请求体（含 sequence / alivePics / facePic 等）
-     */
-    public static LightAliveResponse checkThunderAlive(String flashUrl, String jsonBody) throws Exception {
-        String response = SdkHttpClient.postJson(
-                flashUrl, FaceApiPaths.THUNDER_ALIVE_CHECK, jsonBody,
-                THUNDER_TIMEOUT_MS, THUNDER_TIMEOUT_MS);
-        return LightAliveResponse.parse(response);
-    }
-
-    // ---------- 炫彩获取颜色（正式新接口，apiBaseUrl 基地址） ----------
-
-    /**
-     * 炫彩活体获取颜色（isNewColorIntenface=true 时使用）。
+     * 炫彩活体获取颜色。
      * <p>POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，无请求参数；
      * 响应外层为统一 {@code {ok, data:{data:{...}}}} 结构，
      * 业务节点含 {@code color1/color2/color3/sequnce}。</p>

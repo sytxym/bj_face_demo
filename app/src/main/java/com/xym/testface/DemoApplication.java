@@ -46,15 +46,10 @@ public class DemoApplication extends Application {
         AEFaceSdk.setHttpLogEnabled(true);
 //        AEFaceSdk.setGatewayUrl(gateWayUrl);
 //        AEFaceSdk.setUseGateway(true);
-        // 炫彩接口切换（调试用）：true=新接口（assistant/thunderAliveColor 拉色 + faceIdent 带炫彩字段）；
-        // false=老接口（alg-api/liveness/thunderAliveColor 拉色 + thunderAliveCheck 核验，不调 faceIdent）
-        AEFaceSdk.setNewColorIntenface(false);
         // Debug 联调机通常开着 USB 调试，关闭拦截以免无法进核验
         if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             AEFaceSdk.setUsbDebugBlockEnabled(false);
         }
-        // 炫彩拉色 / thunderAliveCheck：基地址 + 凭证（路径由 SDK FaceApiPaths 拼接）
-        AEFaceSdk.setThunderCredentials(serverAddr, "50002", "50002@1qaz");
         mHttpClient = OkHttpClientFactory.createOkHttpClient();
         ristTypeList(this);
     }

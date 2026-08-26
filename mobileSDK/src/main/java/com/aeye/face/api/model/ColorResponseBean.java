@@ -151,14 +151,4 @@ public class ColorResponseBean {
     public void setColors(ColorsBean colors) {
         this.colors = colors;
     }
-
-    /** 成功回调: 返回颜色序列和流水号 */
-    public interface Response {
-        int onResponse(ColorsBean colors, String seq);
-    }
-
-    /** 失败回调: 返回错误码和错误消息 */
-    public interface WrongDeal {
-        int onPostFailed(int code, String message);
-    }
 }

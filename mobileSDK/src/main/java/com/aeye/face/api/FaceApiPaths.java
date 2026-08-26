@@ -2,7 +2,7 @@ package com.aeye.face.api;
 
 /**
  * SDK 后台接口路径集中管理，新增接口在此维护。
- * <p>除老炫彩接口 {@code /alg-api/liveness/*} 外，新接口均带 {@code /fivweb} 上下文前缀。</p>
+ * <p>业务接口均带 {@code /fiv} 上下文前缀。</p>
  */
 public final class FaceApiPaths {
 
@@ -27,15 +27,6 @@ public final class FaceApiPaths {
     /** POST {@code /fivweb/qrCode/updateRecord} 认证记录状态更新（二维码） */
     public static final String QR_CODE_UPDATE_RECORD = API_CONTEXT + "/qrCode/updateRecord";
 
-    /** POST 炫彩颜色序列（flashUrl 基地址下，老接口，无 fivweb 前缀） */
-    public static final String THUNDER_ALIVE_COLOR = "/alg-api/liveness/thunderAliveColor";
-
-    /** POST {@code /fivweb/assistant/thunderAliveColor} 炫彩获取颜色（apiBaseUrl 基地址，无请求参数，isNewColorIntenface=true 时使用） */
+    /** POST {@code /fivweb/assistant/thunderAliveColor} 炫彩获取颜色（apiBaseUrl 基地址，无请求参数） */
     public static final String ASSISTANT_THUNDER_ALIVE_COLOR = API_CONTEXT + "/assistant/thunderAliveColor";
-
-    /** POST 炫彩服务端活体验证（flashUrl 基地址下，老接口，无 fivweb 前缀） */
-    public static final String THUNDER_ALIVE_CHECK = "/alg-api/liveness/thunderAliveCheck";
-
-    /** 炫彩请求来源标识（SDK 内部固定） */
-    public static final String THUNDER_SOURCE = "app";
 }

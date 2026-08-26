@@ -65,7 +65,6 @@ import com.aeye.aeyelib.AEyeLightAlive;
 import com.aeye.face.AEFaceInterface;
 import com.aeye.face.AEFacePack;
 import com.aeye.face.AEFaceParam;
-import com.aeye.face.AEFaceSdk;
 import com.aeye.face.callback.AEFaceCallbackHelper;
 import com.aeye.face.ui.FaceImmersiveStatusBar;
 import com.aeye.face.config.IDConstants;
@@ -75,7 +74,6 @@ import com.aeye.face.camera.CameraManager;
 import com.aeye.face.camera.CameraManagerLight;
 import com.aeye.face.camera.CaptureActivityHandler;
 import com.aeye.face.camera.CaptureActivityHandlerLight;
-import com.aeye.face.api.ThunderAliveApi;
 import com.aeye.face.lightView.BitmapView;
 import com.aeye.face.lightView.CheckFaceView;
 import com.aeye.face.uitls.AudioUtils;
@@ -236,11 +234,6 @@ public class RecognizeActivity extends Activity implements
     private boolean mFaceVerifying;
     /** 「人脸核验中」UI 兜底超时（仅 faceIdent），需 ≥ FaceVerifyManager 整体超时 */
     private static final long FACE_VERIFY_UI_TIMEOUT_MS = 50_000L;
-    /**
-     * 炫彩路径：先 thunderAliveCheck（可达 60s）再 faceIdent。
-     * 若仍用 25s，会在 Thunder 未返回时就被 UI 判超时，表现为「thunderAliveCheck 一直超时」。
-     */
-    private static final long FACE_VERIFY_UI_TIMEOUT_WITH_THUNDER_MS = 90_000L;
     /**
      * 核验通过后停留时长：需 &gt; 蓝弧扫满动画 420ms，保证「核验通过」绿环完整可见后再回调关闭。
      * 炫彩模式回调后会立即 finish（不像动作模式还要异步序列化大 JSON 拖住时间），
@@ -2527,7 +2520,7 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         mPendingLightJson = lightJson;
-        // 炫彩 so 本地通过即报结束日志，不等 thunder / faceIdent
+        // 炫彩 so 本地通过即报结束日志，不等 faceIdent
         FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), true, null);
 
         if (FaceVerifySession.isLocalVerifyOnly()) {
@@ -2535,15 +2528,15 @@ public class RecognizeActivity extends Activity implements
             return;
         }
 
-        // UI 在主线程展示；Thunder 组包/请求留在当前工作线程，避免大图 base64 堵主线程。
+        // UI 在主线程展示；组包/请求留在当前工作线程，避免大图 base64 堵主线程。
         runOnUiThread(() -> showInPlaceVerifying(false));
-        maybeThunderCheckThenVerify(lightJson, cuesBitmap);
+        submitColorVerify(lightJson, cuesBitmap);
     }
 
-    private void maybeThunderCheckThenVerify(final String lightJson, final Bitmap cuesBitmap) {
+    private void submitColorVerify(final String lightJson, final Bitmap cuesBitmap) {
         final String seq = AEFacePack.getInstance().getColorSeq();
         // images[] 存的是 SM4 密文；facePics 解密后用 JPEG 上传以减小体积。
-        final JSONArray facePics = buildThunderPlainFacePics(lightJson);
+        final JSONArray facePics = buildColorPlainFacePics(lightJson);
         if (facePics == null || facePics.length() == 0) {
             runOnUiThread(() -> {
                 cancelVerifyTimeout();
@@ -2553,49 +2546,18 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         // alivePics 必须用 PNG：cues 图含算法色序编码，JPEG 有损会破坏数据 → 服务端报「颜色序列不对」。
-        // facePics 仍用 JPEG 降低体积；demo 的 alivePics 亦为 PNG（iVBORw0KGgo...）。
+        // facePics 仍用 JPEG 降低体积。
         final String alivePic = BitmapUtils.convertIconToString(cuesBitmap);
-
-        // isNewColorIntenface=true：只调新 faceIdent，炫彩字段随请求提交。
-        // colorPics = 算法图（与老接口 thunderAliveCheck 的 alivePics 同数据），
-        // facePic1~6 = 人脸原图（与动作活体一致）。
-        if (AEFaceSdk.isNewColorIntenface()) {
-            final JSONArray colorPics = new JSONArray();
-            colorPics.put(alivePic);
-            scheduleVerifyTimeout(FACE_VERIFY_UI_TIMEOUT_MS);
-            submitFaceVerifyWithColor(seq, facePics, colorPics);
-            return;
-        }
-
-        // isNewColorIntenface=false：只调老接口 thunderAliveCheck 测试炫彩核验，
-        // 通过即视为核验成功，不再调用 faceIdent。
-        ThunderAliveApi client = AEFacePack.getInstance().ensureThunderClient();
-        if (client == null || TextUtils.isEmpty(seq)
-                || !AEFacePack.getInstance().hasThunderCredentials()) {
-            // 无 Thunder 凭证/色序（纯本地 Demo）：无法服务端验活，直接按通过处理
-            Log.w(TAG, "maybeThunderCheckThenVerify: no thunder client/seq, pass locally");
-            runOnUiThread(this::onFaceVerifyPassed);
-            return;
-        }
-        final String facePic = facePics.optString(0, "");
-        scheduleVerifyTimeout(FACE_VERIFY_UI_TIMEOUT_WITH_THUNDER_MS);
-        client.checkAlive(this, seq, alivePic, facePic, facePics,
-                (result, resp) -> {
-                    onFaceVerifyPassed();
-                    return 0;
-                },
-                (resp, msg) -> {
-                    cancelVerifyTimeout();
-                    mFaceVerifying = false;
-                    showInPlaceFailUi(false, TextUtils.isEmpty(msg) ? "炫彩校验失败" : msg, true);
-                    return 0;
-                });
+        final JSONArray colorPics = new JSONArray();
+        colorPics.put(alivePic);
+        scheduleVerifyTimeout(FACE_VERIFY_UI_TIMEOUT_MS);
+        submitFaceVerifyWithColor(seq, facePics, colorPics);
     }
 
     /**
-     * 将炫彩采集 JSON 中的 SM4 加密 images 解密为 JPEG base64 数组，供 thunderAliveCheck 上传。
+     * 将炫彩采集 JSON 中的 SM4 加密 images 解密为 JPEG base64 数组，供 faceIdent 的 facePics 上传。
      */
-    private JSONArray buildThunderPlainFacePics(String lightJson) {
+    private JSONArray buildColorPlainFacePics(String lightJson) {
         JSONArray out = new JSONArray();
         if (TextUtils.isEmpty(lightJson)) {
             return out;
@@ -2621,7 +2583,7 @@ public class RecognizeActivity extends Activity implements
                 out.put(BitmapUtils.convertJpegToString(bmp, 90));
             }
         } catch (Exception e) {
-            Log.e(TAG, "buildThunderPlainFacePics: " + e.getMessage());
+            Log.e(TAG, "buildColorPlainFacePics: " + e.getMessage());
         }
         return out;
     }
@@ -2646,7 +2608,7 @@ public class RecognizeActivity extends Activity implements
         });
     }
 
-    /** 炫彩活体提交核验（新接口）：faceIdent 带 isColor/seq/colorPics 炫彩字段 */
+    /** 炫彩活体提交核验：faceIdent 带 isColor/seq/colorPics */
     private void submitFaceVerifyWithColor(final String seq, final JSONArray facePics, final JSONArray colorPics) {
         FaceVerifyManager.submitColor(seq, facePics, colorPics, new FaceVerifyManager.Callback() {
             @Override

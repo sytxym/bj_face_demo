@@ -4,10 +4,8 @@ import com.aeye.face.api.FaceApiPaths;
 
 /**
  * SDK 内需要经网关转发的接口清单：REST path → 网关 interface_id 映射。
- * <p>只有这里列出的 6 个接口会在 {@code AEFaceSdk.isUseGateway()==true} 时改走网关；
- * 老炫彩接口（{@link FaceApiPaths#THUNDER_ALIVE_COLOR}/{@link FaceApiPaths#THUNDER_ALIVE_CHECK}，
- * 均为 {@code /alg-api/liveness/*}）不在此清单中，不受网关开关影响，
- * 后续部署环境下线这两个老接口时，只需删掉对应调用方代码，不涉及本清单。</p>
+ * <p>只有这里列出的接口会在 {@code AEFaceSdk.isUseGateway()==true} 时改走网关；
+ * 未命中清单的请求始终直连。</p>
  */
 public enum GatewayEndpoint {
 
@@ -21,7 +19,7 @@ public enum GatewayEndpoint {
     QR_CODE_INSERT_RECORD(FaceApiPaths.QR_CODE_INSERT_RECORD, "addRecord"),
     /** 认证状态更新 */
     QR_CODE_UPDATE_RECORD(FaceApiPaths.QR_CODE_UPDATE_RECORD, "updateRecord"),
-    /** 炫彩活体获取颜色（新接口，{@code isNewColorIntenface=true} 时使用） */
+    /** 炫彩活体获取颜色 */
     ASSISTANT_THUNDER_ALIVE_COLOR(FaceApiPaths.ASSISTANT_THUNDER_ALIVE_COLOR, "thunderAliveColor");
 
     private final String path;

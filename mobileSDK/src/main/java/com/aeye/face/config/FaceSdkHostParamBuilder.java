@@ -1,10 +1,8 @@
 package com.aeye.face.config;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 
 import com.aeye.face.AEFaceParam;
-import com.aeye.face.AEFaceSdk;
 
 /**
  * 宿主启动活体时的通用 SDK 参数（与动作配置无关的固定项）。
@@ -51,15 +49,6 @@ public final class FaceSdkHostParamBuilder {
         paras.putBoolean(AEFaceParam.ROI_CenterSwitch, false);
         paras.putInt(AEFaceParam.IS_LAND_Switch, 0);
         paras.putString(AEFaceParam.HostHomeActivity, hostHomeActivity);
-        if (!TextUtils.isEmpty(AEFaceSdk.getThunderFlashUrl())) {
-            paras.putString(AEFaceParam.ThunderFlashUrl, AEFaceSdk.getThunderFlashUrl());
-        }
-        if (!TextUtils.isEmpty(AEFaceSdk.getThunderAppId())) {
-            paras.putString(AEFaceParam.ThunderAppId, AEFaceSdk.getThunderAppId());
-        }
-        if (!TextUtils.isEmpty(AEFaceSdk.getThunderAppSecret())) {
-            paras.putString(AEFaceParam.ThunderAppSecret, AEFaceSdk.getThunderAppSecret());
-        }
         return paras;
     }
 }

@@ -25,7 +25,6 @@ import com.aeye.android.config.ConfigData;
 import com.aeye.face.callback.AEFaceCallbackHelper;
 import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.api.FaceApiService;
-import com.aeye.face.api.ThunderAliveApi;
 import com.aeye.face.api.model.ColorResponseBean;
 import com.aeye.face.uitls.ColorInfo;
 import com.aeye.face.uitls.DataUtil;
@@ -124,10 +123,6 @@ public class AEFacePack {
     private volatile boolean mIsThunderProcessing = false;
     /** 取景页启动后的一次性回调（确认页据此再 finish，避免拉色期间闪回首页） */
     private Runnable mOnRecognizeLaunched;
-    private ThunderAliveApi mThunderClient;
-    private String mThunderAppId = "";
-    private String mThunderAppSecret = "";
-    private String mThunderFlashUrl = "";
 
     private int mAliveMask = AEFaceParam.ALIVE_MASK_DEFAULT;
     private int mEncryptType = AEFaceParam.ENCRYPT_TYPE_NULL;
@@ -158,24 +153,6 @@ public class AEFacePack {
         return m_finishListener;
     }
 
-    public ThunderAliveApi getThunderClient() {
-        return mThunderClient;
-    }
-
-    /** 当前已解析的炫彩服务基地址（Bundle 优先，其次 {@link AEFaceSdk}） */
-    public String getThunderFlashUrlResolved() {
-        resolveThunderCredentials();
-        return mThunderFlashUrl;
-    }
-
-    /** 是否具备发起 Thunder 拉色/验活的最低凭证 */
-    public boolean hasThunderCredentials() {
-        resolveThunderCredentials();
-        return !TextUtils.isEmpty(mThunderFlashUrl)
-                && !TextUtils.isEmpty(mThunderAppId)
-                && !TextUtils.isEmpty(mThunderAppSecret);
-    }
-
     /** 炫彩拉色是否进行中（BeginRecog 异步路径） */
     public boolean isThunderProcessing() {
         return mIsThunderProcessing;
@@ -191,27 +168,6 @@ public class AEFacePack {
 
     public void clearOnRecognizeLaunched() {
         mOnRecognizeLaunched = null;
-    }
-
-    /** 确保 Thunder 客户端可用（凭证优先 Bundle，其次 {@link AEFaceSdk}） */
-    public ThunderAliveApi ensureThunderClient() {
-        resolveThunderCredentials();
-        if (mThunderClient == null) {
-            mThunderClient = new ThunderAliveApi(mThunderAppId, mThunderAppSecret, mThunderFlashUrl);
-        }
-        return mThunderClient;
-    }
-
-    private void resolveThunderCredentials() {
-        if (TextUtils.isEmpty(mThunderFlashUrl)) {
-            mThunderFlashUrl = AEFaceSdk.getThunderFlashUrl();
-        }
-        if (TextUtils.isEmpty(mThunderAppId)) {
-            mThunderAppId = AEFaceSdk.getThunderAppId();
-        }
-        if (TextUtils.isEmpty(mThunderAppSecret)) {
-            mThunderAppSecret = AEFaceSdk.getThunderAppSecret();
-        }
     }
 
     public int AEYE_SetListener(AEFaceInterface listener) {
@@ -469,9 +425,6 @@ public class AEFacePack {
         mEncryptType = AEFaceParam.ENCRYPT_TYPE_NULL;
         mAliveType = AEFaceParam.ALIVE_TYPE_POSE;
 
-        mThunderAppId = "";
-        mThunderAppSecret = "";
-        mThunderFlashUrl = "";
         mIsThunderProcessing = false;
     }
 
@@ -676,17 +629,6 @@ public class AEFacePack {
             mHostHomeActivityClass = mParas.getString(AEFaceParam.HostHomeActivity);
         }
 
-        if (mParas.containsKey(AEFaceParam.ThunderFlashUrl)) {
-            mThunderFlashUrl = mParas.getString(AEFaceParam.ThunderFlashUrl);
-        }
-        if (mParas.containsKey(AEFaceParam.ThunderAppId)) {
-            mThunderAppId = mParas.getString(AEFaceParam.ThunderAppId);
-        }
-        if (mParas.containsKey(AEFaceParam.ThunderAppSecret)) {
-            mThunderAppSecret = mParas.getString(AEFaceParam.ThunderAppSecret);
-        }
-        resolveThunderCredentials();
-
         checkParam();
         return 0;
     }
@@ -846,47 +788,8 @@ public class AEFacePack {
                 launchRecognizeActivity(context, cameraId, mode);
                 return 0;
             }
-            // isNewColorIntenface=true：走新接口 {apiBaseUrl}/assistant/thunderAliveColor（无参）；
-            // false：走老 Thunder 接口 alg-api/liveness/thunderAliveColor
-            if (AEFaceSdk.isNewColorIntenface()) {
-                return beginRecogWithAssistantColor(context, cameraId, mode);
-            }
-            // 无 Thunder 凭证：使用本地默认色序，仍可完成采集（本地核验 / Demo）
-            if (!hasThunderCredentials()) {
-                applyDefaultLocalColors();
-                launchRecognizeActivity(context, cameraId, mode);
-                return 0;
-            }
-            if (mIsThunderProcessing) {
-                Log.w(TAG, "BeginRecog: already processing, skip duplicate call");
-                return 1;
-            }
-            mIsThunderProcessing = true;
-            ensureThunderClient();
-            // 拉色异步：确认页应等取景页启动后再 finish（见 setOnRecognizeLaunched）。
-            // 回调时优先用仍存活的调用方 Activity 起页，避免 NEW_TASK 闪回首页。
-            final WeakReference<Context> callerRef = new WeakReference<>(context);
-            mThunderClient.fetchColor(context,
-                    (colorsBean, seq) -> {
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            applyColorsToParams(colorsBean, seq);
-                            launchRecognizeActivity(resolveLaunchContext(callerRef.get()), cameraId, mode);
-                            mIsThunderProcessing = false;
-                            Log.d(TAG, "BeginRecog: colors fetched, launching RecognizeActivity");
-                        });
-                        return 0;
-                    },
-                    (code, msg) -> {
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            mIsThunderProcessing = false;
-                            Log.e(TAG, "BeginRecog: getColor failed, code=" + code + ", msg=" + msg);
-                            // 拉色失败时回退本地默认色，避免纯本地 Demo 无法进入
-                            applyDefaultLocalColors();
-                            launchRecognizeActivity(resolveLaunchContext(callerRef.get()), cameraId, mode);
-                        });
-                        return 0;
-                    });
-            return 0;
+            // 无客户端色序：拉 {apiBaseUrl}/assistant/thunderAliveColor，失败回退本地默认色
+            return beginRecogWithAssistantColor(context, cameraId, mode);
         }
 
         // 动作 / 静默：直接进入同一页
@@ -895,8 +798,8 @@ public class AEFacePack {
     }
 
     /**
-     * 新接口拉色（isNewColorIntenface=true）：POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，
-     * 无请求参数；成功后注入颜色与序列号再进取景页，失败回退本地默认色。
+     * 拉色：POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，无请求参数；
+     * 成功后注入颜色与序列号再进取景页，失败回退本地默认色。
      */
     private int beginRecogWithAssistantColor(Context context, final int cameraId, final int mode) {
         if (mIsThunderProcessing) {
@@ -940,44 +843,24 @@ public class AEFacePack {
      * 流水号，服务端会判为「颜色序列不对」，因此每次重来都必须换新的。
      */
     public void refreshLightColors(Context context, final ColorRefreshCallback callback) {
-        if (AEFaceSdk.isNewColorIntenface()) {
-            final Handler main = new Handler(Looper.getMainLooper());
-            new Thread(() -> {
-                ColorResponseBean.ColorsBean colors = null;
-                try {
-                    AEFaceSdk.ensureInitialized();
-                    colors = FaceApiService.fetchAssistantThunderColor(AEFaceSdk.getApiBaseUrl());
-                } catch (Exception e) {
-                    Log.e(TAG, "refreshLightColors: assistant thunderAliveColor failed: "
-                            + e.getMessage());
+        final Handler main = new Handler(Looper.getMainLooper());
+        new Thread(() -> {
+            ColorResponseBean.ColorsBean colors = null;
+            try {
+                AEFaceSdk.ensureInitialized();
+                colors = FaceApiService.fetchAssistantThunderColor(AEFaceSdk.getApiBaseUrl());
+            } catch (Exception e) {
+                Log.e(TAG, "refreshLightColors: assistant thunderAliveColor failed: "
+                        + e.getMessage());
+            }
+            final ColorResponseBean.ColorsBean result = colors;
+            main.post(() -> {
+                if (result != null) {
+                    applyColorsToParams(result, result.getSequnce());
                 }
-                final ColorResponseBean.ColorsBean result = colors;
-                main.post(() -> {
-                    if (result != null) {
-                        applyColorsToParams(result, result.getSequnce());
-                    }
-                    notifyColorsRefreshed(callback, result != null);
-                });
-            }, "AEFace-ColorRefresh").start();
-            return;
-        }
-        if (!hasThunderCredentials()) {
-            // 本地默认色序无流水号约束，沿用即可
-            notifyColorsRefreshed(callback, false);
-            return;
-        }
-        ensureThunderClient();
-        mThunderClient.fetchColor(context,
-                (colorsBean, seq) -> {
-                    applyColorsToParams(colorsBean, seq);
-                    notifyColorsRefreshed(callback, true);
-                    return 0;
-                },
-                (code, msg) -> {
-                    Log.e(TAG, "refreshLightColors failed, code=" + code + ", msg=" + msg);
-                    notifyColorsRefreshed(callback, false);
-                    return 0;
-                });
+                notifyColorsRefreshed(callback, result != null);
+            });
+        }, "AEFace-ColorRefresh").start();
     }
 
     private void notifyColorsRefreshed(ColorRefreshCallback callback, boolean refreshed) {
@@ -1154,9 +1037,6 @@ public class AEFacePack {
         if (context == null)
             return 1;
 
-        if (mThunderClient != null) {
-            mThunderClient.cancelAll();
-        }
         mIsThunderProcessing = false;
 
 //		context.stopService(new Intent(context, InitService.class));

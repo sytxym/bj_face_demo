@@ -9,29 +9,13 @@ public final class AEFaceSdk {
 
     private static volatile String apiBaseUrl;
     private static volatile boolean useMockOnError = true;
-    /**
-     * 炫彩接口切换开关（调试用，与 {@link #useMockOnError} 相互独立）：
-     * <ul>
-     * <li>{@code true}：新接口 —— 拉色走 {@code {apiBaseUrl}/assistant/thunderAliveColor}（无参），
-     *     核验走 {@code {apiBaseUrl}/assistant/faceIdent}（带 isColor/seq/colorPics 炫彩字段）；</li>
-     * <li>{@code false}：老接口 —— 拉色走 {@code alg-api/liveness/thunderAliveColor}，
-     *     核验只走 {@code alg-api/liveness/thunderAliveCheck}，不再调用 faceIdent。</li>
-     * </ul>
-     */
-    private static volatile boolean isNewColorIntenface = false;
     /** 是否在 Logcat 输出网络请求 URL、参数与响应（默认开启，便于调试）。 */
     private static volatile boolean httpLogEnabled = true;
     /** 日志 source：见 {@link #setLogSource(String)} 取值说明（掌上海关 APP 默认 6）。 */
     private static volatile String logSource = "6";
-    /** 炫彩服务端基地址（可为空，启动时也可由 Bundle ThunderFlashUrl 覆盖） */
-    private static volatile String thunderFlashUrl = "";
-    private static volatile String thunderAppId = "";
-    private static volatile String thunderAppSecret = "";
     /**
      * 网关接入开关：{@code true} 时，{@code com.aeye.face.api.gateway.GatewayEndpoint} 清单内的接口
-     * （动作配置查询/人脸核验/核验日志/新增认证记录/认证状态更新/炫彩获取颜色）改为经网关转发，
-     * 老炫彩接口 {@code /alg-api/liveness/thunderAliveColor|thunderAliveCheck} 不受此开关影响，
-     * 始终直连（这两个接口后续会整体下线，不纳入网关改造范围）。
+     * （动作配置查询/人脸核验/核验日志/新增认证记录/认证状态更新/炫彩获取颜色）改为经网关转发。
      * 默认 {@code false}，与现网直连行为完全一致，联调网关时显式打开即可，出问题可随时关回直连。
      */
     private static volatile boolean useGateway = false;
@@ -62,42 +46,12 @@ public final class AEFaceSdk {
         AEFaceSdk.useMockOnError = useMockOnError;
     }
 
-    /**
-     * 配置炫彩 Thunder 服务凭证（拉色 / 服务端验活）。也可在启动 Bundle 中传入同名参数覆盖。
-     */
-    public static void setThunderCredentials(String flashUrl, String appId, String appSecret) {
-        thunderFlashUrl = flashUrl != null ? flashUrl.trim() : "";
-        thunderAppId = appId != null ? appId.trim() : "";
-        thunderAppSecret = appSecret != null ? appSecret.trim() : "";
-    }
-
-    public static String getThunderFlashUrl() {
-        return thunderFlashUrl;
-    }
-
-    public static String getThunderAppId() {
-        return thunderAppId;
-    }
-
-    public static String getThunderAppSecret() {
-        return thunderAppSecret;
-    }
-
     public static String getApiBaseUrl() {
         return apiBaseUrl;
     }
 
     public static boolean isUseMockOnError() {
         return useMockOnError;
-    }
-
-    /** 炫彩接口切换开关，见 {@link #isNewColorIntenface} 字段说明。 */
-    public static void setNewColorIntenface(boolean newColorIntenface) {
-        isNewColorIntenface = newColorIntenface;
-    }
-
-    public static boolean isNewColorIntenface() {
-        return isNewColorIntenface;
     }
 
     /** 开启/关闭 SDK 网络请求日志，Logcat 过滤 {@code AEFaceApi}。 */

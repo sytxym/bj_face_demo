@@ -213,14 +213,6 @@ public class AEFaceParam {
      */
     public static final String Colorseq= "colorseq";
     /**
-     * 炫彩服务端基地址（如 https://ai-human.a-eye.cn），SDK 内拼接 /alg-api/liveness/...
-     */
-    public static final String ThunderFlashUrl = "ThunderFlashUrl";
-    /** 炫彩服务端 appId */
-    public static final String ThunderAppId = "ThunderAppId";
-    /** 炫彩服务端 appSecret */
-    public static final String ThunderAppSecret = "ThunderAppSecret";
-    /**
      * 活体模式
      * 0 ： 动作活体
      * 1：炫彩活体

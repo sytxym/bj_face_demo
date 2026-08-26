@@ -59,12 +59,11 @@ public final class FaceVerifyManager {
     }
 
     /**
-     * 炫彩活体提交（新接口，isNewColorIntenface=true 时使用）：
-     * faceIdent 请求体带 {@code isColor/seq/colorPics} 炫彩字段。
+     * 炫彩活体提交：faceIdent 请求体带 {@code isColor/seq/colorPics} 炫彩字段。
      *
      * @param seq       拉色接口返回的唯一序列
      * @param facePics  解密后的人脸原图 base64 列表，映射 facePic1~facePic6（与动作活体一致）
-     * @param colorPics 炫彩算法图 base64 列表（与老接口 thunderAliveCheck 的 alivePics 同数据）
+     * @param colorPics 炫彩算法图 base64 列表
      */
     public static void submitColor(String seq, JSONArray facePics, JSONArray colorPics, Callback callback) {
         submitInternal(() -> {
