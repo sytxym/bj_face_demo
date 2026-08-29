@@ -28,7 +28,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -49,8 +49,8 @@ android {
 }
 
 dependencies {
-    implementation project(':mobileSDK')
-//    implementation(name: 'customs-face-sdk-android-v4.17', ext: 'aar')
+//    implementation project(':mobileSDK')
+    implementation(name: 'customs-face-sdk-android-v4.18-202608291523', ext: 'aar')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.activity:activity:1.8.2'
@@ -59,9 +59,11 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
+    implementation 'com.alibaba:fastjson:1.2.83'
     implementation 'com.squareup.okhttp3:okhttp:5.3.2'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.3.2'
     implementation 'com.lahm.library:easy-protector-release:1.1.2'
+    // 国密已打进 SDK AAR/libs，宿主不要再引远程 bcprov
+//    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 //    implementation 'com.hanweb.android.jmportal.rtn:about:1.0.0'
 }

@@ -7,7 +7,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.aeye.face.AEFaceSdk;
 import com.aeye.face.uitls.DeviceSafeCheckUtils;
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson.JSON;
 import com.lahm.library.EasyProtectorLib;
 import com.lahm.library.SecurityCheckUtil;
 import com.lahm.library.VirtualApkCheckUtil;
@@ -44,12 +44,12 @@ public class DemoApplication extends Application {
         AEFaceSdk.init(serverAddr,true);
         AEFaceSdk.setLogSource("6"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
-//        AEFaceSdk.setGatewayUrl(gateWayUrl);
-//        AEFaceSdk.setUseGateway(true);
+        AEFaceSdk.setGatewayUrl(gateWayUrl);
+        AEFaceSdk.setUseGateway(true);
         // Debug 联调机通常开着 USB 调试，关闭拦截以免无法进核验
-        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+//        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             AEFaceSdk.setUsbDebugBlockEnabled(false);
-        }
+//        }
         mHttpClient = OkHttpClientFactory.createOkHttpClient();
         ristTypeList(this);
     }
@@ -86,15 +86,24 @@ public class DemoApplication extends Application {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (bean !=null && bean.getResult()==0) {
-                                httpInterface.onResponse(bean);
-                            } else {
+                            if (bean != null && bean.getResult() == 0) {
                                 if (httpInterface != null) {
-                                    httpInterface.onPostFailed(bean.getResult(), "header exception");
+                                    httpInterface.onResponse(bean);
                                 }
-                                if(bean !=null && bean.getInfo()!=null )
+                            } else {
+                                int code = bean != null ? bean.getResult() : -1;
+                                if (httpInterface != null) {
+                                    httpInterface.onPostFailed(code, "header exception");
+                                }
+                                if (bean != null) {
                                     Toast.makeText(getApplicationContext(),
-                                            "response error result="+bean.getResult()+(bean.getInfo()!=null?bean.getInfo():""), Toast.LENGTH_SHORT).show();
+                                            "response error result=" + bean.getResult()
+                                                    + (bean.getInfo() != null ? bean.getInfo() : ""),
+                                            Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(getApplicationContext(),
+                                            "response parse failed", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     });

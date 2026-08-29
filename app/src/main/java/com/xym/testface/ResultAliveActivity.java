@@ -24,8 +24,8 @@ import androidx.annotation.NonNull;
 import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.face.AEFaceBean;
 import com.aeye.face.uitls.FLogUtil;
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.xym.testface.bean.HttpInterface;
 import com.xym.testface.bean.LiveRequestEntity;
 import com.xym.testface.bean.LiveResponseBean;
@@ -287,7 +287,7 @@ public class ResultAliveActivity extends Activity implements OnClickListener {
                         msgAlive.setText(msg);
                         if (liveResponseBean.getErrorPic() != null) {
                             msgAlive.setText(msg + "\n失败图：");
-                            msgAlive.setTextColor(getResources().getColor(com.sdk.core.R.color.red));
+                            msgAlive.setTextColor(getResources().getColor(R.color.red));
                             Bitmap errorBit = BitmapUtils.convertStringToBitmap(liveResponseBean.getErrorPic());
                             imgError.setImageBitmap(errorBit);
                             imgError.setVisibility(View.VISIBLE);

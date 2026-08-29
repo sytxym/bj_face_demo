@@ -25,6 +25,8 @@ android {
             // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
         }
         ndkVersion '21.1.6352462'
+        // 打进 AAR，宿主开启混淆时自动合并，避免二次 R8 裁掉入口/JNI/组件
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
@@ -112,10 +114,11 @@ dependencies {
     implementation files('libs/face_unhack.jar')
 //    implementation files('libs/sdk_assist.jar')
     implementation files('libs/smsdk.jar')
+    // 网关 SM2/SM3：本地 jar 打进 AAR/libs，宿主无需再声明 Maven 依赖
+    implementation files('libs/bcprov-jdk18on-1.78.jar')
     // 炫彩接口响应解析
 //    implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
     implementation 'com.alibaba:fastjson:1.2.83'
-    // 网关请求 SM2/SM3 国密算法：仅用轻量 crypto.* API（不注册 Security Provider，
-    // 避免与 Android 内置 BC 冲突），来自 Maven Central 公开构件，SDK 对外分发无私仓依赖。
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    // 已改为 libs/bcprov-jdk18on-1.78.jar
+//    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 }

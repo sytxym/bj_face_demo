@@ -1,48 +1,89 @@
-# mobileSDK Release 混淆规则
-# 目标：保留 com.aeye 下完整包名与类名，供宿主通过 AAR 直接引用；仅裁剪未使用代码。
+# mobileSDK Release 混淆：内部实现可改名，对外 API / JNI / 组件必须保留。
+# 宿主调用面（掌上海关 FaceVerifyHelper / FaceSdkInit + Demo）：
+#   AEFaceSdk、AEFaceVerifyFlow(+Callback)、AEFacePack、AEFaceInterface、
+#   FaceUserInfo、FaceActionConfig、FaceActionOptions、
+#   FaceUniResultCodes、FaceUniResultMapper、
+#   DeviceSafeCheckUtils、AEFaceBean、FLogUtil、BitmapUtils
 
-# 保留行号，便于崩溃栈定位
--keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable,InnerClasses,EnclosingMethod,Signature,*Annotation*
 -renamesourcefileattribute SourceFile
 
-# 不再把未 keep 的类重打包到 com.zhy（否则 AAR 里看不到原始包结构）
-# -repackageclasses 'com.zhy'
+# ---------- 宿主 / Demo 会直接 import 的对外 API ----------
+-keep class com.aeye.face.AEFaceSdk { *; }
+-keep class com.aeye.face.AEFaceVerifyFlow { *; }
+-keep interface com.aeye.face.AEFaceVerifyFlow$Callback { *; }
+-keep class com.aeye.face.AEFacePack { *; }
+-keep interface com.aeye.face.AEFaceInterface { *; }
+-keep class com.aeye.face.AEFaceParam { *; }
+-keep class com.aeye.face.AEFaceBean { *; }
 
-# ---------- SDK 全部业务包（face / android / sdk / aeyelib / mylibrary / sm）----------
--keep class com.aeye.face.** { *; }
--keep interface com.aeye.face.** { *; }
+-keep class com.aeye.face.verify.FaceUserInfo { *; }
+-keep class com.aeye.face.verify.FaceUserInfo$Builder { *; }
+-keep class com.aeye.face.config.FaceActionConfig { *; }
+-keep class com.aeye.face.config.FaceActionOptions { *; }
+-keep class com.aeye.face.config.FaceActionOptions$Builder { *; }
 
--keep class com.aeye.android.** { *; }
+-keep class com.aeye.face.callback.FaceUniResultCodes { *; }
+-keep class com.aeye.face.callback.FaceUniResultMapper { *; }
+
+-keep class com.aeye.face.uitls.DeviceSafeCheckUtils { *; }
+-keep class com.aeye.face.uitls.FLogUtil { *; }
+-keep class com.aeye.android.uitls.BitmapUtils { *; }
+
+# ---------- Manifest 组件：类名写死在 AndroidManifest ----------
+-keep class com.aeye.face.view.RecognizeActivity { *; }
+-keep class com.aeye.face.confirm.InfoConfirmActivity { *; }
+-keep class com.aeye.face.service.InitService { *; }
+
+# ---------- layout XML 自定义 View（inflate 按全限定名找类） ----------
+-keep class com.aeye.face.view.FaceView { *; }
+-keep class com.aeye.face.view.CountView { *; }
+-keep class com.aeye.face.view.ScanRingOverlayView { *; }
+-keep class com.aeye.face.view.AutoFitSurfaceView { *; }
+-keep class com.aeye.face.lightView.CheckFaceView { *; }
+-keep class com.aeye.face.lightView.BitmapView { *; }
+
+# ---------- Bundle Serializable ----------
+-keep class com.aeye.face.uitls.ColorInfo { *; }
+
+# ---------- Fastjson 反射字段名 ----------
+-keep class com.aeye.face.api.model.** { *; }
+-keep class com.alibaba.fastjson.** { *; }
+-dontwarn com.alibaba.fastjson.**
+-dontwarn com.alibaba.fastjson2.**
+# 1.2.x 内置可选 Codec（Guava/AWT/Joda/Moneta/Swagger），Android 无这些类
+-dontwarn com.google.common.**
+-dontwarn java.awt.**
+-dontwarn javax.money.**
+-dontwarn org.javamoney.**
+-dontwarn org.joda.time.**
+-dontwarn springfox.**
+
+# ---------- JNI：.so 按 Java 类名+方法名查找 ----------
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+-keep class com.aeye.android.uitls.LicenseUtils { *; }
+-keep class com.aeye.android.libutils.ComplexUtil { *; }
+-keep class com.aeye.android.face.UtilMtcnn { *; }
+-keep class com.aeye.aeyelib.ALightNative { *; }
+
+# 算法 jar / native 封装：整包保留，避免 so 对不上
 -keep class com.aeye.sdk.** { *; }
 -keep interface com.aeye.sdk.** { *; }
-
 -keep class com.aeye.aeyelib.** { *; }
 -keep class com.aeye.mylibrary.** { *; }
 -keep class com.aeye.sm.** { *; }
 -keep class com.aeye.sm4.** { *; }
+-keep class com.aeye.android.** { *; }
 
-# 内部回调接口（编译后为 Outer$Inner，宿主实现匿名类时需要保留签名）
--keep interface com.aeye.face.config.FaceActionConfigRepository$FetchCallback { *; }
--keep interface com.aeye.face.config.FaceActionConfigLoader$Callback { *; }
--keep class com.aeye.face.AEFaceSdk { *; }
--keep class com.aeye.face.AEFaceVerifyFlow { *; }
--keep interface com.aeye.face.AEFaceVerifyFlow$Callback { *; }
+# ---------- 网关国密 ----------
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**
 
-# AndroidManifest 声明的组件（与上面 face.** 重叠，显式列出便于维护）
--keep class com.aeye.face.view.RecognizeActivity { *; }
--keep class com.aeye.face.lightView.RecognizeLightActivity { *; }
--keep class com.aeye.face.confirm.InfoConfirmActivity { *; }
--keep class com.aeye.face.service.InitService { *; }
-
-# R 资源
+# R
 -keepclassmembers class **.R$* {
     public static <fields>;
 }
 
-# 本地算法 jar 反射/JNI 调用（若存在）
 -dontwarn com.aeye.**
-
-# fastjson2（炫彩响应 Bean 反序列化）
--keep class com.alibaba.fastjson2.** { *; }
--keepattributes Signature,*Annotation*
--dontwarn com.alibaba.fastjson2.**
