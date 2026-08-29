@@ -50,7 +50,7 @@ android {
 
 dependencies {
 //    implementation project(':mobileSDK')
-    implementation(name: 'customs-face-sdk-android-v4.18-202608291523', ext: 'aar')
+    implementation(name: 'customs-face-sdk-android-v4.18-202608291732', ext: 'aar')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.activity:activity:1.8.2'
@@ -64,6 +64,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:5.3.2'
     implementation 'com.lahm.library:easy-protector-release:1.1.2'
     // 国密已打进 SDK AAR/libs，宿主不要再引远程 bcprov
-//    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
 //    implementation 'com.hanweb.android.jmportal.rtn:about:1.0.0'
 }
