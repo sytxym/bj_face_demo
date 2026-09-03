@@ -11,6 +11,7 @@ import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.gateway.GatewayCrypto;
 import com.aeye.face.api.model.ApiResult;
 import com.aeye.face.api.model.ColorResponseBean;
+import com.aeye.face.api.model.AuthStatusResult;
 import com.aeye.face.api.model.FaceIdentResult;
 import com.aeye.face.api.model.QrInsertRecordResult;
 import com.aeye.face.config.FaceActionConfig;
@@ -23,6 +24,7 @@ import com.aeye.face.uitls.DeviceInfoCollector;
 import com.aeye.face.uitls.SMUtil;
 import com.aeye.face.verify.FaceUserInfo;
 import com.aeye.face.verify.FaceVerifySession;
+import com.aeye.face.verify.QrRecordStatus;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -453,6 +455,132 @@ public final class FaceApiService {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("authRecordId 格式错误: " + authRecordId);
         }
+    }
+
+    // ---------- 查询核验结果状态 ----------
+
+    /**
+     * 查询认证记录核验结果。请求体仅 {@code authRecordId}。
+     */
+    public static AuthStatusResult queryAuthStatus(String baseUrl, String authRecordId) throws Exception {
+        if (TextUtils.isEmpty(authRecordId)) {
+            throw new IllegalArgumentException("authRecordId 为空");
+        }
+        JSONObject body = new JSONObject();
+        body.put("authRecordId", authRecordId.trim());
+        String response = SdkHttpClient.postJson(
+                baseUrl, FaceApiPaths.QR_CODE_AUTH_STATUS, body.toString());
+        return parseAuthStatusResponse(response);
+    }
+
+    public static AuthStatusResult parseAuthStatusResponse(String json) {
+        if (TextUtils.isEmpty(json)) {
+            throw new IllegalArgumentException("authStatus 响应为空");
+        }
+        JSONObject root;
+        try {
+            root = new JSONObject(json);
+        } catch (JSONException e) {
+            throw new IllegalArgumentException("authStatus JSON 解析失败: " + e.getMessage());
+        }
+        JSONObject data;
+        if (root.has("ok")) {
+            ApiResult apiResult = ApiResponseParser.parse(root);
+            data = apiResult.getBusinessData();
+        } else if (root.has("code")) {
+            int code = root.optInt("code", -1);
+            if (code != 200) {
+                String msg = root.optString("msg", "查询核验结果失败");
+                throw new IllegalArgumentException(TextUtils.isEmpty(msg) ? "查询核验结果失败" : msg);
+            }
+            data = ApiResponseParser.extractBusinessData(root);
+        } else {
+            data = ApiResponseParser.extractBusinessData(root);
+            if (data == null) {
+                data = root;
+            }
+        }
+        if (data == null) {
+            throw new IllegalArgumentException("authStatus 响应 data 为空");
+        }
+        String status = readStatus(data);
+        if (TextUtils.isEmpty(status)) {
+            throw new IllegalArgumentException("authStatus 响应缺少 status");
+        }
+        return AuthStatusResult.of(status, resolveFailTypeText(data));
+    }
+
+    private static String readStatus(JSONObject data) {
+        if (!data.has("status") || data.isNull("status")) {
+            return null;
+        }
+        Object raw = data.opt("status");
+        if (raw == null) {
+            return null;
+        }
+        String status = String.valueOf(raw).trim();
+        if (status.endsWith(".0")) {
+            status = status.substring(0, status.length() - 2);
+        }
+        return status;
+    }
+
+    private static String resolveFailTypeText(JSONObject data) {
+        JSONObject info = data.optJSONObject("detection_info");
+        if (info != null) {
+            String nested = firstNonEmpty(
+                    info.optString("failtype", null),
+                    info.optString("failType", null),
+                    info.optString("failedType", null));
+            if (!TextUtils.isEmpty(nested)) {
+                return mapFailType(nested);
+            }
+        }
+        String raw = firstNonEmpty(
+                data.optString("failedType", null),
+                data.optString("failtype", null),
+                data.optString("failType", null));
+        if (TextUtils.isEmpty(raw)) {
+            return "";
+        }
+        return mapFailType(raw);
+    }
+
+    private static String mapFailType(String raw) {
+        String value = raw.trim();
+        if (TextUtils.isEmpty(value) || "null".equalsIgnoreCase(value)) {
+            return "";
+        }
+        switch (value) {
+            case QrRecordStatus.FailedType.LIVENESS_ACTION:
+                return "动作活体检测未通过";
+            case QrRecordStatus.FailedType.TIMEOUT:
+                return "任务过期";
+            case QrRecordStatus.FailedType.CROSS_CHECK:
+                return "交叉验核未通过";
+            case QrRecordStatus.FailedType.LIVENESS_SILENT:
+                return "静默活体检测未通过";
+            case QrRecordStatus.FailedType.FACE_COMPARE:
+                return "认证比对未通过";
+            case QrRecordStatus.FailedType.CANCELLED:
+                return "已取消";
+            case QrRecordStatus.FailedType.LIVENESS_COLOR:
+                return "炫彩对比未通过";
+            default:
+                return value;
+        }
+    }
+
+    private static String firstNonEmpty(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String v : values) {
+            if (!TextUtils.isEmpty(v) && !"null".equalsIgnoreCase(v)) {
+                return v.trim();
+            }
+        }
+        return null;
     }
 
     // ---------- 核验日志 ----------

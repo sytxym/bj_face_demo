@@ -3,13 +3,9 @@ package com.aeye.face.confirm;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Outline;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.ViewOutlineProvider;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -63,9 +59,6 @@ public class InfoConfirmActivity extends Activity {
         tvIdType.setText(safe(in.getStringExtra(InfoConfirmExtras.EXTRA_ID_TYPE)));
         tvIdNumber.setText(safe(in.getStringExtra(InfoConfirmExtras.EXTRA_ID_NUMBER)));
 
-        ImageView ivPerson = findViewById(R.id.iv_person_placeholder);
-        ivPerson.post(() -> applyCircleClip(ivPerson));
-
         ImageView back = findViewById(R.id.btn_back);
         back.setOnClickListener(v -> finishByUserCancel());
 
@@ -113,20 +106,6 @@ public class InfoConfirmActivity extends Activity {
 
     private static String safe(String s) {
         return TextUtils.isEmpty(s) ? "--" : s;
-    }
-
-    /** 人像占位图圆形裁剪，与产品稿一致 */
-    private static void applyCircleClip(ImageView imageView) {
-        if (imageView == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
-        imageView.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                outline.setOval(0, 0, view.getWidth(), view.getHeight());
-            }
-        });
-        imageView.setClipToOutline(true);
     }
 
     /**

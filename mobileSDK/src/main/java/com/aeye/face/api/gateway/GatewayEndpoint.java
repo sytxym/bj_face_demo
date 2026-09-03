@@ -19,6 +19,8 @@ public enum GatewayEndpoint {
     QR_CODE_INSERT_RECORD(FaceApiPaths.QR_CODE_INSERT_RECORD, "addRecord"),
     /** 认证状态更新 */
     QR_CODE_UPDATE_RECORD(FaceApiPaths.QR_CODE_UPDATE_RECORD, "updateRecord"),
+    /** 查询核验结果状态 */
+    QR_CODE_AUTH_STATUS(FaceApiPaths.QR_CODE_AUTH_STATUS, "authStatus"),
     /** 炫彩活体获取颜色 */
     ASSISTANT_THUNDER_ALIVE_COLOR(FaceApiPaths.ASSISTANT_THUNDER_ALIVE_COLOR, "thunderAliveColor");
 

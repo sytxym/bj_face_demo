@@ -124,7 +124,7 @@ public final class FaceVerifyLaunchParams {
     public FaceActionOptions toLocalActionOptions() {
         FaceActionOptions.Builder builder = new FaceActionOptions.Builder()
                 .aliveLevel(1)
-                .motionTimeoutSec(15)
+                .motionTimeoutSec(10)
                 .voiceEnabled(true);
         if (liveType == LIVE_TYPE_SILENT) {
             return builder.detectType(FaceActionConfig.DETECT_SILENT)

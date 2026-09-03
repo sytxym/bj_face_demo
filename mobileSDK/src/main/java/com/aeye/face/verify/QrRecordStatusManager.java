@@ -70,6 +70,7 @@ public final class QrRecordStatusManager {
     /** 扫码，或直启且宿主传入了认证记录 ID。 */
     private static boolean shouldReport() {
         return FaceVerifySession.isQrScanFlow()
-                || FaceVerifySession.isAuthRecordIdFromHost();
+                || FaceVerifySession.isAuthRecordIdFromHost()
+                || !TextUtils.isEmpty(FaceVerifySession.getAuthRecordId());
     }
 }

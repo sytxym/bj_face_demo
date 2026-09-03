@@ -37,6 +37,8 @@ public final class QrRecordStatus {
         public static final String FACE_COMPARE = "5";
         /** 已取消（用户返回取消任务时必传，配 {@link QrRecordStatus#TASK_CANCELLED}） */
         public static final String CANCELLED = "6";
+        /** 炫彩对比未通过 */
+        public static final String LIVENESS_COLOR = "7";
 
         private FailedType() {
         }

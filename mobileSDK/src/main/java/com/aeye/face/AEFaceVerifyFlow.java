@@ -222,8 +222,7 @@ public final class AEFaceVerifyFlow {
                 if (!prepareSdk(activity, hostHomeActivityClass, listener, callback)) {
                     return;
                 }
-                // 用户信息预览接口已取消：确认页不再展示用户信息，
-                // payload 由外部传入的基本信息组装（仅作标题等兜底透传）
+                // 用户信息预览接口已取消：确认页四项基本信息由外部业务 App 传入
                 final InfoConfirmPayload payload =
                         buildConfirmPayload(FaceVerifySession.getUserInfo());
                 Runnable openPreview = () -> {
@@ -331,7 +330,7 @@ public final class AEFaceVerifyFlow {
     }
 
     /**
-     * 由外部传入的基本信息组装确认页 payload（确认页信息区已隐藏，仅透传标题兜底字段）。
+     * 由外部传入的基本信息组装确认页 payload（国家地区、姓名、证件类型、证件号码）。
      */
     private static InfoConfirmPayload buildConfirmPayload(FaceUserInfo info) {
         JSONObject data = new JSONObject();

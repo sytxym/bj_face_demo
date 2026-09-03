@@ -95,7 +95,7 @@ public class AEFacePack {
     private int mCaptureFace = 3;
     private int mModelAllSide = 0;
     private int mMotionPicNum = 1;
-    private int mMotionTime = 5;
+    private int mMotionTime = 10;
     private int mFixMotion = 0;
     private int mAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
     private int mShowFaceRect = 0;
@@ -401,7 +401,7 @@ public class AEFacePack {
         mLoseFace = 3;
         mCaptureFace = 3;
         mModelAllSide = 0;
-        mMotionTime = 5;
+        mMotionTime = 10;
         mAliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
         mShowFaceRect = 0;
         mTitle = null;

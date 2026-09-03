@@ -30,8 +30,8 @@ import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
 /**
- * Demo 宿主首页：提供两种进入人脸核验的入口。
- *   <li>人脸认证：使用固定 demo 用户直接走 SDK 核验流程</li>
+ * Demo 宿主首页：提供进入人脸核验的入口。
+ *   <li>动作活体 / 静默活体 / 炫彩 / 动作+炫彩：使用固定 demo 用户走 SDK 在线核验</li>
  *   <li>扫码认证：扫二维码解析 userId 后进入同一套核验流程</li>
  * 接口请求、Mock 回退、信息预览与活体检测均由 {@link AEFaceVerifyFlow} / SDK 内部处理；
  * 宿主只需传入 businessCode、userId，并在 {@link AEFaceInterface} 中接收活体结果回调。
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             + "\"userId\":\"demoUser001\","
             + "\"busId\":\"demoBus001\","
             + "\"businessCode\":\"" + DEMO_BUSINESS_CODE + "\","
-            + "\"authRecordId\":\"" + 22222 + "\","
+//            + "\"authRecordId\":\"" + 22222 + "\","
             + "\"useType\":" + FaceVerifyLaunchParams.USE_TYPE_ONLINE
             + "}";
 
@@ -95,11 +95,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initScanLaunchers();
 
         Button btTestFace = findViewById(R.id.btTestFace);
+        Button btSilentFace = findViewById(R.id.btSilentFace);
         Button btScanAuth = findViewById(R.id.btScanAuth);
         Button btLocalFace = findViewById(R.id.btLocalFace);
         Button btLight = findViewById(R.id.btLocalLight);
         Button btMotionLight = findViewById(R.id.btLocalMotionLight);
         btTestFace.setOnClickListener(this);
+        btSilentFace.setOnClickListener(this);
         btScanAuth.setOnClickListener(this);
         btLocalFace.setOnClickListener(this);
         btLight.setOnClickListener(this);
@@ -131,7 +133,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.btTestFace) {
-            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, null, false);
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_MOTION, false);
+        } else if (id == R.id.btSilentFace) {
+            startFaceVerify(DEMO_ONLINE_LAUNCH_JSON, null, null, FaceActionConfig.DETECT_SILENT, false);
         } else if (id == R.id.btScanAuth) {
             startScanAuth();
         } else if (id == R.id.btLocalFace) {

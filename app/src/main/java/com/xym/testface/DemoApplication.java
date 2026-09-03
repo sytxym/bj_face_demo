@@ -44,8 +44,8 @@ public class DemoApplication extends Application {
         AEFaceSdk.init(serverAddr,true);
         AEFaceSdk.setLogSource("6"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
-        AEFaceSdk.setGatewayUrl(gateWayUrl);
-        AEFaceSdk.setUseGateway(true);
+//        AEFaceSdk.setGatewayUrl(gateWayUrl);
+//        AEFaceSdk.setUseGateway(true);
         // Debug 联调机通常开着 USB 调试，关闭拦截以免无法进核验
 //        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             AEFaceSdk.setUsbDebugBlockEnabled(false);

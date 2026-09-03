@@ -406,15 +406,15 @@ public class DecodeHandler extends Handler {
         }
         if (haveFace) {
             if(quality == AEFaceQuality.QUALITY_FAR){
-                activity.showHint("face_far", RecognizeActivity.HINT_COLOR_ERROR);
+                activity.showHint("face_far", RecognizeActivity.HINT_COLOR_THEME);
             }else if(quality ==-2){
                 activity.showManyPersonMessageBox();
             }else
-            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_ERROR);
+            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
             activity.showFaceOut(false);
-        } else if ((loseCount++) == CfgLoseFace && !AEFacePack.getInstance().isAliveOff()
-                && activity.getDecodeStatus()) {
-            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_ERROR);
+        } else if ((loseCount++) == CfgLoseFace && activity.getDecodeStatus()
+                && (!AEFacePack.getInstance().isAliveOff() || activity.isSilentAliveMode())) {
+            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
             activity.showNoFace();
         }
     }

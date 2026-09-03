@@ -1,9 +1,11 @@
 package com.aeye.face.verify;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.FaceApiService;
+import com.aeye.face.api.model.AuthStatusResult;
 import com.aeye.face.api.model.FaceIdentResult;
 
 import org.json.JSONArray;
@@ -22,18 +24,21 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 活体完成后的人脸核验：在 SDK 内发起网络请求，宿主无需重复封装。
- * <p>整体超时防止接口不通/未部署时一直停在「人脸核验中」。</p>
+ * 活体完成后的人脸核验：提交 faceIdent 后轮询 {@code /qrCode/authStatus}，
+ * 以查询结果为最终通过/未通过。
  */
 public final class FaceVerifyManager {
 
     private static final String TAG = "FaceVerifyManager";
 
     /**
-     * 含建连、上传大图（炫彩多图）、读响应。
+     * 含建连、上传大图（炫彩多图）、读响应、以及提交成功后的 authStatus 轮询。
      * 略大于 {@link FaceApiService} faceIdent 的 HTTP 超时，避免过早 cancel 打断上传。
      */
     private static final long VERIFY_TIMEOUT_MS = 45_000L;
+    /** status=3 时 1 秒轮询一次，最多 5 次 */
+    private static final int AUTH_STATUS_MAX_TRIES = 5;
+    private static final long AUTH_STATUS_INTERVAL_MS = 1_000L;
 
     public interface Callback {
         void onPassed(FaceIdentResult result);
@@ -93,13 +98,14 @@ public final class FaceVerifyManager {
         new Thread(() -> {
             try {
                 FaceIdentResult result = future.get(VERIFY_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-                if (!finished.compareAndSet(false, true)) {
+                if (finished.get()) {
                     return;
                 }
                 if (result != null && result.isPass()) {
-                    callback.onPassed(result);
-                } else {
-                    callback.onFailed("提交失败");
+                    Log.d(TAG, "faceIdent ok, start authStatus poll");
+                    dispatchFinalFromAuthStatus(finished, callback, result);
+                } else if (finished.compareAndSet(false, true)) {
+                    callback.onFailed("核验失败");
                 }
             } catch (TimeoutException e) {
                 future.cancel(true);
@@ -117,21 +123,92 @@ public final class FaceVerifyManager {
         }, "AEFace-Verify-Wait").start();
     }
 
+    /**
+     * faceIdent 提交成功后以 {@code /qrCode/authStatus} 为最终结果：
+     * status=3 间隔 1 秒再查，最多 5 次；仍为 3 则忙碌失败；status=5 通过；其余未通过。
+     */
+    private static void dispatchFinalFromAuthStatus(AtomicBoolean finished, Callback callback,
+                                                    FaceIdentResult identResult) {
+        Log.d(TAG, "poll authStatus authRecordId=" + FaceVerifySession.getAuthRecordId());
+        try {
+            AuthStatusResult auth = pollAuthStatus();
+            if (!finished.compareAndSet(false, true)) {
+                return;
+            }
+            if (auth.isPassed()) {
+                callback.onPassed(identResult);
+            } else {
+                callback.onFailed(auth.displayFailMessage());
+            }
+        } catch (Exception e) {
+            if (AEFaceSdk.isUseMockOnError()) {
+                Log.w(TAG, "authStatus failed, fallback mock pass. cause="
+                        + e.getClass().getSimpleName() + ": " + e.getMessage());
+                if (finished.compareAndSet(false, true)) {
+                    callback.onPassed(identResult);
+                }
+                return;
+            }
+            dispatchError(finished, callback, e);
+        }
+    }
+
+    private static AuthStatusResult pollAuthStatus() throws Exception {
+        String authRecordId = FaceVerifySession.getAuthRecordId();
+        if (TextUtils.isEmpty(authRecordId)) {
+            throw new IllegalArgumentException("authRecordId 为空");
+        }
+        AuthStatusResult last = null;
+        Exception lastError = null;
+        for (int i = 0; i < AUTH_STATUS_MAX_TRIES; i++) {
+            if (i > 0) {
+                Thread.sleep(AUTH_STATUS_INTERVAL_MS);
+            }
+            try {
+                last = FaceApiService.queryAuthStatus(AEFaceSdk.getApiBaseUrl(), authRecordId);
+                lastError = null;
+                if (last.isVerifying()) {
+                    continue;
+                }
+                return last;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
+            } catch (Exception e) {
+                lastError = e;
+                Log.w(TAG, "authStatus try " + (i + 1) + "/" + AUTH_STATUS_MAX_TRIES
+                        + " failed: " + e.getMessage());
+            }
+        }
+        if (last != null && last.isVerifying()) {
+            return AuthStatusResult.busy();
+        }
+        if (lastError != null) {
+            throw lastError;
+        }
+        return AuthStatusResult.busy();
+    }
+
     private static void dispatchError(AtomicBoolean finished, Callback callback, Throwable error) {
-        if (!finished.compareAndSet(false, true)) {
+        if (finished.get()) {
             return;
         }
         if (AEFaceSdk.isUseMockOnError()) {
             try {
-                Log.w(TAG, "faceIdent failed, fallback mock pass. cause="
+                Log.w(TAG, "faceIdent failed, mock pass then poll authStatus. cause="
                         + (error != null ? error.getClass().getSimpleName() + ": " + error.getMessage() : "null"));
                 FaceIdentResult mock = FaceApiService.mockFaceIdentPass(
                         FaceVerifySession.getUserId(),
                         FaceVerifySession.getAuthRecordId());
-                callback.onPassed(mock);
+                dispatchFinalFromAuthStatus(finished, callback, mock);
             } catch (Exception mockError) {
-                callback.onFailed(friendlyMessage(mockError));
+                if (finished.compareAndSet(false, true)) {
+                    callback.onFailed(friendlyMessage(mockError));
+                }
             }
+            return;
+        }
+        if (!finished.compareAndSet(false, true)) {
             return;
         }
         callback.onFailed(friendlyMessage(error));
@@ -139,7 +216,7 @@ public final class FaceVerifyManager {
 
     private static String friendlyMessage(Throwable error) {
         if (error == null) {
-            return "提交失败";
+            return "核验失败";
         }
         if (error instanceof SocketTimeoutException
                 || error instanceof TimeoutException
@@ -169,6 +246,6 @@ public final class FaceVerifyManager {
                 return msg;
             }
         }
-        return "提交失败";
+        return "核验失败";
     }
 }

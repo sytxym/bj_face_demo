@@ -87,6 +87,8 @@ public class DecodeHandlerLight extends Handler {
 	private boolean shakeStatus = false;
 
 	private boolean cfgShowRect = false;
+	/** 椭圆滞回：上一帧是否在框内，避免边界来回跳 */
+	private boolean mLastInGuideOval = false;
 	private int CfgLoseFace = 2;
 	private int CfgPicNum = 1;
 	private int CfgCapFace = 2;
@@ -142,6 +144,7 @@ public class DecodeHandlerLight extends Handler {
 		faceInfo.isAlive = false;
 		shakeStatus = false;
 		isFisrt = true;
+		mLastInGuideOval = false;
 
 		envLast = AEFaceQuality.QUALITY_OK;
 		envCount = 0;
@@ -433,23 +436,22 @@ public class DecodeHandlerLight extends Handler {
 		}else{
 			rect = takeRect;
 		}
-		boolean faceFar = false;
-
-			if (rect != null) {
+			if (rect != null && rect.length > 0) {
+				loseCount = 0;
 				faceInfo.faceNumber = rect.length;
-				if(isMotionAliveSuc) {
-					int faceWidth = rect[0].width();
-
-					faceFar = (faceWidth < 340);
-//				faceFar = false;
-					if (faceFar) {
-						activity.showFaceOut(false);
-						activity.showFaceTooFar();
-						aliveCount = 1;
-						currentColorIndex = -1;
-						removeCurrentMessage();
-					} else {
+				boolean faceFar = rect[0].width() < 340;
+				if (faceFar) {
+					// 不要走 showFaceOut(false)：会异步刷 QUALITY_OUT「请将脸移入框内」，盖掉靠近提示
+					activity.showFaceTooFar();
+					aliveCount = 1;
+					currentColorIndex = -1;
+					removeCurrentMessage();
+				} else if (isMotionAliveSuc) {
+						boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
+						// 闪光中只要还能检测到人脸就保持色光；出圆框只走 20 秒失败，不暂停色序
 						activity.showFaceOut(true);
+						activity.setLightScanArcEnabled(inOval);
+						activity.notifyGuideOvalForTimeout(inOval);
 						faceInfo.imgRect = rect[0];
 
 						// 纯炫彩 / 动作+炫彩：未启动色光前只做人脸跟踪，不插帧采集。
@@ -560,26 +562,37 @@ public class DecodeHandlerLight extends Handler {
 						} else {
 //						aliveCount = 1;
 						}
-					}
 //			}
 				}else{
-					// 动作阶段有人脸：提示当前动作，并启动与纯动作相同的圆形旋转扫描弧
-					activity.showFaceOut(true);
-					activity.showTipAfterHasFace();
+					// 动作阶段：入圆框才跑 10 秒动作倒计时；出框走 20 秒失败（不展示）
+					boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
+					activity.showFaceOut(inOval);
+					if (inOval) {
+						activity.showTipAfterHasFace();
+					}
+					activity.setLightScanArcEnabled(inOval);
 				}
 			} else { // 如果没找到 人脸 的 具体位置 就继续寻找
-				aliveCount = 1;
-				currentColorIndex = -1;
-				if(activity.getAliveMode()== AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
-					isMotionAliveSuc = false;
-					CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
-					if (lightHandler != null) {
-						lightHandler.resetMotionLightProgress();
+				if (RecognizeActivity.getmFaceOK() == 0
+						&& (loseCount++) != CfgLoseFace) {
+					// 刚进页尚未判定：多等几帧，脸已在框内则不会先播「请将脸移入框内」
+				} else {
+					aliveCount = 1;
+					currentColorIndex = -1;
+					// 动作阶段丢脸不重置进度；已进闪光再丢脸则打回动作，避免闪光停了却回不来
+					if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT
+							&& isMotionAliveSuc) {
+						isMotionAliveSuc = false;
+						CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
+						if (lightHandler != null) {
+							lightHandler.resetMotionLightProgress();
+						}
 					}
+					mLastInGuideOval = false;
+					activity.showNoFace();
+					activity.clearPicNumber();
+					removeCurrentMessage();
 				}
-				activity.showNoFace();
-				activity.clearPicNumber();
-				removeCurrentMessage();
 			}
 //		}
 		activity.getLightHandler().restartDecode();
@@ -867,12 +880,37 @@ public class DecodeHandlerLight extends Handler {
 		}
 		if (haveFace) {
 			activity.showHint("aeye_quality_out", Color.WHITE);
-			activity.showFaceOut(true);
-		} else if ((loseCount++) == CfgLoseFace && !AEFacePack.getInstance().isAliveOff()
-				&& activity.getDecodeStatus()) {
+			activity.showFaceOut(false);
+		} else if ((loseCount++) == CfgLoseFace && activity.getDecodeStatus()
+				&& (!AEFacePack.getInstance().isAliveOff() || activity.isSilentAliveMode())) {
 			activity.showHint("aeye_quality_out", Color.WHITE);
 			activity.showNoFace();
 		}
+	}
+
+	/**
+	 * 人脸中心是否落在圆形引导框内（滞回）：
+	 * 进框用较小半径，出框用较大半径，避免边缘/摇头时每帧翻转。
+	 */
+	private boolean isFaceInGuideOval(Rect face, int imgW, int imgH) {
+		if (face == null || imgW <= 0 || imgH <= 0) {
+			mLastInGuideOval = false;
+			return false;
+		}
+		float cx = imgW / 2f;
+		float cy = imgH / 2f;
+		float dx = face.centerX() - cx;
+		float dy = face.centerY() - cy;
+		float minSide = Math.min(imgW, imgH);
+		float enterR = minSide * 0.45f;
+		float leaveR = minSide * 0.52f;
+		float dist2 = dx * dx + dy * dy;
+		if (mLastInGuideOval) {
+			mLastInGuideOval = dist2 <= leaveR * leaveR;
+		} else {
+			mLastInGuideOval = dist2 <= enterR * enterR;
+		}
+		return mLastInGuideOval;
 	}
 
 	private int[] cvtSpace(byte[] data, int width, int height,

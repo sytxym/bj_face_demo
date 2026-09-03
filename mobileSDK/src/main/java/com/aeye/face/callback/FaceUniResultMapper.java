@@ -9,7 +9,8 @@ import org.json.JSONObject;
 
 /**
  * 结果码映射：把 SDK 内部结果码映射为三端统一的 {@code resultCode}/{@code resultMsg}，
- * 并注入到 {@code onFinish} 的 {@code data} JSON 顶层。
+ * 并注入到 {@code onFinish} 的 {@code data} JSON 顶层（同时写入 {@code code}/{@code msg}）。
+ * 查询核验未通过时 {@code resultMsg}/{@code msg} 使用接口 failtype。
  */
 public final class FaceUniResultMapper {
 
@@ -81,7 +82,14 @@ public final class FaceUniResultMapper {
         }
         try {
             target.put("resultCode", unifiedResultCode(sdkValue));
-            target.put("resultMsg", unifiedResultMessage(sdkValue, submitFailure));
+            String resultMsg = unifiedResultMessage(sdkValue, submitFailure);
+            // 查询/提交未通过：msg 用 failtype（或接口返回的失败详情）
+            if (sdkValue != AEFacePack.SUCCESS && submitFailure && !TextUtils.isEmpty(detailMessage)) {
+                resultMsg = detailMessage.trim();
+            }
+            target.put("resultMsg", resultMsg);
+            target.put("code", unifiedResultCode(sdkValue));
+            target.put("msg", resultMsg);
             if (!TextUtils.isEmpty(detailMessage) && sdkValue != AEFacePack.SUCCESS) {
                 target.put("resultDetail", detailMessage.trim());
             }

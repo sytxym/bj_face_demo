@@ -283,7 +283,7 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		return true;
 	}
 
-	/** 丢脸或重试：动作进度从头开始，并重置算法 mPoseCount。 */
+	/** 重新核验、或动作+炫彩已进闪光后再丢脸：动作进度从头开始，并重置算法 mPoseCount。动作阶段丢脸不调用。 */
 	public void resetMotionLightProgress() {
 		if (activity == null || activity.getAliveMode() != AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
 			return;

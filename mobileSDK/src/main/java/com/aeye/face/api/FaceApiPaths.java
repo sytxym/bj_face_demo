@@ -27,6 +27,9 @@ public final class FaceApiPaths {
     /** POST {@code /fivweb/qrCode/updateRecord} 认证记录状态更新（二维码） */
     public static final String QR_CODE_UPDATE_RECORD = API_CONTEXT + "/qrCode/updateRecord";
 
+    /** POST {@code /fivweb/qrCode/authStatus} 查询核验结果状态 */
+    public static final String QR_CODE_AUTH_STATUS = API_CONTEXT + "/qrCode/authStatus";
+
     /** POST {@code /fivweb/assistant/thunderAliveColor} 炫彩获取颜色（apiBaseUrl 基地址，无请求参数） */
     public static final String ASSISTANT_THUNDER_ALIVE_COLOR = API_CONTEXT + "/assistant/thunderAliveColor";
 }

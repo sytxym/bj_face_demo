@@ -138,7 +138,7 @@ public final class FaceActionOptions {
         private boolean enableOpenMouth = false;
         private boolean enableBlink = true;
         private int aliveLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
-        private int motionTimeoutSec = 15;
+        private int motionTimeoutSec = 10;
         private boolean voiceEnabled = true;
         private String detectType = FaceActionConfig.DETECT_MOTION;
 
