@@ -54,7 +54,10 @@ public final class GatewayHttpClient {
         }
 
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String header = "{}";
+        JSONObject headerJson = new JSONObject();
+        headerJson.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        headerJson.put("nonce", SdkHttpClient.nextNonce());
+        String header = headerJson.toString();
         String sign = GatewaySigner.createSign(
                 GatewayConfig.APP_ID, endpoint.getInterfaceId(), GatewayConfig.VERSION,
                 bizContent, GatewayConfig.CHARSET, timestamp, GatewayConfig.ORIGIN_APP);

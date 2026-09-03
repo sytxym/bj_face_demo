@@ -49,8 +49,8 @@ android {
 }
 
 dependencies {
-//    implementation project(':mobileSDK')
-    implementation(name: 'customs-face-sdk-android-v4.18-202608291732', ext: 'aar')
+    implementation project(':mobileSDK')
+//    implementation(name: 'customs-face-sdk-android-v4.18-202609021406', ext: 'aar')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.activity:activity:1.8.2'

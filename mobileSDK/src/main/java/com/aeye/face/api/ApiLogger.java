@@ -40,6 +40,13 @@ final class ApiLogger {
         logLong("Body: ", bodySummary);
     }
 
+    static void logHeaders(String timestamp, String nonce) {
+        if (!AEFaceSdk.isHttpLogEnabled()) {
+            return;
+        }
+        Log.d(TAG, "Headers: timestamp=" + timestamp + ", nonce=" + nonce);
+    }
+
     static void logResponse(String url, int httpCode, String body, long durationMs) {
         if (!AEFaceSdk.isHttpLogEnabled()) {
             return;

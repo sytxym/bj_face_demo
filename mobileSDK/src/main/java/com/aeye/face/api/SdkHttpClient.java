@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +38,10 @@ public final class SdkHttpClient {
 
     /** 请求体日志脱敏：超过该长度的字符串值只记录长度（base64 大图 / 图片数组等） */
     private static final int MAX_LOGGED_VALUE_LEN = 512;
+    private static final int NONCE_LEN = 16;
+    private static final char[] NONCE_ALPHABET =
+            "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+    private static final SecureRandom NONCE_RANDOM = new SecureRandom();
 
     private SdkHttpClient() {
     }
@@ -156,6 +161,14 @@ public final class SdkHttpClient {
             // 不复用 keep-alive 连接：SDK 请求频率低、间隔长，池内连接极易被服务端先行关闭，
             // 复用后在写大请求体时偶发 Broken pipe；每次新建连接可从源头规避
             conn.setRequestProperty("Connection", "close");
+            // 直连才走 HTTP Header；网关的 timestamp/nonce 在信封 header JSON 里
+            if (!FORM_CONTENT_TYPE.equals(contentType)) {
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String nonce = nextNonce();
+                conn.setRequestProperty("timestamp", timestamp);
+                conn.setRequestProperty("nonce", nonce);
+                ApiLogger.logHeaders(timestamp, nonce);
+            }
             if ("POST".equals(method)) {
                 conn.setDoOutput(true);
                 conn.setRequestProperty("Content-Type", contentType);
@@ -237,6 +250,15 @@ public final class SdkHttpClient {
             }
         }
         return urlBuilder.toString();
+    }
+
+    /** 16 位小写字母+数字，如 {@code mtieew7rrk0x6g7c}，每次请求重新生成。 */
+    public static String nextNonce() {
+        char[] buf = new char[NONCE_LEN];
+        for (int i = 0; i < NONCE_LEN; i++) {
+            buf[i] = NONCE_ALPHABET[NONCE_RANDOM.nextInt(NONCE_ALPHABET.length)];
+        }
+        return new String(buf);
     }
 
     /** 路径参数拼接到 URL 末尾，如 {@code /faceUser/selectById/demoUser001} */
