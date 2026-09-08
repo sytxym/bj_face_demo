@@ -33,10 +33,12 @@
 # ---------- Manifest 组件：类名写死在 AndroidManifest ----------
 -keep class com.aeye.face.view.RecognizeActivity { *; }
 -keep class com.aeye.face.confirm.InfoConfirmActivity { *; }
+-keep class com.aeye.face.confirm.AgreementWebActivity { *; }
 -keep class com.aeye.face.service.InitService { *; }
 
 # ---------- layout XML 自定义 View（inflate 按全限定名找类） ----------
 -keep class com.aeye.face.view.FaceView { *; }
+-keep class com.aeye.face.confirm.AgreementWebView { *; }
 -keep class com.aeye.face.view.CountView { *; }
 -keep class com.aeye.face.view.ScanRingOverlayView { *; }
 -keep class com.aeye.face.view.AutoFitSurfaceView { *; }

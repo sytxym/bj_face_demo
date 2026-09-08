@@ -4,11 +4,21 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.aeye.face.AEFacePack;
 import com.aeye.face.ui.FaceImmersiveStatusBar;
@@ -22,11 +32,18 @@ import com.sdk.core.R;
  */
 public class InfoConfirmActivity extends Activity {
 
+    private static final int REQ_AGREEMENT = 1101;
+
     private ProgressDialog lightLoadingDialog;
     private Button startButton;
+    private ImageView ivAgree;
     /** 已进入活体页，关闭确认页时不上报任务取消 */
     private boolean leavingForRecognize;
     private boolean cancelReported;
+    /** 已在协议页完成「滑到底 + 5 秒 + 已阅读」 */
+    private boolean agreementRead;
+    /** 当前是否勾选同意；完成阅读后可手动取消 */
+    private boolean agreementChecked;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +51,7 @@ public class InfoConfirmActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.aeye_activity_info_confirm);
         FaceImmersiveStatusBar.bindToolbar(this, findViewById(R.id.face_toolbar));
-        FaceImmersiveStatusBar.bindBottomMargin(this, findViewById(R.id.btn_start), 20);
+        FaceImmersiveStatusBar.bindBottomMargin(this, findViewById(R.id.face_confirm_bottom), 20);
         AEFacePack.getInstance().registerFaceFlowActivity(this);
         QrRecordStatusManager.update(QrRecordStatus.SCAN_DONE);
 
@@ -62,8 +79,17 @@ public class InfoConfirmActivity extends Activity {
         ImageView back = findViewById(R.id.btn_back);
         back.setOnClickListener(v -> finishByUserCancel());
 
+        ivAgree = findViewById(R.id.iv_agree);
+        ivAgree.setOnClickListener(v -> onAgreeCircleClicked());
+        bindAgreeText(findViewById(R.id.tv_agree));
+        refreshAgreeUi();
+
         startButton = findViewById(R.id.btn_start);
         startButton.setOnClickListener(v -> {
+            if (!agreementChecked) {
+                Toast.makeText(this, R.string.info_agree_need_check, Toast.LENGTH_SHORT).show();
+                return;
+            }
             String failDetail = in.getStringExtra(InfoConfirmExtras.EXTRA_FAIL_DETAIL);
             AEFacePack pack = AEFacePack.getInstance();
             pack.setPendingFailDetail(failDetail);
@@ -89,6 +115,67 @@ public class InfoConfirmActivity extends Activity {
             }
             // 同步起页：launchRecognizeActivity 已触发回调并 finish
         });
+    }
+
+    private void bindAgreeText(TextView tv) {
+        if (tv == null) {
+            return;
+        }
+        String full = getString(R.string.info_agree_full);
+        String link = getString(R.string.info_agree_link);
+        SpannableString sp = new SpannableString(full);
+        int start = full.indexOf(link);
+        if (start >= 0) {
+            sp.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(@NonNull View widget) {
+                    openAgreementPage();
+                }
+
+                @Override
+                public void updateDrawState(@NonNull TextPaint ds) {
+                    ds.setColor(ContextCompat.getColor(InfoConfirmActivity.this, R.color.face_theme_primary));
+                    ds.setUnderlineText(false);
+                    ds.setFakeBoldText(true);
+                }
+            }, start, start + link.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        tv.setText(sp);
+        tv.setMovementMethod(LinkMovementMethod.getInstance());
+        tv.setHighlightColor(0x00000000);
+    }
+
+    private void onAgreeCircleClicked() {
+        if (!agreementRead) {
+            openAgreementPage();
+            return;
+        }
+        agreementChecked = !agreementChecked;
+        refreshAgreeUi();
+    }
+
+    private void openAgreementPage() {
+        Intent i = new Intent(this, AgreementWebActivity.class);
+        i.putExtra(AgreementWebActivity.EXTRA_URL, AgreementConfig.getAgreementUrl());
+        startActivityForResult(i, REQ_AGREEMENT);
+    }
+
+    private void refreshAgreeUi() {
+        if (ivAgree != null) {
+            ivAgree.setImageResource(agreementChecked
+                    ? R.drawable.aeye_agree_checked
+                    : R.drawable.aeye_agree_unchecked);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_AGREEMENT && resultCode == RESULT_OK) {
+            agreementRead = true;
+            agreementChecked = true;
+            refreshAgreeUi();
+        }
     }
 
     private void showLightLoading() {

@@ -36,9 +36,9 @@ public final class FaceVerifyManager {
      * 略大于 {@link FaceApiService} faceIdent 的 HTTP 超时，避免过早 cancel 打断上传。
      */
     private static final long VERIFY_TIMEOUT_MS = 45_000L;
-    /** status=3 时 1 秒轮询一次，最多 5 次 */
-    private static final int AUTH_STATUS_MAX_TRIES = 5;
-    private static final long AUTH_STATUS_INTERVAL_MS = 1_000L;
+    /** status=3 时按 0/1/2/3/4/5 秒等待后再查，共 6 次 */
+    private static final int AUTH_STATUS_MAX_TRIES = 6;
+    private static final long AUTH_STATUS_INTERVAL_STEP_MS = 1_000L;
 
     public interface Callback {
         void onPassed(FaceIdentResult result);
@@ -125,7 +125,7 @@ public final class FaceVerifyManager {
 
     /**
      * faceIdent 提交成功后以 {@code /qrCode/authStatus} 为最终结果：
-     * status=3 间隔 1 秒再查，最多 5 次；仍为 3 则忙碌失败；status=5 通过；其余未通过。
+     * status=3 按 0/1/2/3/4/5 秒等待后再查，共 6 次；仍为 3 则忙碌失败；status=5 通过；其余未通过。
      */
     private static void dispatchFinalFromAuthStatus(AtomicBoolean finished, Callback callback,
                                                     FaceIdentResult identResult) {
@@ -162,7 +162,7 @@ public final class FaceVerifyManager {
         Exception lastError = null;
         for (int i = 0; i < AUTH_STATUS_MAX_TRIES; i++) {
             if (i > 0) {
-                Thread.sleep(AUTH_STATUS_INTERVAL_MS);
+                Thread.sleep(i * AUTH_STATUS_INTERVAL_STEP_MS);
             }
             try {
                 last = FaceApiService.queryAuthStatus(AEFaceSdk.getApiBaseUrl(), authRecordId);

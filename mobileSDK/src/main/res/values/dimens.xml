@@ -6,8 +6,10 @@
 
     <!-- 活体页取景区域（正方形，改此值即可调节人脸框整体大小） -->
     <dimen name="face_preview_panel_size">250dp</dimen>
-    <!-- 扫描态 tip 列最小高度（提示 + 倒计时 + 语音），结果态收为 wrap -->
-    <dimen name="face_tip_column_min_height">88dp</dimen>
+    <!-- 顶栏下方再下移取景整块（提示 + 人脸框 + 倒计时） -->
+    <dimen name="face_block_top_offset">40dp</dimen>
+    <!-- 扫描态 tip 列最小高度（提示 + 倒计时） -->
+    <dimen name="face_tip_column_min_height">56dp</dimen>
     <!-- 出结果后标题/详情相对扫描态再下移的距离 -->
     <dimen name="face_result_block_offset">72dp</dimen>
     <!-- 扫描态：外圈灰轨（粗） / 内层蓝弧（细，同圆心描边） -->

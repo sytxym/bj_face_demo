@@ -41,6 +41,11 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/AeyeFaceTheme" />
+        <activity
+            android:name="com.aeye.face.confirm.AgreementWebActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AeyeFaceTheme" />
         <service android:name="com.aeye.face.service.InitService" />
         
     </application>

@@ -26,6 +26,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="76dp" />
 
+            <Space
+                android:id="@+id/face_block_top_gap"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/face_block_top_offset" />
+
             <!-- 与上层 tvHint 占位对齐，避免闪光时文案层与取景错位 -->
             <Space
                 android:id="@+id/face_hint_gap"
@@ -107,11 +112,11 @@
                     android:visibility="invisible" />
             </FrameLayout>
 
-            <!-- 与上层 tip 行占位对齐（提示文案 + 语音按钮） -->
+            <!-- 与上层 tip 行占位对齐（提示文案 + 倒计时） -->
             <Space
                 android:id="@+id/face_tip_gap"
                 android:layout_width="match_parent"
-                android:layout_height="88dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="16dp" />
 
             <View
@@ -152,19 +157,36 @@
             android:layout_width="match_parent"
             android:layout_height="76dp" />
 
-        <TextView
-            android:id="@+id/tvHint"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:gravity="center"
-            android:paddingStart="16dp"
-            android:paddingTop="20dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="0dp"
-            android:text="@string/face_verify_subtitle"
-            android:textColor="@color/face_theme_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:focusable="false">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <Space
+                    android:id="@+id/face_chrome_block_top_gap"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/face_block_top_offset" />
+
+                <TextView
+                    android:id="@+id/tvHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingTop="20dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="0dp"
+                    android:text="@string/face_verify_subtitle"
+                    android:textColor="@color/face_theme_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
         <!-- 扫描环叠在闪光层之上，与下方取景面板同尺寸对齐 -->
         <FrameLayout
@@ -199,12 +221,39 @@
             android:orientation="vertical"
             android:minHeight="@dimen/face_tip_column_min_height">
 
+            <!-- 结果态：ic_person_defalut + 通过/失败角标 -->
+            <FrameLayout
+                android:id="@+id/face_result_icon_wrap"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/iv_result_person"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_person_defalut" />
+
+                <ImageView
+                    android:id="@+id/iv_result_badge"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="bottom|end"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
             <TextView
                 android:id="@+id/tvCheckHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawablePadding="8dp"
-                android:gravity="center_vertical"
+                android:gravity="center"
                 android:textColor="@color/face_theme_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -233,15 +282,6 @@
                 android:textColor="@color/face_hint_sub"
                 android:textSize="16sp"
                 android:visibility="invisible" />
-
-            <ImageView
-                android:id="@+id/ivVoice"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/aeye_msg_cancel"
-                android:padding="8dp"
-                android:src="@drawable/aeye_selector_voice" />
         </LinearLayout>
 
         <View
@@ -280,6 +320,21 @@
                 android:textColor="@color/face_theme_primary"
                 android:textSize="15sp" />
         </LinearLayout>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivVoice"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="12dp"
+                android:clickable="true"
+                android:contentDescription="@string/aeye_msg_cancel"
+                android:focusable="true"
+                android:padding="8dp"
+                android:src="@drawable/aeye_selector_voice" />
+        </FrameLayout>
     </LinearLayout>
 
     <FrameLayout

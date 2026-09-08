@@ -2,6 +2,8 @@ package com.aeye.face;
 
 import android.text.TextUtils;
 
+import com.aeye.face.confirm.AgreementConfig;
+
 /**
  * SDK 全局配置。宿主在 Application 或首个 Activity 中调用 {@link #init(String)} 一次即可。
  */
@@ -99,6 +101,17 @@ public final class AEFaceSdk {
 
     public static String getGatewayUrl() {
         return gatewayUrl;
+    }
+
+    /**
+     * 扫脸认证服务协议 H5 地址。正式地址未提供前使用测试长页；有正式 URL 后调用即可。
+     */
+    public static void setAgreementUrl(String url) {
+        AgreementConfig.setAgreementUrl(url);
+    }
+
+    public static String getAgreementUrl() {
+        return AgreementConfig.getAgreementUrl();
     }
 
     /**

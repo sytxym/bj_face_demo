@@ -24,9 +24,11 @@
 
 -keep class com.aeye.face.view.RecognizeActivity { *; }
 -keep class com.aeye.face.confirm.InfoConfirmActivity { *; }
+-keep class com.aeye.face.confirm.AgreementWebActivity { *; }
 -keep class com.aeye.face.service.InitService { *; }
 
 -keep class com.aeye.face.view.FaceView { *; }
+-keep class com.aeye.face.confirm.AgreementWebView { *; }
 -keep class com.aeye.face.view.CountView { *; }
 -keep class com.aeye.face.view.ScanRingOverlayView { *; }
 -keep class com.aeye.face.view.AutoFitSurfaceView { *; }

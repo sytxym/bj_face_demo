@@ -39,6 +39,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -228,8 +229,14 @@ public class RecognizeActivity extends Activity implements
     private Bitmap mFrozenPreviewBitmap;
     /** 失败详情 / 成功跳转倒计时提示 **/
     private TextView tvFailDetail;
-    /** 预览下方 tip 列（标题、详情、动作倒计时、语音） */
+    /** 结果态人物图标（ic_person_defalut + 角标） */
+    private View faceResultIconWrap;
+    private ImageView ivResultBadge;
+    /** 预览下方 tip 列（标题、详情、动作倒计时） */
     private View faceTipColumn;
+    /** 顶栏下方把取景整块下移的占位（取景层 / 文案层各一块，需同步显隐） */
+    private View faceBlockTopGap;
+    private View faceChromeBlockTopGap;
     /** 出结果后把标题/详情整体下移的占位 */
     private View faceResultTopGap;
     /** 失败/超时底部按钮区 */
@@ -249,7 +256,7 @@ public class RecognizeActivity extends Activity implements
     /** 成功页倒计时结束后回调关闭：在 onDestroy 中移除 */
     private Runnable mSuccessFinishRunnable;
     private int mSuccessRemainSec;
-    /** 取景页内联成功态（绿勾 + 核验成功） */
+    /** 取景页内联成功态（人物图标 + 验证通过） */
     private boolean mInPlaceSuccessUi;
     /** 活体动作已完成，正在调用人脸核验接口 */
     private boolean mFaceVerifying;
@@ -530,7 +537,11 @@ public class RecognizeActivity extends Activity implements
             scanRingMain.setHoleMaskEnabled(mRingHoleUiEnabled);
         }
         tvFailDetail = findViewById(R.id.tvFailDetail);
+        faceResultIconWrap = findViewById(R.id.face_result_icon_wrap);
+        ivResultBadge = findViewById(R.id.iv_result_badge);
         faceTipColumn = findViewById(R.id.face_tip_column);
+        faceBlockTopGap = findViewById(R.id.face_block_top_gap);
+        faceChromeBlockTopGap = findViewById(R.id.face_chrome_block_top_gap);
         faceResultTopGap = findViewById(R.id.face_result_top_gap);
         faceFailActions = findViewById(R.id.face_fail_actions);
         btnFailRetry = findViewById(R.id.btn_fail_retry);
@@ -3153,24 +3164,22 @@ public class RecognizeActivity extends Activity implements
         }
     }
 
-    /** 检测成功：隐藏取景，展示绿色「核验成功」，3 秒后关闭 */
+    /** 检测成功：隐藏取景，展示人物图标 +「验证通过」，3 秒后关闭 */
     private void showInPlaceVerifySuccess() {
         freezePreviewFrame();
         hidePreviewForResult();
-        hideVerifySubtitle();
+        hideVerifySubtitleForResult();
         if (ivVoice != null) {
             ivVoice.setVisibility(View.GONE);
         }
         hideActionCountdown();
         collapseTipColumnForResult();
+        showResultPersonIcon(true);
         if (tvCheckHint == null) {
             return;
         }
-        tvCheckHint.setVisibility(View.VISIBLE);
+        applyResultTitleStyle(R.color.face_result_success);
         tvCheckHint.setText(R.string.face_verify_passed);
-        tvCheckHint.setTextColor(ContextCompat.getColor(this, R.color.face_result_success));
-        Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_face_suc);
-        tvCheckHint.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
         bindSuccessJumpHint(SUCCESS_AUTO_FINISH_SEC);
     }
 
@@ -3217,7 +3226,7 @@ public class RecognizeActivity extends Activity implements
         String token = seconds + "S";
         int start = full.indexOf(token);
         if (start >= 0) {
-            int color = ContextCompat.getColor(this, R.color.face_result_success);
+            int color = ContextCompat.getColor(this, R.color.face_theme_primary);
             sp.setSpan(new ForegroundColorSpan(color), start, start + token.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
@@ -3247,11 +3256,12 @@ public class RecognizeActivity extends Activity implements
         collapseTipColumnForResult();
     }
 
-    /** 结果页收紧标题与详情间距，去掉扫描态 88dp 占位和动作倒计时空位 */
+    /** 结果页收紧标题与详情间距，去掉扫描态下移占位和动作倒计时空位 */
     private void collapseTipColumnForResult() {
         if (faceTipColumn != null) {
             faceTipColumn.setMinimumHeight(0);
         }
+        setFaceBlockTopGapVisible(false);
         if (faceResultTopGap != null) {
             faceResultTopGap.setVisibility(View.VISIBLE);
         }
@@ -3265,11 +3275,22 @@ public class RecognizeActivity extends Activity implements
             faceTipColumn.setMinimumHeight(getResources()
                     .getDimensionPixelSize(R.dimen.face_tip_column_min_height));
         }
+        setFaceBlockTopGapVisible(true);
         if (faceResultTopGap != null) {
             faceResultTopGap.setVisibility(View.GONE);
         }
         hideActionCountdown();
         hideFailActions();
+    }
+
+    private void setFaceBlockTopGapVisible(boolean visible) {
+        int vis = visible ? View.VISIBLE : View.GONE;
+        if (faceBlockTopGap != null) {
+            faceBlockTopGap.setVisibility(vis);
+        }
+        if (faceChromeBlockTopGap != null) {
+            faceChromeBlockTopGap.setVisibility(vis);
+        }
     }
 
     private void showPreviewAfterFailRetry() {
@@ -3378,7 +3399,7 @@ public class RecognizeActivity extends Activity implements
     }
 
     /**
-     * 取景页内联失败/超时（粉环 + 红色标题 + 原因 + 重新核验/其他核验方式）。
+     * 取景页内联失败/超时（人物图标 + 红色「验证失败」+ 原因 + 重新核验/返回）。
      *
      * @param timeout      true=认证超时；false=活体/比对失败
      * @param customDetail 自定义原因文案，可为 null
@@ -3443,25 +3464,21 @@ public class RecognizeActivity extends Activity implements
                     ? R.string.face_verify_fail_default
                     : R.string.face_fail_no_face_detail);
         }
-        final int titleRes = timeout
-                ? R.string.aeye_recog_timeout
-                : (submitFailure ? R.string.face_verify_failed : R.string.face_liveness_failed);
+        final int titleRes = R.string.face_verify_failed;
         // 本地活体未通过/超时在出失败页时上报；faceIdent 提交失败不报（结束日志已在检测通过时打过）
         if (!submitFailure) {
             FaceVerifyLogManager.uploadVerifyEnd(getApplicationContext(), false, detail);
         }
 
         syncHideCheckHint();
-        hideVerifySubtitle();
+        hideVerifySubtitleForResult();
         if (ivVoice != null) {
             ivVoice.setVisibility(View.GONE);
         }
+        showResultPersonIcon(false);
         if (tvCheckHint != null) {
-            tvCheckHint.setVisibility(View.VISIBLE);
+            applyResultTitleStyle(R.color.face_result_fail);
             tvCheckHint.setText(titleRes);
-            tvCheckHint.setTextColor(ContextCompat.getColor(this, R.color.face_result_fail));
-            Drawable icon = ContextCompat.getDrawable(this, R.drawable.ic_face_fail);
-            tvCheckHint.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
         }
         if (tvFailDetail != null) {
             tvFailDetail.setVisibility(View.VISIBLE);
@@ -3494,6 +3511,44 @@ public class RecognizeActivity extends Activity implements
         }
     }
 
+    private void showResultPersonIcon(boolean success) {
+        if (faceResultIconWrap != null) {
+            faceResultIconWrap.setVisibility(View.VISIBLE);
+        }
+        if (ivResultBadge != null) {
+            ivResultBadge.setImageResource(success
+                    ? R.drawable.ic_result_badge_success
+                    : R.drawable.ic_result_badge_fail);
+        }
+    }
+
+    private void hideResultPersonIcon() {
+        if (faceResultIconWrap != null) {
+            faceResultIconWrap.setVisibility(View.GONE);
+        }
+    }
+
+    private void applyResultTitleStyle(int colorRes) {
+        if (tvCheckHint == null) {
+            return;
+        }
+        clearCheckHintLeadingIcon();
+        tvCheckHint.setVisibility(View.VISIBLE);
+        tvCheckHint.setGravity(Gravity.CENTER);
+        tvCheckHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        tvCheckHint.setTextColor(ContextCompat.getColor(this, colorRes));
+    }
+
+    private void restoreScanHintStyle() {
+        if (tvCheckHint == null) {
+            return;
+        }
+        clearCheckHintLeadingIcon();
+        tvCheckHint.setGravity(Gravity.CENTER);
+        tvCheckHint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        tvCheckHint.setTextColor(ContextCompat.getColor(this, R.color.face_theme_primary));
+    }
+
     private void resetInPlaceFailUi() {
         mInPlaceFailUi = false;
         mInPlaceFailIsTimeout = false;
@@ -3511,6 +3566,8 @@ public class RecognizeActivity extends Activity implements
             tvFailDetail.setVisibility(View.GONE);
         }
         hideFailActions();
+        hideResultPersonIcon();
+        restoreScanHintStyle();
         if (ivVoice != null) {
             ivVoice.setVisibility(View.VISIBLE);
         }
@@ -3530,6 +3587,13 @@ public class RecognizeActivity extends Activity implements
     private void hideVerifySubtitle() {
         if (tvHint != null) {
             tvHint.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    /** 结果页去掉副标题占位，避免图标被顶下去 */
+    private void hideVerifySubtitleForResult() {
+        if (tvHint != null) {
+            tvHint.setVisibility(View.GONE);
         }
     }
 
