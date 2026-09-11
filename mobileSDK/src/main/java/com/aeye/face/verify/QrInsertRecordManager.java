@@ -8,11 +8,9 @@ import android.text.TextUtils;
 import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.FaceApiService;
 import com.aeye.face.api.model.QrInsertRecordResult;
-import com.aeye.face.config.FaceActionConfig;
-import com.aeye.face.config.FaceActionConfigManager;
 
 /**
- * 新增二维码认证记录：非扫码场景在预览前创建 authRecordId。
+ * 新增认证记录：调试场景在拉活体配置前创建 authRecordId；正式由业务 App 调用后传入。
  */
 public final class QrInsertRecordManager {
 
@@ -28,7 +26,7 @@ public final class QrInsertRecordManager {
     }
 
     /**
-     * 动作配置拉取成功后、预览页打开前调用 {@code /fivweb/qrCode/insertRecord} 创建认证记录。
+     * 新增认证记录：无宿主 authRecordId 时在拉活体配置前创建（调试用；正式由业务 App 调用）。
      */
     public static void insert(Context context, Callback callback) {
         if (context == null) {
@@ -38,10 +36,6 @@ public final class QrInsertRecordManager {
         new Thread(() -> {
             try {
                 AEFaceSdk.ensureInitialized();
-                FaceActionConfig config = FaceActionConfigManager.getCached();
-                if (config == null) {
-                    throw new IllegalStateException("动作配置未加载");
-                }
                 String body = FaceApiService.buildInsertRecordRequestJson();
                 QrInsertRecordResult result = FaceApiService.insertQrCodeRecord(
                         AEFaceSdk.getApiBaseUrl(), body);

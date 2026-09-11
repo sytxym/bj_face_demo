@@ -391,7 +391,9 @@ public class DecodeHandlerLight extends Handler {
 		if(!isMotionAliveSuc) {
 			rect = AEFaceDetect.getInstance().AEYE_FaceDetect(faceInfo.faceArr,
 					faceInfo.width, faceInfo.height);
-			if(rect !=null && rect.length>0) {
+			if(rect !=null && rect.length==1 && blockIfLightAbnormal(faceInfo, rect[0])) {
+				// 动作阶段过暗/过亮：不做动作判定
+			} else if(rect !=null && rect.length>0) {
 				faceInfo.imgRect = rect[0];
 				AEFaceAlive.getInstance().AEYE_Alive_SetPose(activity.getPose());
 				long ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS_Single(
@@ -436,17 +438,28 @@ public class DecodeHandlerLight extends Handler {
 		}else{
 			rect = takeRect;
 		}
-			if (rect != null && rect.length > 0) {
+			if (rect != null && rect.length > 1) {
+				activity.notifyLightNormal();
+				activity.notifyMultiFace(true);
+				aliveCount = 1;
+				currentColorIndex = -1;
+				mLastInGuideOval = false;
+				removeCurrentMessage();
+			} else if (rect != null && rect.length > 0) {
+				activity.notifyMultiFace(false);
 				loseCount = 0;
 				faceInfo.faceNumber = rect.length;
 				boolean faceFar = rect[0].width() < 340;
-				if (faceFar) {
+				if (blockIfLightAbnormal(faceInfo, rect[0])) {
+					mLastInGuideOval = false;
+				} else if (faceFar) {
 					// 不要走 showFaceOut(false)：会异步刷 QUALITY_OUT「请将脸移入框内」，盖掉靠近提示
 					activity.showFaceTooFar();
 					aliveCount = 1;
 					currentColorIndex = -1;
 					removeCurrentMessage();
 				} else if (isMotionAliveSuc) {
+						activity.notifyLightNormal();
 						boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
 						// 闪光中只要还能检测到人脸就保持色光；出圆框只走 20 秒失败，不暂停色序
 						activity.showFaceOut(true);
@@ -573,6 +586,8 @@ public class DecodeHandlerLight extends Handler {
 					activity.setLightScanArcEnabled(inOval);
 				}
 			} else { // 如果没找到 人脸 的 具体位置 就继续寻找
+				activity.notifyLightNormal();
+				activity.notifyMultiFace(false);
 				if (RecognizeActivity.getmFaceOK() == 0
 						&& (loseCount++) != CfgLoseFace) {
 					// 刚进页尚未判定：多等几帧，脸已在框内则不会先播「请将脸移入框内」
@@ -871,6 +886,30 @@ public class DecodeHandlerLight extends Handler {
 
 		return bmp;
 	}
+
+	/**
+	 * 仅动作+炫彩的动作阶段做环境光判定。纯炫彩、动作已通过后的色光阶段不检测，避免误报过暗。
+	 */
+	private boolean blockIfLightAbnormal(AEFaceInfo info, Rect face) {
+		if (activity.getAliveMode() != AEFaceParam.ALIVEMODE_MOTION_LIGHT
+				|| isMotionAliveSuc
+				|| activity.isLightFlashStarted()
+				|| AEFacePack.getInstance().isQualityOff()) {
+			return false;
+		}
+		if (info.grayByteA == null || face == null) {
+			return false;
+		}
+		int q = AEFaceQuality.getInstance().AEYE_FaceQuality(
+				info.grayByteA, info.width, info.height, face);
+		if (q == AEFaceQuality.QUALITY_DARK || q == AEFaceQuality.QUALITY_BRIGHT) {
+			activity.notifyLightAbnormal(q);
+			return true;
+		}
+		activity.notifyLightNormal();
+		return false;
+	}
+
 	private void elseProcess(AEFaceInfo faceInfo, boolean haveFace) {
 		faceCount = 0;
 		faceInfo.imgRect = null;

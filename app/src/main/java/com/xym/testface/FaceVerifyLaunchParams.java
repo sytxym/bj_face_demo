@@ -13,7 +13,7 @@ import org.json.JSONObject;
 /**
  * 宿主侧启动参数解析：把 H5 / RN 等业务端传入的 JSON 解析为 SDK 所需的类型安全对象，分两类管理：
  * <ul>
- *   <li><b>用户基本信息</b>：certName / certType / certNo / country / userId / busId，
+ *   <li><b>用户基本信息</b>：certName / certType / certNo / country / userId / busId / openId，
  *       解析为 {@link FaceUserInfo}，在线核验时透传给 {@code /assistant/faceIdent}；</li>
  *   <li><b>SDK 配置信息</b>：useType / liveType / actionType，
  *       useType=0 在线核验（SDK 配置以配置接口返回为准），
@@ -95,6 +95,7 @@ public final class FaceVerifyLaunchParams {
                 .country(optTrimmed(root, "country"))
                 .userId(optTrimmed(root, "userId"))
                 .busId(optTrimmed(root, "busId"))
+                .openId(optTrimmed(root, "openId"))
                 .build();
         int useType = root.optInt("useType", USE_TYPE_ONLINE);
         int liveType = root.optInt("liveType", LIVE_TYPE_MOTION);

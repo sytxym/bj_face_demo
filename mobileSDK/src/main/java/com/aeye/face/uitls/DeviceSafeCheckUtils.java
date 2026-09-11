@@ -61,6 +61,24 @@ public class DeviceSafeCheckUtils {
         return false;
     }
 
+    /** 越狱 / Root / Magisk / Hook 等设备不安全 */
+    public static boolean isRootedOrJailbroken(Context context) {
+        if (isDeviceUnSafe()) {
+            return true;
+        }
+        if (checkMagisk()) {
+            return true;
+        }
+        if (context != null) {
+            if (checkForBinary(context, "magisk")
+                    || hasPackageNameInstalled(context, "com.topjohnwu.magisk")
+                    || isHook(context)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Android判断是否使用VPN
      */

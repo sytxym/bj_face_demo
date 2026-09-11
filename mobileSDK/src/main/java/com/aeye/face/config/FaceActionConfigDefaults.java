@@ -36,8 +36,7 @@ public final class FaceActionConfigDefaults {
     public static final String DEFAULT_BUSINESS_CODE = CODE_NATURAL_REGISTER;
 
     /**
-     * 注册场景（businessCode 01/08）：insertRecord 仍要求传 {@code userId}，
-     * 注册完成后后台可在响应中返回新的 {@code userId}。
+     * 注册场景（businessCode 01/08）。{@code userId} 直启/扫码均非必传。
      */
     public static boolean isRegisterScene(String businessCode) {
         if (TextUtils.isEmpty(businessCode)) {
@@ -93,6 +92,13 @@ public final class FaceActionConfigDefaults {
             + "\"mygType\":null,"
             + "\"data\":{"
             + "\"data\":{"
+            + "\"userInfo\":{"
+            + "\"certName\":\"模拟用户\","
+            + "\"certType\":\"01\","
+            + "\"certNo\":\"110101199001011234\","
+            + "\"country\":\"中国\""
+            + "},"
+            + "\"actionConfig\":{"
             + "\"actionConfigId\":10001,"
             + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
             + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
@@ -105,6 +111,7 @@ public final class FaceActionConfigDefaults {
             + "\"enableOpenMouth\":\"0\","
             + "\"enableBlink\":\"1\","
             + "\"memo\":\"Demo 模拟动作配置\""
+            + "}"
             + "}"
             + "},"
             + "\"errors\":null,"
@@ -119,6 +126,7 @@ public final class FaceActionConfigDefaults {
             + "\"mygType\":null,"
             + "\"data\":{"
             + "\"data\":{"
+            + "\"actionConfig\":{"
             + "\"actionConfigId\":10002,"
             + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
             + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
@@ -131,6 +139,7 @@ public final class FaceActionConfigDefaults {
             + "\"enableOpenMouth\":\"0\","
             + "\"enableBlink\":\"0\","
             + "\"memo\":\"Demo 模拟纯炫彩配置\""
+            + "}"
             + "}"
             + "},"
             + "\"errors\":null,"
@@ -145,6 +154,7 @@ public final class FaceActionConfigDefaults {
             + "\"mygType\":null,"
             + "\"data\":{"
             + "\"data\":{"
+            + "\"actionConfig\":{"
             + "\"actionConfigId\":10003,"
             + "\"businessCode\":\"" + DEFAULT_BUSINESS_CODE + "\","
             + "\"businessName\":\"" + resolveBusinessName(DEFAULT_BUSINESS_CODE) + "\","
@@ -157,6 +167,7 @@ public final class FaceActionConfigDefaults {
             + "\"enableOpenMouth\":\"0\","
             + "\"enableBlink\":\"1\","
             + "\"memo\":\"Demo 模拟动作+炫彩配置\""
+            + "}"
             + "}"
             + "},"
             + "\"errors\":null,"

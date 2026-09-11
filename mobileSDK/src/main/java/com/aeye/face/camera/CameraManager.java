@@ -211,28 +211,28 @@ public final class CameraManager {
 			if (camera == null) {
 				throw new IOException();
 			}
-			camera.setPreviewDisplay(holder);
-
-			if (!initialized) {
-				initialized = true;
-				configManager.initFromCameraParameters(camera);
+		} else {
+			try {
+				if (previewing) {
+					camera.stopPreview();
+				}
+			} catch (Exception ignored) {
 			}
-			// configManager.setDesiredCameraParameters(camera);
+			previewing = false;
+		}
+		camera.setPreviewDisplay(holder);
 
-			if (AEFacePack.getInstance().isSetDisplayOrientation()) {
-				int rotate = AEFacePack.getInstance().getDisplayOrientation();
-				configManager.setDesiredCameraParameters(camera, rotate);
-			} else {
-				configManager.setDesiredCameraParameters(camera, 
-						getDisplayOrientation(defaultId));
-				/*if (defaultId == CameraInfo.CAMERA_FACING_BACK) {
-					configManager.setDesiredCameraParameters(camera, 90);
-				} else {
-					configManager.setDesiredCameraParameters(camera, 90);
-					// pad
-					// configManager.setDesiredCameraParameters(camera,270);
-				}*/
-			}
+		if (!initialized) {
+			initialized = true;
+			configManager.initFromCameraParameters(camera);
+		}
+
+		if (AEFacePack.getInstance().isSetDisplayOrientation()) {
+			int rotate = AEFacePack.getInstance().getDisplayOrientation();
+			configManager.setDesiredCameraParameters(camera, rotate);
+		} else {
+			configManager.setDesiredCameraParameters(camera,
+					getDisplayOrientation(defaultId));
 		}
 	}
 
@@ -241,10 +241,23 @@ public final class CameraManager {
 	 */
 	public void closeDriver() {
 		if (camera != null) {
-			camera.release();
+			try {
+				if (previewing) {
+					if (!useOneShotPreviewCallback) {
+						camera.setPreviewCallback(null);
+					}
+					camera.stopPreview();
+				}
+			} catch (Exception ignored) {
+			}
+			try {
+				camera.release();
+			} catch (Exception ignored) {
+			}
 			camera = null;
 			focusSupported = null;
 		}
+		previewing = false;
 	}
 
 	/**
@@ -262,13 +275,17 @@ public final class CameraManager {
 	 */
 	public void stopPreview() {
 		if (camera != null && previewing) {
-			if (!useOneShotPreviewCallback) {
-				camera.setPreviewCallback(null);
+			try {
+				if (!useOneShotPreviewCallback) {
+					camera.setPreviewCallback(null);
+				}
+				camera.stopPreview();
+			} catch (Exception ignored) {
+			} finally {
+				previewCallBackMotion.setHandler(null, 0);
+				autoFocusCallback.setHandler(null, 0);
+				previewing = false;
 			}
-			camera.stopPreview();
-			previewCallBackMotion.setHandler(null, 0);
-			autoFocusCallback.setHandler(null, 0);
-			previewing = false;
 		}
 	}
 

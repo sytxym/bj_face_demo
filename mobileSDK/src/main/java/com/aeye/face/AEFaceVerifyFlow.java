@@ -7,7 +7,6 @@ import android.text.TextUtils;
 import com.aeye.face.callback.FaceUniResultCodes;
 import com.aeye.face.callback.FaceUniResultMapper;
 import com.aeye.face.config.FaceActionConfig;
-import com.aeye.face.config.FaceActionConfigDefaults;
 import com.aeye.face.config.FaceActionConfigManager;
 import com.aeye.face.config.FaceActionConfigRepository;
 import com.aeye.face.config.FaceActionConfigSdkMapper;
@@ -16,6 +15,7 @@ import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.confirm.InfoConfirmManager;
 import com.aeye.face.confirm.InfoConfirmPayload;
 import com.aeye.face.callback.AEFaceCallbackHelper;
+import com.aeye.face.uitls.DeviceRootGuard;
 import com.aeye.face.uitls.FacePermissionRequester;
 import com.aeye.face.uitls.UsbDeveloperModeGuard;
 import com.aeye.face.verify.FaceUserInfo;
@@ -29,8 +29,7 @@ import org.json.JSONObject;
  * 人脸核验统一入口。传入参数分两类分别管理：
  * <ul>
  *   <li><b>用户基本信息</b>（{@link FaceUserInfo}：certName/certType/certNo/country/userId/busId）：
- *       由外部业务 App 传入（SDK 已取消调用用户信息预览接口），
- *       活体完成后透传给人脸核验接口 {@code /assistant/faceIdent}；</li>
+ *       优先由外部业务 App 传入；未传时用活体配置接口返回的 {@code userInfo} 填确认页；</li>
  *   <li><b>SDK 配置信息</b>（活体检测方式、动作配置等）：
  *       在线核验（{@link #start}）使用配置接口返回的字段；
  *       本地核验（{@link #startLocal}）由外部业务 App 通过 {@link FaceActionOptions} 传入，
@@ -107,11 +106,10 @@ public final class AEFaceVerifyFlow {
 
     /**
      * 在线核验推荐入口：外部业务 App 传入用户基本信息。
-     * <p>身份字段（certName/certType/certNo/country/userId/busId）不再通过接口获取，
-     * 活体完成后随 {@code /assistant/faceIdent} 一并提交；
-     * SDK 配置（活体方式、动作等）仍使用配置接口返回的字段。</p>
+     * <p>确认页四项身份字段优先用 {@code userInfo}；缺省再用活体配置接口返回的 {@code userInfo}。
+     * SDK 配置（活体方式、动作等）使用配置接口 {@code actionConfig}。</p>
      *
-     * @param userInfo           外部业务 App 传入的用户基本信息（含 userId）
+     * @param userInfo           外部业务 App 传入的用户基本信息（userId 可选）
      * @param authRecordId       扫码场景传入 authIdentRecordId；宿主直启传 null 或由业务传入已有 ID
      * @param detectTypeOverride 覆盖后台配置的 detectType（如 LIGHT / MOTION_LIGHT）；为 null 时以后台配置为准
      */
@@ -185,12 +183,7 @@ public final class AEFaceVerifyFlow {
                     FaceUniResultCodes.MSG_MISSING_PARAMS);
             return;
         }
-        boolean registerScene = FaceActionConfigDefaults.isRegisterScene(businessCode);
-        if (!registerScene && TextUtils.isEmpty(userId)) {
-            notifyFlowError(listener, callback, FaceUniResultCodes.MISSING_PARAMS,
-                    FaceUniResultCodes.MSG_MISSING_PARAMS);
-            return;
-        }
+        // userId 非必传：确认页身份优先业务 App，缺省用活体配置接口 userInfo
 
         // 环境预检：授权后自动继续，无需宿主再次点击按钮
         if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
@@ -213,41 +206,56 @@ public final class AEFaceVerifyFlow {
             return;
         }
 
-        FaceActionConfigManager.fetch(businessCode, new FaceActionConfigRepository.FetchCallback() {
+        // 活体配置必填 authRecordId：正式由业务 App 传入；调试未传时先 insertRecord
+        if (FaceVerifySession.isAuthRecordIdFromHost()) {
+            fetchActionConfigThenOpenPreview(activity, detectTypeOverride,
+                    hostHomeActivityClass, listener, callback);
+            return;
+        }
+        QrInsertRecordManager.insert(activity, new QrInsertRecordManager.Callback() {
             @Override
-            public void onSuccess(com.aeye.face.config.FaceActionConfig config, boolean fromRemote) {
+            public void onSuccess(com.aeye.face.api.model.QrInsertRecordResult result) {
+                if (activity == null || activity.isFinishing()) {
+                    return;
+                }
+                fetchActionConfigThenOpenPreview(activity, detectTypeOverride,
+                        hostHomeActivityClass, listener, callback);
+            }
+
+            @Override
+            public void onError(String message) {
+                notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
+                        message != null ? message : "新增认证记录失败");
+            }
+        });
+    }
+
+    private static void fetchActionConfigThenOpenPreview(final Activity activity,
+                                                         final String detectTypeOverride,
+                                                         final String hostHomeActivityClass,
+                                                         final AEFaceInterface listener,
+                                                         final Callback callback) {
+        FaceActionConfigManager.fetch(FaceVerifySession.getBusinessCode(),
+                new FaceActionConfigRepository.FetchCallback() {
+            @Override
+            public void onSuccess(FaceActionConfig config, boolean fromRemote) {
+                if (activity == null || activity.isFinishing()) {
+                    return;
+                }
                 if (!TextUtils.isEmpty(detectTypeOverride) && config != null) {
                     config.setDetectType(detectTypeOverride);
                 }
+                FaceVerifySession.setUserInfo(FaceUserInfo.mergePreferHost(
+                        FaceVerifySession.getUserInfo(),
+                        config != null ? config.getUserInfo() : null));
                 if (!prepareSdk(activity, hostHomeActivityClass, listener, callback)) {
                     return;
                 }
-                // 用户信息预览接口已取消：确认页四项基本信息由外部业务 App 传入
-                final InfoConfirmPayload payload =
-                        buildConfirmPayload(FaceVerifySession.getUserInfo());
-                Runnable openPreview = () -> {
-                    InfoConfirmManager.open(activity, payload);
-                    if (callback != null) {
-                        callback.onPreviewOpened();
-                    }
-                };
-                if (FaceVerifySession.isAuthRecordIdFromHost()) {
-                    openPreview.run();
-                    return;
+                InfoConfirmPayload payload = buildConfirmPayload(FaceVerifySession.getUserInfo());
+                InfoConfirmManager.open(activity, payload);
+                if (callback != null) {
+                    callback.onPreviewOpened();
                 }
-                QrInsertRecordManager.insert(activity, new QrInsertRecordManager.Callback() {
-                    @Override
-                    public void onSuccess(
-                            com.aeye.face.api.model.QrInsertRecordResult result) {
-                        openPreview.run();
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
-                                message != null ? message : "新增认证记录失败");
-                    }
-                });
             }
 
             @Override
@@ -330,7 +338,8 @@ public final class AEFaceVerifyFlow {
     }
 
     /**
-     * 由外部传入的基本信息组装确认页 payload（国家地区、姓名、证件类型、证件号码）。
+     * 确认页四项：国家地区、姓名、证件类型、证件号码。
+     * 优先业务 App 传入，缺省字段已在 {@link FaceUserInfo#mergePreferHost} 用配置接口补齐。
      */
     private static InfoConfirmPayload buildConfirmPayload(FaceUserInfo info) {
         JSONObject data = new JSONObject();
@@ -396,7 +405,7 @@ public final class AEFaceVerifyFlow {
                                                   final Runnable resume) {
         int env = AEFacePack.getInstance().AEYE_EnvCheckSilent(activity, 200 * 1024 * 1024);
         if (env == AEFacePack.ENV_CHECK_OK) {
-            return !blockIfUsbDebugging(activity, listener, callback);
+            return !blockIfDeviceUnsafe(activity, listener, callback);
         }
         if (env == AEFacePack.ENV_CHECK_LOW_MEMORY) {
             notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
@@ -421,8 +430,7 @@ public final class AEFaceVerifyFlow {
                 if (granted) {
                     resume.run();
                 } else {
-                    notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED,
-                            "未授予相机权限");
+                    notifyCameraPermissionDenied(listener, callback);
                 }
             }
         });
@@ -430,28 +438,37 @@ public final class AEFaceVerifyFlow {
     }
 
     /**
-     * USB 调试已开启时弹框并结束流程。
+     * USB 调试或 Root/越狱时弹框并结束流程。
      *
      * @return true 表示已拦截，调用方应停止后续流程
      */
-    private static boolean blockIfUsbDebugging(final Activity activity,
+    private static boolean blockIfDeviceUnsafe(final Activity activity,
                                                final AEFaceInterface listener,
                                                final Callback callback) {
-        if (!UsbDeveloperModeGuard.shouldBlock(activity)) {
+        final boolean usb = UsbDeveloperModeGuard.shouldBlock(activity);
+        final boolean root = !usb && DeviceRootGuard.shouldBlock(activity);
+        if (!usb && !root) {
             return false;
         }
-        final String detail = activity.getString(com.sdk.core.R.string.aeye_usb_debug_block_message);
-        // 弹框前先让宿主收起「正在获取活体配置」等 loading
         if (callback != null) {
             callback.onPermissionRequesting();
         }
-        UsbDeveloperModeGuard.showBlockDialogAndExit(activity, () -> {
+        final String detail = activity.getString(usb
+                ? com.sdk.core.R.string.aeye_usb_debug_block_message
+                : com.sdk.core.R.string.face_fail_device_unsafe_detail);
+        Runnable exit = () -> {
             AEFacePack.getInstance().finishAllFaceFlowActivities();
             if (listener != null) {
                 AEFaceCallbackHelper.dispatchFinish(
-                        listener, AEFacePack.ERROR_DANGER_DEVICE, null, detail);
+                        listener, AEFacePack.ERROR_DANGER_DEVICE, null, detail, false,
+                        FaceUniResultCodes.RESULT_DEVICE_UNSAFE);
             }
-        });
+        };
+        if (usb) {
+            UsbDeveloperModeGuard.showBlockDialogAndExit(activity, exit::run);
+        } else {
+            DeviceRootGuard.showBlockDialogAndExit(activity, exit::run);
+        }
         return true;
     }
 
@@ -463,5 +480,17 @@ public final class AEFaceVerifyFlow {
                     : detailMessage;
             callback.onError(message);
         }
+    }
+
+    /** 第 10 项：拒绝相机权限，经 onFinish 回调 {@code 0414013}。 */
+    private static void notifyCameraPermissionDenied(AEFaceInterface listener, Callback callback) {
+        String detail = "未授予相机权限";
+        if (listener != null) {
+            AEFaceCallbackHelper.dispatchFinish(
+                    listener, AEFacePack.ERROR_CAMERA, null, detail, false,
+                    FaceUniResultCodes.RESULT_CAMERA_NO_PERMISSION);
+            return;
+        }
+        notifyFlowError(listener, callback, FaceUniResultCodes.AUTH_FAILED, detail);
     }
 }

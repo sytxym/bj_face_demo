@@ -27,8 +27,7 @@ public final class FaceVerifySession {
      */
     private static String detectTypeOverride;
     /**
-     * 用户基本信息：由外部业务 App 传入（不再通过用户信息预览接口获取），
-     * 在线核验时透传给 /assistant/faceIdent 及日志上报。
+     * 用户基本信息：优先外部业务 App 传入；未传字段可用活体配置接口 {@code userInfo} 兜底。
      */
     private static FaceUserInfo userInfo;
 

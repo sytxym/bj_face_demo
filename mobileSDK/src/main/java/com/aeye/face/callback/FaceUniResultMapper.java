@@ -10,7 +10,8 @@ import org.json.JSONObject;
 /**
  * 结果码映射：把 SDK 内部结果码映射为三端统一的 {@code resultCode}/{@code resultMsg}，
  * 并注入到 {@code onFinish} 的 {@code data} JSON 顶层（同时写入 {@code code}/{@code msg}）。
- * 查询核验未通过时 {@code resultMsg}/{@code msg} 使用接口 failtype。
+ * 查询核验未通过时 {@code resultMsg}/{@code msg} 使用业务信封 {@code messageList[0]}；
+ * 本地失败页则使用表格倒数第二栏提示文案。
  */
 public final class FaceUniResultMapper {
 
@@ -22,6 +23,16 @@ public final class FaceUniResultMapper {
      * 随 {@code data.resultCode} 下发给业务 APP。
      */
     public static String unifiedResultCode(int sdkValue) {
+        return unifiedResultCode(sdkValue, null);
+    }
+
+    /**
+     * @param backendErrorCode 场景异常编码或查询接口业务信封 {@code errorCode}
+     */
+    public static String unifiedResultCode(int sdkValue, String backendErrorCode) {
+        if (!TextUtils.isEmpty(backendErrorCode)) {
+            return backendErrorCode.trim();
+        }
         switch (sdkValue) {
             case AEFacePack.SUCCESS:
                 return FaceUniResultCodes.RESULT_SUCCESS;
@@ -37,8 +48,8 @@ public final class FaceUniResultMapper {
                 return FaceUniResultCodes.RESULT_OTHER_VERIFY;
             case AEFacePack.ERROR_FAIL:
             default:
-                // 其它异常码（含炫彩算法失败等）统一归为核验失败
-                return FaceUniResultCodes.RESULT_VERIFY_FAILED;
+                // 未指定场景码时按第 18 项活体算法失败；具体场景由 pending 编码覆盖
+                return FaceUniResultCodes.RESULT_LIVENESS_FAIL;
         }
     }
 
@@ -70,6 +81,17 @@ public final class FaceUniResultMapper {
         }
     }
 
+    /**
+     * 随 {@code onFinish} 第四个参数下发的提示文案：失败页用表格倒数第二栏，成功为「核验成功」。
+     */
+    public static String unifiedCallbackMessage(int sdkValue, String detailMessage,
+                                                boolean submitFailure) {
+        if (sdkValue != AEFacePack.SUCCESS && !TextUtils.isEmpty(detailMessage)) {
+            return detailMessage.trim();
+        }
+        return unifiedResultMessage(sdkValue, submitFailure);
+    }
+
     /** 把统一结果码写入 data JSON 顶层（业务 APP 直接读 {@code resultCode} / {@code resultMsg}） */
     private static void putUnifiedResult(JSONObject target, int sdkValue, String detailMessage) {
         putUnifiedResult(target, sdkValue, detailMessage, false);
@@ -77,18 +99,21 @@ public final class FaceUniResultMapper {
 
     private static void putUnifiedResult(JSONObject target, int sdkValue,
                                          String detailMessage, boolean submitFailure) {
+        putUnifiedResult(target, sdkValue, detailMessage, submitFailure, null);
+    }
+
+    private static void putUnifiedResult(JSONObject target, int sdkValue,
+                                         String detailMessage, boolean submitFailure,
+                                         String backendErrorCode) {
         if (target == null) {
             return;
         }
         try {
-            target.put("resultCode", unifiedResultCode(sdkValue));
-            String resultMsg = unifiedResultMessage(sdkValue, submitFailure);
-            // 查询/提交未通过：msg 用 failtype（或接口返回的失败详情）
-            if (sdkValue != AEFacePack.SUCCESS && submitFailure && !TextUtils.isEmpty(detailMessage)) {
-                resultMsg = detailMessage.trim();
-            }
+            String resultCode = unifiedResultCode(sdkValue, backendErrorCode);
+            String resultMsg = unifiedCallbackMessage(sdkValue, detailMessage, submitFailure);
+            target.put("resultCode", resultCode);
             target.put("resultMsg", resultMsg);
-            target.put("code", unifiedResultCode(sdkValue));
+            target.put("code", resultCode);
             target.put("msg", resultMsg);
             if (!TextUtils.isEmpty(detailMessage) && sdkValue != AEFacePack.SUCCESS) {
                 target.put("resultDetail", detailMessage.trim());
@@ -125,9 +150,15 @@ public final class FaceUniResultMapper {
 
     public static String mergeIntoData(int sdkValue, String data,
                                        String detailMessage, boolean submitFailure) {
+        return mergeIntoData(sdkValue, data, detailMessage, submitFailure, null);
+    }
+
+    public static String mergeIntoData(int sdkValue, String data,
+                                       String detailMessage, boolean submitFailure,
+                                       String backendErrorCode) {
         if (TextUtils.isEmpty(data)) {
             JSONObject wrapper = new JSONObject();
-            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure, backendErrorCode);
             return wrapper.toString();
         }
         if (isInvalidDataJson(data)) {
@@ -136,12 +167,12 @@ public final class FaceUniResultMapper {
                 wrapper.put("legacyData", data);
             } catch (JSONException ignored) {
             }
-            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure, backendErrorCode);
             return wrapper.toString();
         }
         try {
             JSONObject root = new JSONObject(data);
-            putUnifiedResult(root, sdkValue, detailMessage, submitFailure);
+            putUnifiedResult(root, sdkValue, detailMessage, submitFailure, backendErrorCode);
             return root.toString();
         } catch (JSONException e) {
             JSONObject wrapper = new JSONObject();
@@ -149,7 +180,7 @@ public final class FaceUniResultMapper {
                 wrapper.put("legacyData", data);
             } catch (JSONException ignored) {
             }
-            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure);
+            putUnifiedResult(wrapper, sdkValue, detailMessage, submitFailure, backendErrorCode);
             return wrapper.toString();
         }
     }

@@ -3,11 +3,12 @@ package com.aeye.face.config;
 import android.text.TextUtils;
 
 import com.aeye.face.api.ApiResponseParser;
+import com.aeye.face.verify.FaceUserInfo;
 
 import org.json.JSONObject;
 
 /**
- * 解析动作活体配置业务 JSON（{@code data.data} 节点）。
+ * 解析动作活体配置业务 JSON（{@code data.data}：{@code userInfo} + {@code actionConfig}）。
  */
 public final class FaceActionConfigParser {
 
@@ -22,22 +23,28 @@ public final class FaceActionConfigParser {
         if (data == null) {
             throw new IllegalArgumentException("data 为空");
         }
+        JSONObject actionNode = data.optJSONObject("actionConfig");
+        JSONObject configSrc = actionNode != null ? actionNode : data;
         FaceActionConfig config = new FaceActionConfig();
-        config.setActionConfigId(data.optLong("actionConfigId", 0L));
-        config.setBusinessCode(data.optString("businessCode", ""));
-        config.setBusinessName(data.optString("businessName", ""));
+        config.setActionConfigId(configSrc.optLong("actionConfigId", 0L));
+        config.setBusinessCode(configSrc.optString("businessCode", ""));
+        config.setBusinessName(configSrc.optString("businessName", ""));
         // detectType 后台为数字码（1 静默/2 动作/3 炫彩/4 动作+炫彩），缺省按动作
-        config.setDetectType(data.optString("detectType", FaceActionConfig.DETECT_MOTION));
+        config.setDetectType(configSrc.optString("detectType", FaceActionConfig.DETECT_MOTION));
         // actionType 后台为数字码（1 顺序/2 随机），兼容旧 SEQUENCE/RANDOM，缺省随机
-        String actionType = data.optString("actionType", FaceActionConfig.ACTION_RANDOM);
+        String actionType = configSrc.optString("actionType", FaceActionConfig.ACTION_RANDOM);
         config.setActionType(TextUtils.isEmpty(actionType) ? FaceActionConfig.ACTION_RANDOM : actionType);
-        config.setActionCount(data.optInt("actionCount", 3));
-        config.setEnableLookUp(parseFlag(data, "enableLookUp", true));
-        config.setEnableLookDown(parseFlag(data, "enableLookDown", false));
-        config.setEnableShakeHead(parseFlag(data, "enableShakeHead", true));
-        config.setEnableOpenMouth(parseFlag(data, "enableOpenMouth", false));
-        config.setEnableBlink(parseFlag(data, "enableBlink", true));
-        config.setMemo(data.optString("memo", ""));
+        config.setActionCount(configSrc.optInt("actionCount", 3));
+        config.setEnableLookUp(parseFlag(configSrc, "enableLookUp", true));
+        config.setEnableLookDown(parseFlag(configSrc, "enableLookDown", false));
+        config.setEnableShakeHead(parseFlag(configSrc, "enableShakeHead", true));
+        config.setEnableOpenMouth(parseFlag(configSrc, "enableOpenMouth", false));
+        config.setEnableBlink(parseFlag(configSrc, "enableBlink", true));
+        config.setMemo(configSrc.optString("memo", ""));
+        JSONObject userNode = data.optJSONObject("userInfo");
+        if (userNode != null) {
+            config.setUserInfo(FaceUserInfo.fromJson(userNode));
+        }
         return config;
     }
 

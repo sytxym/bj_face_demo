@@ -40,12 +40,23 @@ public final class FaceApiService {
 
     // ---------- 动作活体配置 ----------
 
+    /**
+     * 按业务类型拉取活体配置。
+     * 请求 {@code businessCode}/{@code authRecordId}/{@code verifyTerminal} 均为必填；
+     * {@code authRecordId} 取自会话（宿主传入或调试态 insertRecord 返回）。
+     */
     public static String fetchActionConfigJson(String baseUrl, String businessCode) throws Exception {
         String code = TextUtils.isEmpty(businessCode)
                 ? FaceActionConfigDefaults.DEFAULT_BUSINESS_CODE
                 : businessCode;
+        String authRecordId = FaceVerifySession.getAuthRecordId();
+        if (TextUtils.isEmpty(authRecordId)) {
+            throw new IllegalArgumentException("authRecordId 为空");
+        }
         JSONObject body = new JSONObject();
         body.put("businessCode", code);
+        body.put("authRecordId", authRecordId.trim());
+        body.put("verifyTerminal", AEFaceSdk.getLogSource());
         return SdkHttpClient.postJson(
                 baseUrl,
                 FaceApiPaths.ACTION_CONFIG_LIST,
@@ -95,34 +106,32 @@ public final class FaceApiService {
 
     /**
      * 组装 {@code /fivweb/qrCode/insertRecord} 请求体。
-     * <p>{@code userId}/{@code businessCode} 来自 {@link FaceVerifySession}；
-     * {@code busId} 由外部业务 App 经 {@link FaceUserInfo} 传入。</p>
+     * <p>{@code businessCode} 来自 {@link FaceVerifySession}；{@code userId} 非必填。
+     * {@code busId} 以及基本信息由外部业务 App 经 {@link FaceUserInfo} 传入。</p>
      */
     public static String buildInsertRecordRequestJson() throws JSONException {
+        FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
         String userId = FaceVerifySession.getUserId();
-        if (TextUtils.isEmpty(userId)) {
-            FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
-            if (userInfo != null) {
-                userId = userInfo.getUserId();
-            }
-        }
-        if (TextUtils.isEmpty(userId)) {
-            throw new IllegalArgumentException("userId 为空");
+        if (TextUtils.isEmpty(userId) && userInfo != null) {
+            userId = userInfo.getUserId();
         }
         String businessCode = FaceVerifySession.getBusinessCode();
         if (TextUtils.isEmpty(businessCode)) {
             throw new IllegalArgumentException("businessCode 为空");
         }
-        FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
         String busId = userInfo != null ? userInfo.getBusId() : null;
         if (TextUtils.isEmpty(busId)) {
             throw new IllegalArgumentException("busId 为空");
         }
         JSONObject req = new JSONObject();
-        req.put("userId", userId.trim());
+        putIfNotEmpty(req, "userId", userId);
         req.put("businessCode", businessCode.trim());
         req.put("busId", busId.trim());
         req.put("source", AEFaceSdk.getLogSource());
+        putIfNotEmpty(req, "certName", userInfo.getCertName());
+        putIfNotEmpty(req, "certType", userInfo.getCertType());
+        putIfNotEmpty(req, "certNo", userInfo.getCertNo());
+        putIfNotEmpty(req, "country", userInfo.getCountry());
         return req.toString();
     }
 
@@ -183,9 +192,6 @@ public final class FaceApiService {
                                                   String livenessJson,
                                                   String userId,
                                                   String authRecordId) throws Exception {
-        if (TextUtils.isEmpty(userId)) {
-            throw new IllegalArgumentException("userId 为空");
-        }
         String body = buildFaceIdentRequestJson(livenessJson, userId, authRecordId);
         String response = SdkHttpClient.postJson(
                 baseUrl, FaceApiPaths.FACE_IDENT, body,
@@ -197,8 +203,7 @@ public final class FaceApiService {
      * 炫彩活体完成后提交人脸核验。
      * <p>炫彩字段：{@code isColor=true}、{@code seq}（拉色接口返回的唯一序列）、
      * {@code colorPics}（算法色序图）。{@code facePic1~facePic6} 与动作活体保持一致（人脸原图）。
-     * 基本信息字段（certName/certType/certNo/country/busId）取自外部业务 App
-     * 传入的 {@link FaceUserInfo}。</p>
+     * 文档接口3暂不传 userId/businessCode 及基本信息字段。</p>
      *
      * @param facePics  解密后的人脸原图 base64 列表，映射 facePic1~facePic6
      * @param colorPics 炫彩算法图 base64 列表
@@ -227,16 +232,17 @@ public final class FaceApiService {
             throw new IllegalArgumentException("炫彩人脸原图为空");
         }
         JSONObject req = new JSONObject();
-        if (!TextUtils.isEmpty(userId)) {
-            req.put("userId", userId.trim());
-        }
-        if (!TextUtils.isEmpty(businessCode)) {
-            req.put("businessCode", businessCode.trim());
-        }
+        // 文档接口3暂不传：userId / businessCode / certName / certType / certNo / country / busId
+//        if (!TextUtils.isEmpty(userId)) {
+//            req.put("userId", userId.trim());
+//        }
+//        if (!TextUtils.isEmpty(businessCode)) {
+//            req.put("businessCode", businessCode.trim());
+//        }
         if (!TextUtils.isEmpty(authRecordId)) {
             req.put("authRecordId", parseAuthRecordId(authRecordId));
         }
-        appendUserIdentityFields(req);
+//        appendUserIdentityFields(req);
         // facePic1~facePic6 与动作活体一致：facePic1 正脸，其余抓拍图
         req.put("facePic1", facePics.getString(0));
         for (int picIndex = 2; picIndex <= 6; picIndex++) {
@@ -258,6 +264,7 @@ public final class FaceApiService {
             }
         }
         req.put("colorPics", colorPics != null ? colorPics : new JSONArray());
+        req.put("verifyTerminal", AEFaceSdk.getLogSource());
         applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
@@ -280,12 +287,13 @@ public final class FaceApiService {
             throw new IllegalArgumentException("活体图片为空");
         }
         JSONObject req = new JSONObject();
-        req.put("userId", userId);
+        // 文档接口3暂不传：userId / businessCode / certName / certType / certNo / country / busId
+//        req.put("userId", userId);
         if (!TextUtils.isEmpty(authRecordId)) {
             req.put("authRecordId", parseAuthRecordId(authRecordId));
         }
-        putIfNotEmpty(req, "businessCode", FaceVerifySession.getBusinessCode());
-        appendUserIdentityFields(req);
+//        putIfNotEmpty(req, "businessCode", FaceVerifySession.getBusinessCode());
+//        appendUserIdentityFields(req);
         req.put("facePic1", toJpegFacePic(images.getString(0), live));
         for (int picIndex = 2; picIndex <= 6; picIndex++) {
             int imageIndex = picIndex - 1;
@@ -306,6 +314,7 @@ public final class FaceApiService {
         if (live.has("alignData") && !TextUtils.isEmpty(live.optString("alignData"))) {
             req.put("alignData", live.optString("alignData"));
         }
+        req.put("verifyTerminal", AEFaceSdk.getLogSource());
         applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
@@ -460,54 +469,105 @@ public final class FaceApiService {
     // ---------- 查询核验结果状态 ----------
 
     /**
-     * 查询认证记录核验结果。请求体仅 {@code authRecordId}。
+     * 查询核验结果。请求 {@code authRecordId} 必填，{@code openId} 可选。
+     * 错误码/文案取业务信封 {@code errorCode}/{@code messageList}，不用网关最外层字段。
      */
-    public static AuthStatusResult queryAuthStatus(String baseUrl, String authRecordId) throws Exception {
+    public static AuthStatusResult queryVerifyResult(String baseUrl, String authRecordId) throws Exception {
         if (TextUtils.isEmpty(authRecordId)) {
             throw new IllegalArgumentException("authRecordId 为空");
         }
         JSONObject body = new JSONObject();
         body.put("authRecordId", authRecordId.trim());
+        FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
+        if (userInfo != null && !TextUtils.isEmpty(userInfo.getOpenId())) {
+            body.put("openId", userInfo.getOpenId().trim());
+        }
         String response = SdkHttpClient.postJson(
-                baseUrl, FaceApiPaths.QR_CODE_AUTH_STATUS, body.toString());
-        return parseAuthStatusResponse(response);
+                baseUrl, FaceApiPaths.QUERY_VERIFY_RESULT, body.toString());
+        return parseQueryVerifyResultResponse(response);
     }
 
-    public static AuthStatusResult parseAuthStatusResponse(String json) {
+    public static AuthStatusResult parseQueryVerifyResultResponse(String json) {
         if (TextUtils.isEmpty(json)) {
-            throw new IllegalArgumentException("authStatus 响应为空");
+            throw new IllegalArgumentException("queryVerifyResult 响应为空");
         }
         JSONObject root;
         try {
             root = new JSONObject(json);
         } catch (JSONException e) {
-            throw new IllegalArgumentException("authStatus JSON 解析失败: " + e.getMessage());
+            throw new IllegalArgumentException("queryVerifyResult JSON 解析失败: " + e.getMessage());
         }
-        JSONObject data;
-        if (root.has("ok")) {
-            ApiResult apiResult = ApiResponseParser.parse(root);
-            data = apiResult.getBusinessData();
-        } else if (root.has("code")) {
-            int code = root.optInt("code", -1);
-            if (code != 200) {
-                String msg = root.optString("msg", "查询核验结果失败");
-                throw new IllegalArgumentException(TextUtils.isEmpty(msg) ? "查询核验结果失败" : msg);
-            }
-            data = ApiResponseParser.extractBusinessData(root);
-        } else {
-            data = ApiResponseParser.extractBusinessData(root);
-            if (data == null) {
-                data = root;
-            }
+        JSONObject business = unwrapQueryVerifyBusinessEnvelope(root);
+        boolean ok = business.optBoolean("ok", false);
+        String errorCode = readBusinessErrorCode(business);
+        String message = ApiResponseParser.firstMessage(business);
+        if (!ok) {
+            return AuthStatusResult.apiError(errorCode, message);
         }
-        if (data == null) {
-            throw new IllegalArgumentException("authStatus 响应 data 为空");
-        }
-        String status = readStatus(data);
+        JSONObject data = readQueryVerifyData(business);
+        String status = data != null ? readStatus(data) : null;
         if (TextUtils.isEmpty(status)) {
-            throw new IllegalArgumentException("authStatus 响应缺少 status");
+            return AuthStatusResult.of(QrRecordStatus.VERIFYING, null);
         }
-        return AuthStatusResult.of(status, resolveFailTypeText(data));
+        String verifyTerminal = null;
+        if (data != null && data.has("verifyTerminal") && !data.isNull("verifyTerminal")) {
+            String raw = data.optString("verifyTerminal", null);
+            if (!TextUtils.isEmpty(raw) && !"null".equalsIgnoreCase(raw.trim())) {
+                verifyTerminal = raw.trim();
+            }
+        }
+        return AuthStatusResult.of(status, message, errorCode, verifyTerminal);
+    }
+
+    /**
+     * 只要业务信封：网关解包后应已是 {@code {ok,errorCode,messageList,data}}；
+     * 若仍带着网关外层 {@code success/code}，则从 {@code data} 再取出业务 JSON。
+     */
+    private static JSONObject unwrapQueryVerifyBusinessEnvelope(JSONObject root) {
+        if (root == null) {
+            return new JSONObject();
+        }
+        if (root.has("ok")) {
+            return root;
+        }
+        JSONObject nested = root.optJSONObject("data");
+        if (nested != null && nested.has("ok")) {
+            return nested;
+        }
+        String dataStr = root.optString("data", null);
+        if (!TextUtils.isEmpty(dataStr) && dataStr.trim().startsWith("{")) {
+            try {
+                JSONObject parsed = new JSONObject(dataStr.trim());
+                if (parsed.has("ok")) {
+                    return parsed;
+                }
+            } catch (JSONException ignored) {
+            }
+        }
+        return root;
+    }
+
+    /** 业务 {@code data}：{@code status}/{@code verifyTerminal}；兼容旧的 {@code data.data}。 */
+    private static JSONObject readQueryVerifyData(JSONObject business) {
+        JSONObject data = business.optJSONObject("data");
+        if (data == null) {
+            return null;
+        }
+        if (!data.has("status") && data.optJSONObject("data") != null) {
+            return data.optJSONObject("data");
+        }
+        return data;
+    }
+
+    private static String readBusinessErrorCode(JSONObject business) {
+        if (business == null || !business.has("errorCode") || business.isNull("errorCode")) {
+            return null;
+        }
+        String errorCode = business.optString("errorCode", null);
+        if (TextUtils.isEmpty(errorCode) || "null".equalsIgnoreCase(errorCode.trim())) {
+            return null;
+        }
+        return errorCode.trim();
     }
 
     private static String readStatus(JSONObject data) {
@@ -523,64 +583,6 @@ public final class FaceApiService {
             status = status.substring(0, status.length() - 2);
         }
         return status;
-    }
-
-    private static String resolveFailTypeText(JSONObject data) {
-        JSONObject info = data.optJSONObject("detection_info");
-        if (info != null) {
-            String nested = firstNonEmpty(
-                    info.optString("failtype", null),
-                    info.optString("failType", null),
-                    info.optString("failedType", null));
-            if (!TextUtils.isEmpty(nested)) {
-                return mapFailType(nested);
-            }
-        }
-        String raw = firstNonEmpty(
-                data.optString("failedType", null),
-                data.optString("failtype", null),
-                data.optString("failType", null));
-        if (TextUtils.isEmpty(raw)) {
-            return "";
-        }
-        return mapFailType(raw);
-    }
-
-    private static String mapFailType(String raw) {
-        String value = raw.trim();
-        if (TextUtils.isEmpty(value) || "null".equalsIgnoreCase(value)) {
-            return "";
-        }
-        switch (value) {
-            case QrRecordStatus.FailedType.LIVENESS_ACTION:
-                return "动作活体检测未通过";
-            case QrRecordStatus.FailedType.TIMEOUT:
-                return "任务过期";
-            case QrRecordStatus.FailedType.CROSS_CHECK:
-                return "交叉验核未通过";
-            case QrRecordStatus.FailedType.LIVENESS_SILENT:
-                return "静默活体检测未通过";
-            case QrRecordStatus.FailedType.FACE_COMPARE:
-                return "认证比对未通过";
-            case QrRecordStatus.FailedType.CANCELLED:
-                return "已取消";
-            case QrRecordStatus.FailedType.LIVENESS_COLOR:
-                return "炫彩对比未通过";
-            default:
-                return value;
-        }
-    }
-
-    private static String firstNonEmpty(String... values) {
-        if (values == null) {
-            return null;
-        }
-        for (String v : values) {
-            if (!TextUtils.isEmpty(v) && !"null".equalsIgnoreCase(v)) {
-                return v.trim();
-            }
-        }
-        return null;
     }
 
     // ---------- 核验日志 ----------

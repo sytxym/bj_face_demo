@@ -6,6 +6,7 @@ import com.aeye.face.confirm.AgreementConfig;
 
 /**
  * SDK 全局配置。宿主在 Application 或首个 Activity 中调用 {@link #init(String)} 一次即可。
+ * 开启网关时 {@code apiBaseUrl} 可为空，改用 {@link #setGatewayUrl(String)}。
  */
 public final class AEFaceSdk {
 
@@ -33,14 +34,23 @@ public final class AEFaceSdk {
     }
 
     /**
-     * @param apiBaseUrl 后台接口根地址，如 {@code http://10.0.2.2:8080}
+     * 仅走网关时调用：无需业务 {@code apiBaseUrl}。
+     * 随后需 {@link #setGatewayUrl(String)} 与 {@link #setUseGateway(boolean)}。
+     */
+    public static void init() {
+        init("", false);
+    }
+
+    /**
+     * @param apiBaseUrl 后台接口根地址，如 {@code http://10.0.2.2:8080}。
+     *                   开启网关后可传 {@code null} 或空串。
      */
     public static void init(String apiBaseUrl) {
         init(apiBaseUrl, true);
     }
 
     /**
-     * @param apiBaseUrl      后台接口根地址
+     * @param apiBaseUrl      后台接口根地址；开启网关后可传 {@code null} 或空串
      * @param useMockOnError  接口不可用时是否使用 SDK 内置 Mock 数据（调试建议 true）
      */
     public static void init(String apiBaseUrl, boolean useMockOnError) {
@@ -67,6 +77,7 @@ public final class AEFaceSdk {
 
     /**
      * 核验来源 {@code source} 字段，宿主启动时传入。
+     * 同时作为 {@code /assistant/faceIdent} 必填字段 {@code verifyTerminal}（验核终端）。
      * <p>取值：1 单一窗口 PC；2 掌上单一窗口 APP；3 掌上单一窗口微信小程序；
      * 4 掌上单一窗口支付宝小程序；5 掌上海关 PC；6 掌上海关 APP；
      * 7 掌上海关微信小程序；8 掌上海关支付宝小程序；9 其他。</p>
@@ -126,8 +137,14 @@ public final class AEFaceSdk {
     }
 
     public static void ensureInitialized() {
+        if (isUseGateway()) {
+            if (TextUtils.isEmpty(gatewayUrl)) {
+                throw new IllegalStateException("网关已开启，请先调用 AEFaceSdk.setGatewayUrl()");
+            }
+            return;
+        }
         if (TextUtils.isEmpty(apiBaseUrl)) {
-            throw new IllegalStateException("请先调用 AEFaceSdk.init(apiBaseUrl)");
+            throw new IllegalStateException("直连模式请先调用 AEFaceSdk.init(apiBaseUrl)；开启网关后 baseUrl 可为空");
         }
     }
 }

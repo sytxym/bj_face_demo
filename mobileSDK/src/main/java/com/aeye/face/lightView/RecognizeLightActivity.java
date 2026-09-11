@@ -821,23 +821,22 @@ public class RecognizeLightActivity extends Activity implements
     /**释放锁以让屏幕可以锁屏、退出预览*/
     protected void onPause() {
         super.onPause();
-        CameraManagerLight.get(this).stopPreview();
-        CameraManagerLight.get(this).closeDriver();
+        if (handler != null) {
+            handler.cancelDecodeTask();
+        }
+        try {
+            CameraManagerLight.get(this).stopPreview();
+            CameraManagerLight.get(this).closeDriver();
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        avcCodec.StopThread();
         closeProgressDialog();
-        m_WakeLock.release();
-
-        if (handler != null) {
-            handler.cancelDecodeTask();
-        }
-
-        if (!mFinish) {
-            finishActivityByUserCancel();
+        if (m_WakeLock != null && m_WakeLock.isHeld()) {
+            m_WakeLock.release();
         }
     }
 

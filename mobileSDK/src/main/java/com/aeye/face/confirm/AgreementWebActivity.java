@@ -16,6 +16,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.aeye.face.AEFacePack;
 import com.aeye.face.ui.FaceImmersiveStatusBar;
@@ -54,11 +55,18 @@ public class AgreementWebActivity extends Activity {
         webView = findViewById(R.id.web_agree);
         setupWebView();
 
-        btnRead.setEnabled(false);
+        btnRead.setEnabled(true);
+        btnRead.setAlpha(0.45f);
         bindReadButtonText();
         btnRead.setOnClickListener(v -> {
-            setResult(RESULT_OK);
-            finish();
+            if (countdownDone && reachedBottom) {
+                setResult(RESULT_OK);
+                finish();
+                return;
+            }
+            if (!reachedBottom) {
+                Toast.makeText(this, R.string.info_agree_scroll_hint, Toast.LENGTH_SHORT).show();
+            }
         });
 
         String url = getIntent().getStringExtra(EXTRA_URL);
@@ -141,11 +149,10 @@ public class AgreementWebActivity extends Activity {
             if (remainSec <= 0) {
                 countdownDone = true;
                 remainSec = 0;
-                bindReadButtonText();
                 refreshReadEnabled();
                 return;
             }
-            bindReadButtonText();
+            refreshReadEnabled();
             handler.postDelayed(this, 1000);
         }
     };
@@ -166,15 +173,20 @@ public class AgreementWebActivity extends Activity {
         }
         if (!countdownDone && remainSec > 0) {
             btnRead.setText(getString(R.string.info_agree_read_countdown, remainSec));
+        } else if (!reachedBottom) {
+            btnRead.setText(R.string.info_agree_scroll_to_bottom);
         } else {
             btnRead.setText(R.string.info_agree_read);
         }
     }
 
     private void refreshReadEnabled() {
-        if (btnRead != null) {
-            btnRead.setEnabled(countdownDone && reachedBottom);
+        if (btnRead == null) {
+            return;
         }
+        boolean ready = countdownDone && reachedBottom;
+        btnRead.setAlpha(ready ? 1f : 0.45f);
+        bindReadButtonText();
     }
 
     @Override

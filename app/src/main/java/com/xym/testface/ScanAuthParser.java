@@ -6,7 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * 解析扫码返回 JSON：{@code {"authIdentRecordId":"1234","userId":"123"}}。
+ * 解析扫码 JSON。{@code authRecordId} / {@code authIdentRecordId} 二选一即可；{@code userId} 可选。
  */
 public final class ScanAuthParser {
 
@@ -36,11 +36,27 @@ public final class ScanAuthParser {
             throw new JSONException("扫码内容为空");
         }
         JSONObject json = new JSONObject(qrContent.trim());
-        String userId = json.optString("userId", null);
-        if (TextUtils.isEmpty(userId)) {
-            throw new JSONException("userId 为空");
+        String userId = firstNonEmpty(json, "userId");
+        String authIdentRecordId = firstNonEmpty(json, "authRecordId", "authIdentRecordId");
+        if (TextUtils.isEmpty(authIdentRecordId)) {
+            throw new JSONException("authRecordId 为空");
         }
-        String authIdentRecordId = json.optString("authRecordId", null);
         return new Result(authIdentRecordId, userId);
+    }
+
+    private static String firstNonEmpty(JSONObject json, String... keys) {
+        if (json == null || keys == null) {
+            return null;
+        }
+        for (String key : keys) {
+            if (TextUtils.isEmpty(key) || !json.has(key) || json.isNull(key)) {
+                continue;
+            }
+            String value = json.optString(key, null);
+            if (!TextUtils.isEmpty(value) && !"null".equalsIgnoreCase(value.trim())) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 }

@@ -25,8 +25,8 @@
     <string name="aeye_face_shake">Please shake your head</string>
     
     <string name="aeye_quality_uneven">The light is uneven.</string>
-    <string name="aeye_quality_dim">The light is too dim.</string>
-    <string name="aeye_quality_bright">The light is too bright.</string>
+    <string name="aeye_quality_dim">Lighting too dark</string>
+    <string name="aeye_quality_bright">Lighting too bright</string>
     <string name="aeye_quality_near">Too close to the camera</string>
     <string name="aeye_quality_far">Too far away from the camera</string>
     <string name="aeye_quality_pass">Passed</string>
@@ -37,8 +37,8 @@
     <string name="aeye_pose_success">Good！please look at camera</string>
     <string name="face_pose_fail_hint">Please follow the on-screen instructions</string>
     
-    <string name="aeye_user_cancel">user cancel</string>
-    <string name="aeye_camera_error">open camera error</string>
+    <string name="aeye_user_cancel">Cancelled. Please try again later.</string>
+    <string name="aeye_camera_error">Camera is temporarily unavailable. Please try again later.</string>
     <string name="aeye_recog_timeout">recog timeout</string>
 
     <string name="aeye_msg_retry">retry</string>
@@ -53,7 +53,7 @@
     <string name="aeye_timeout_label3">not obscured</string>
     <string name="aeye_face_far">so far !</string>
     <string name="aeye_safetip">Caution! Your phone is not safe!</string>
-    <string name="aeye_notice_morepeople">please make sure one face in the frame!</string>
+    <string name="aeye_notice_morepeople">Only one person in the frame. Please adjust and retake</string>
 
     <string name="face_title">Face recognition</string>
     <string name="face_verify_subtitle">Please complete verification according to the prompts</string>
@@ -73,6 +73,8 @@
     <string name="info_agree_title">Face Verification Service Agreement</string>
     <string name="info_agree_read">I have read</string>
     <string name="info_agree_read_countdown">I have read %1$ds</string>
+    <string name="info_agree_scroll_to_bottom">Please scroll to the bottom</string>
+    <string name="info_agree_scroll_hint">Please scroll to the bottom to finish reading</string>
     <string name="info_agree_need_check">Please read and agree to the Face Verification Service Agreement first</string>
     <string name="info_light_loading">Loading colorful liveness…</string>
     <string name="face_verify_passed">Verification passed</string>
@@ -82,16 +84,28 @@
     <string name="face_verify_failed">Verification failed</string>
     <string name="face_liveness_failed">Verification failed</string>
     <string name="face_verify_fail_default">Verification failed. Please try again.</string>
+    <string name="face_verify_submit_server_error">Service error. Please try again.</string>
+    <string name="face_verify_compare_fail">Verification failed. Please try again.</string>
+    <string name="face_verify_compare_fail_reason">Verification failed. Please try again (%1$s)</string>
     <string name="face_verify_busy">Busy, please try again later</string>
     <string name="face_verify_success_auto_jump">Auto close after %1$dS</string>
     <string name="face_retry_verify">Re-verify</string>
     <string name="face_other_verify">Other verification methods</string>
     <string name="face_fail_back">Back</string>
     <string name="face_fail_timeout_detail">Please: face the phone, ensure good lighting, and keep your face unobstructed</string>
-    <string name="face_fail_no_face_detail">No face detected. Please keep your face inside the frame</string>
+    <string name="face_fail_no_face_detail">No face detected. Please adjust and retry</string>
+    <string name="face_fail_action_no_face_detail">Action not completed in time. Please try again</string>
+    <string name="face_fail_multi_face_detail">Multiple faces detected. Please adjust and retry</string>
+    <string name="face_fail_light_dark_detail">Ambient light too dark. Please adjust and retry</string>
+    <string name="face_fail_light_bright_detail">Ambient light too bright. Please adjust and retry</string>
+    <string name="face_fail_liveness_algorithm_detail">Liveness check failed. Please retry (algorithm rejected)</string>
+    <string name="face_fail_device_unsafe_detail">Device is unsafe. Please switch devices and retry</string>
     <string name="aeye_usb_debug_block_title">Security notice</string>
     <string name="aeye_usb_debug_block_message">USB debugging is on. Face verification is temporarily unavailable. Please turn it off and try again.</string>
     <string name="aeye_usb_debug_block_confirm">Got it</string>
+    <string name="aeye_root_block_title">Security notice</string>
+    <string name="aeye_root_block_message">This device appears to be rooted or jailbroken</string>
+    <string name="aeye_root_block_confirm">OK</string>
     <string name="aeye_retry_too_many_title">Notice</string>
     <string name="aeye_retry_too_many_message">Too many retries. Please try again later.</string>
     <string name="aeye_retry_too_many_confirm">OK</string>

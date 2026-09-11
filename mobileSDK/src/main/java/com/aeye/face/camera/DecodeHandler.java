@@ -216,6 +216,7 @@ public class DecodeHandler extends Handler {
             if (rect != null) {
                 faceInfo.faceNumber = rect.length;
                 if(faceInfo.faceNumber==1) {
+                    activity.notifyMultiFace(false);
 
                     int faceWidth = rect[0].width();
 //                    boolean faceFar = (faceWidth < 340);
@@ -249,11 +250,17 @@ public class DecodeHandler extends Handler {
                         }
                         Log.i("TIME", "Quality cost " + (System.currentTimeMillis() - time)+" quality result : "+quality);
                     }
-                    if (!activity.getHandler().isInPoseChange() /*&& envLast != quality*/) {
+                    if (!activity.getHandler().isInPoseChange()
+                            && quality != AEFaceQuality.QUALITY_DARK
+                            && quality != AEFaceQuality.QUALITY_BRIGHT) {
                         activity.showQualityHint(quality, true);
                     }
 
-
+                    if (quality == AEFaceQuality.QUALITY_DARK
+                            || quality == AEFaceQuality.QUALITY_BRIGHT) {
+                        activity.notifyLightAbnormal(quality);
+                    } else {
+                        activity.notifyLightNormal();
                     if (quality == AEFaceQuality.QUALITY_OK || quality == RecognizeActivity.QUALITY_SIDE) {
                         loseCount = 0;
                         faceCount++;
@@ -361,11 +368,15 @@ public class DecodeHandler extends Handler {
                         } else
                             elseProcess(faceInfo, true, -1);
                     }
+                    }
                 }else {
-                    //有多个人脸
-                    elseProcess(faceInfo, true, -2);
+                    //有多个人脸：连续 20s 仍多人再失败，期间提示调整
+                    activity.notifyLightNormal();
+                    activity.notifyMultiFace(true);
                 }
             } else { // 如果没找到 人脸 的 具体位置 就继续寻找
+                activity.notifyLightNormal();
+                activity.notifyMultiFace(false);
                 elseProcess(faceInfo, false,-1);
             }
         }
@@ -406,14 +417,19 @@ public class DecodeHandler extends Handler {
         }
         if (haveFace) {
             if(quality == AEFaceQuality.QUALITY_FAR){
+                activity.notifyMultiFace(false);
                 activity.showHint("face_far", RecognizeActivity.HINT_COLOR_THEME);
+                activity.showFaceOut(false);
             }else if(quality ==-2){
-                activity.showManyPersonMessageBox();
-            }else
-            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
-            activity.showFaceOut(false);
+                activity.notifyMultiFace(true);
+            }else {
+                activity.notifyMultiFace(false);
+                activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
+                activity.showFaceOut(false);
+            }
         } else if ((loseCount++) == CfgLoseFace && activity.getDecodeStatus()
                 && (!AEFacePack.getInstance().isAliveOff() || activity.isSilentAliveMode())) {
+            activity.notifyMultiFace(false);
             activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
             activity.showNoFace();
         }

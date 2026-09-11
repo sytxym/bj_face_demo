@@ -60,7 +60,7 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
         android:background="@drawable/aeye_btn_primary_navy_selector"
-        android:enabled="false"
+        android:enabled="true"
         android:text="@string/info_agree_read_countdown"
         android:textAllCaps="false"
         android:textColor="@color/white"

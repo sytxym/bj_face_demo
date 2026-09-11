@@ -262,7 +262,7 @@ public class AEFaceParam {
         String result = "";
         switch (code) {
             case CODE_ERROR_CANCEL:
-                result = "用户取消";
+                result = "用户已取消，请稍后重试";
                 break;
             case CODE_ERROR_TIME_OUT:
                 result = "超时";
@@ -274,7 +274,7 @@ public class AEFaceParam {
                 result ="本机设备存有隐患，请更换安全手机！";
                 break;
             case AEFacePack.ERROR_CAMERA:
-                result = "摄像头打开失败";
+                result = "相机暂时无法使用，请稍后重试";
                 break;
             case CODE_SUCCESS:
             default:

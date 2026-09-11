@@ -10,7 +10,7 @@ public final class QrRecordStatus {
     public static final String WAIT_SCAN = "0";
     /** 扫码完成 / 任务已进入确认页（扫码、直启均上报） */
     public static final String SCAN_DONE = "1";
-    /** 异常退出（后台保留；客户端暂不上报） */
+    /** 异常退出：queryVerifyResult 轮询 5 次仍未得到 status=4/5 时上报 */
     public static final String ABNORMAL_EXIT = "2";
     /** 核验中 */
     public static final String VERIFYING = "3";

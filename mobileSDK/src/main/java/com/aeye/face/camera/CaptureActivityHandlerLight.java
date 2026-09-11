@@ -219,27 +219,38 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 
 	/** 重新预览时请求自动焦点和预览帧 */
 	public void restartPreviewAndDecode() {
+		restartPreviewAndDecode(true);
+	}
+
+	/**
+	 * @param resetPose true：重算动作序列；false：只重开预览/解码，保留当前动作
+	 */
+	public void restartPreviewAndDecode(boolean resetPose) {
 		activity.setDecodeStatus(true);
-		poseTotal = AEFacePack.getInstance().getAlivePose();
-		if (poseTotal == null || poseTotal.length == 0) {
-			poseTotal = new int[]{
-					AEFaceAlive.POSE_FACE_SHAKE,
-					AEFaceAlive.POSE_FACE_UP,
-					AEFaceAlive.POSE_FACE_DOWN,
-					AEFaceAlive.POSE_MOUTH_OPEN,
-					AEFaceAlive.POSE_EYE_BLINK
-			};
-		}
-		if (!AEFacePack.getInstance().isAliveOff()) {
-			int motion = AEFacePack.getInstance().getAliveMotions();
-			poseArray = computePoseArray(motion);
-			if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
-				prepareMotionLightFirstPose();
-			} else {
-				mCurPos = 0;
+		if (resetPose) {
+			poseTotal = AEFacePack.getInstance().getAlivePose();
+			if (poseTotal == null || poseTotal.length == 0) {
+				poseTotal = new int[]{
+						AEFaceAlive.POSE_FACE_SHAKE,
+						AEFaceAlive.POSE_FACE_UP,
+						AEFaceAlive.POSE_FACE_DOWN,
+						AEFaceAlive.POSE_MOUTH_OPEN,
+						AEFaceAlive.POSE_EYE_BLINK
+				};
 			}
-		} else if (AEFacePack.getInstance().isModelAllSide()) {
-			poseIndex = IDConstants.SIDE_MIN;
+			if (!AEFacePack.getInstance().isAliveOff()) {
+				int motion = AEFacePack.getInstance().getAliveMotions();
+				poseArray = computePoseArray(motion);
+				if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+					prepareMotionLightFirstPose();
+				} else {
+					mCurPos = 0;
+				}
+			} else if (AEFacePack.getInstance().isModelAllSide()) {
+				poseIndex = IDConstants.SIDE_MIN;
+			}
+		} else {
+			reapplyCurrentPose();
 		}
 		state = State.PREVIEW;
 		Handler decodeHandler = decodeThread.getHandler();
@@ -249,6 +260,15 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 		}
 		CameraManagerLight.get(activity).requestAutoFocus(this,
 				IDConstants.id_auto_focus);
+	}
+
+	/** 后台返回后把当前动作重新灌回算法，避免 native pose 与 UI 不一致 */
+	public void reapplyCurrentPose() {
+		if (activity == null || mCurPos <= 0) {
+			return;
+		}
+		activity.setPose(mCurPos);
+		AEFaceAlive.getInstance().AEYE_Alive_SetPose(mCurPos);
 	}
 
 	/**

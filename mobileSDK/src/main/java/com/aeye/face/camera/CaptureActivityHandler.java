@@ -275,6 +275,14 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
      * 重新预览时请求自动焦点和预览帧
      */
     public void restartPreviewAndDecode() {
+        restartPreviewAndDecode(true);
+    }
+
+    /**
+     * @param resetPose true：重算动作序列并把当前动作置为「正视」；
+     *                  false：只重开预览/解码，保留当前动作（后台返回续做）
+     */
+    public void restartPreviewAndDecode(boolean resetPose) {
         state = State.PREVIEW;
         Handler decodeHandler = decodeThread.getHandler();
         if (decodeHandler != null) {
@@ -284,6 +292,9 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
         CameraManager.get(activity).requestAutoFocus(this,
                 IDConstants.id_auto_focus);
         activity.setDecodeStatus(true);
+        if (!resetPose) {
+            return;
+        }
         poseTotal = AEFacePack.getInstance().getAlivePose();
         if (!AEFacePack.getInstance().isAliveOff()) {
             int motion = AEFacePack.getInstance().getAliveMotions();

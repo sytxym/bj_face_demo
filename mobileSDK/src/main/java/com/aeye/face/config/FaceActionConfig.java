@@ -1,7 +1,9 @@
 package com.aeye.face.config;
 
+import com.aeye.face.verify.FaceUserInfo;
+
 /**
- * 动作活体配置（与后台 {@link FaceActionConfigDefaults#API_PATH} 的 data 字段对齐）。
+ * 动作活体配置（与后台 listActionConfigByBusinessType 的 {@code actionConfig} 对齐）。
  * <p>拉取与缓存见 {@link FaceActionConfigRepository} / {@link FaceActionConfigManager}。</p>
  */
 public final class FaceActionConfig {
@@ -40,6 +42,8 @@ public final class FaceActionConfig {
     private boolean enableOpenMouth;
     private boolean enableBlink = true;
     private String memo;
+    /** 配置接口返回的 userInfo；确认页仅在业务 App 未传入对应字段时使用 */
+    private FaceUserInfo userInfo;
 
     public long getActionConfigId() {
         return actionConfigId;
@@ -135,6 +139,14 @@ public final class FaceActionConfig {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    public FaceUserInfo getUserInfo() {
+        return userInfo;
+    }
+
+    public void setUserInfo(FaceUserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     /** 1=固定顺序；其余（含 2 / 空）视为随机 */

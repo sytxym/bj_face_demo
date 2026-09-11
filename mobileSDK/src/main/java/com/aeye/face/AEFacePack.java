@@ -111,6 +111,8 @@ public class AEFacePack {
     private String mTitle = null;
     /** 信息确认页可选：活体失败说明文案 */
     private String mPendingFailDetail = null;
+    /** 失败页待回传的异常编码（场景码或查询接口后台 errorCode），随 onFinish.resultCode 回给业务 App */
+    private String mPendingBackendErrorCode = null;
     /****
      * 闪光活体颜色
      */
@@ -237,10 +239,24 @@ public class AEFacePack {
 
     public void setPendingFailDetail(String detail) {
         mPendingFailDetail = detail;
+        mPendingBackendErrorCode = null;
     }
 
     public String getPendingFailDetail() {
         return mPendingFailDetail;
+    }
+
+    /**
+     * 失败页展示 {@code message}，点返回时 {@code onFinish.resultCode} 回传 {@code errorCode}
+     * （本地场景码或查询接口后台 errorCode）。
+     */
+    public void setPendingAuthStatusError(String errorCode, String message) {
+        mPendingBackendErrorCode = errorCode;
+        mPendingFailDetail = message;
+    }
+
+    public String getPendingBackendErrorCode() {
+        return mPendingBackendErrorCode;
     }
 
     /** 登记 SDK 人脸流程 Activity（确认页 / 活体页），便于一键结束 */

@@ -32,9 +32,9 @@ import com.journeyapps.barcodescanner.ScanOptions;
 /**
  * Demo 宿主首页：提供进入人脸核验的入口。
  *   <li>动作活体 / 静默活体 / 炫彩 / 动作+炫彩：使用固定 demo 用户走 SDK 在线核验</li>
- *   <li>扫码认证：扫二维码解析 userId 后进入同一套核验流程</li>
+ *   <li>扫码认证：解析二维码中的 authRecordId（userId 可选）后进入同一套核验流程</li>
  * 接口请求、Mock 回退、信息预览与活体检测均由 {@link AEFaceVerifyFlow} / SDK 内部处理；
- * 宿主只需传入 businessCode、userId，并在 {@link AEFaceInterface} 中接收活体结果回调。
+ * 宿主传入 businessCode，userId 非必传，并在 {@link AEFaceInterface} 中接收活体结果回调。
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AEFaceInterface {
 
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private static final String DEMO_ONLINE_LAUNCH_JSON = "{"
             + "\"certName\":\"张三\","
-            + "\"certType\":\"1\","
+            + "\"certType\":\"01\","
             + "\"certNo\":\"430622199001011234\","
             + "\"country\":\"中国\","
             + "\"userId\":\"demoUser001\","
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private static final String DEMO_LOCAL_LAUNCH_JSON = "{"
             + "\"certName\":\"张三\","
-            + "\"certType\":\"1\","
+            + "\"certType\":\"01\","
             + "\"certNo\":\"430622199001011234\","
             + "\"country\":\"中国\","
             + "\"userId\":\"demoUser001\","
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    /** 打开竖屏 QR 扫码（期望内容：{"authIdentRecordId":"...","userId":"..."}） */
+    /** 打开竖屏 QR 扫码（authRecordId 必填，userId 可选） */
     private void launchScan() {
         ScanOptions options = new ScanOptions();
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         scanLauncher.launch(options);
     }
 
-    /** 解析扫码 JSON，用其中的 userId、authIdentRecordId 启动人脸核验（其余参数沿用启动 JSON） */
+    /** 解析扫码 JSON，用其中的 authRecordId 启动人脸核验（userId 可选，其余参数沿用启动 JSON） */
     private void handleScanResult(String qrContent) {
         try {
             ScanAuthParser.Result scanResult = ScanAuthParser.parse(qrContent);
@@ -183,11 +183,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 统一人脸核验入口：解析业务 App 传入的启动 JSON（用户基本信息 + SDK 配置），
-     * 按 useType 路由到在线核验（拉配置 → 确认页 → insertRecord → 活体 → faceIdent）
+     * 按 useType 路由到在线核验（insertRecord 调试 → 拉配置 → 确认页 → 活体 → faceIdent）
      * 或本地核验（不调用我方后台，liveType/actionType 决定活体方式）。
      *
      * @param launchJson         业务 App（H5/RN）传入的启动参数 JSON；为空时全部字段用默认值
-     * @param scanUserId         扫码场景覆盖 JSON 中的 userId；非扫码传 null
+     * @param scanUserId         扫码场景覆盖 JSON 中的 userId，可为空
      * @param scanAuthRecordId   扫码场景传入的认证记录 ID；非扫码传 null
      * @param detectTypeOverride 非空时覆盖后台 detectType（联调炫彩用，仅在线核验生效）
      * @param fromQrScan         true=扫码认证；false=直启人脸
@@ -277,7 +277,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .certType(base.getCertType())
                     .certNo(base.getCertNo())
                     .country(base.getCountry())
-                    .busId(base.getBusId());
+                    .busId(base.getBusId())
+                    .openId(base.getOpenId());
         }
         return builder.build();
     }
@@ -321,11 +322,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 活体结束：value 为 SDK 内部码，data 为采集 JSON，
-     * resultCode 为三端统一码（"0"/"0414009"…），业务端以 resultCode 为准。
+     * resultCode 为异常编码（"0414000"/"0414013"…），resultMsg 为对应提示文案。
      */
     @Override
-    public void onFinish(int value, String data, String resultCode) {
-        Log.d("terry", "onFinish: " + value + " resultCode=" + resultCode + " data" + data);
+    public void onFinish(int value, String data, String resultCode, String resultMsg) {
+        Log.d("terry", "onFinish: " + value + " resultCode=" + resultCode
+                + " resultMsg=" + resultMsg + " data" + data);
         if (value == AEFacePack.ERROR_OTHER_VERIFY
                 || value == AEFacePack.ERROR_DANGER_DEVICE) {
             // 其他核验方式 / USB 调试拦截：已在 SDK 内提示并返回，不跳结果页
@@ -336,6 +338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        FLogUtil.saveLogServer("MainActivity->onFinish:" + data);
         recogIntent.putExtra("VALUE", value);
         recogIntent.putExtra("RESULT_CODE", resultCode);
+        recogIntent.putExtra("RESULT_MSG", resultMsg);
         mApp.setSnapData(data);
         recogIntent.putExtra("DATA", decodeError(value));
 

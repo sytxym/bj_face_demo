@@ -27,7 +27,13 @@ public final class InfoConfirmPayload {
         }
         p.userId = data.optString("userId", null);
         p.realName = InfoConfirmParser.firstNonEmpty(data, "name", "realName");
+        if (TextUtils.isEmpty(p.realName)) {
+            p.realName = data.optString("certName", null);
+        }
         p.region = InfoConfirmParser.firstNonEmpty(data, "nation", "region");
+        if (TextUtils.isEmpty(p.region)) {
+            p.region = data.optString("country", null);
+        }
         p.idType = InfoConfirmParser.firstNonEmpty(data, "certType", "idType");
         p.idNumber = InfoConfirmParser.firstNonEmpty(data, "certNo", "idNumber");
         p.userType = data.optString("userType", null);
