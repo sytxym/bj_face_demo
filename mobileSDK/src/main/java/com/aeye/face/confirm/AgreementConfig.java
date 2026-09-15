@@ -1,5 +1,7 @@
 package com.aeye.face.confirm;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.text.TextUtils;
 
 /**
@@ -12,6 +14,9 @@ public final class AgreementConfig {
             "https://baike.baidu.com/item/%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB";
 
     public static final int READ_COUNTDOWN_SEC = 5;
+
+    private static final String PREFS = "aeye_face_agreement";
+    private static final String KEY_AGREED_URL = "agreed_url";
 
     private static volatile String agreementUrl = DEFAULT_AGREEMENT_URL;
 
@@ -26,5 +31,26 @@ public final class AgreementConfig {
 
     public static String getAgreementUrl() {
         return TextUtils.isEmpty(agreementUrl) ? DEFAULT_AGREEMENT_URL : agreementUrl;
+    }
+
+    /** 当前协议地址是否已在本机点过「已阅读」。协议 URL 变更后需重新同意。 */
+    public static boolean hasAgreed(Context context) {
+        if (context == null) {
+            return false;
+        }
+        String saved = prefs(context).getString(KEY_AGREED_URL, null);
+        return getAgreementUrl().equals(saved);
+    }
+
+    public static void markAgreed(Context context) {
+        if (context == null) {
+            return;
+        }
+        prefs(context).edit().putString(KEY_AGREED_URL, getAgreementUrl()).apply();
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 }

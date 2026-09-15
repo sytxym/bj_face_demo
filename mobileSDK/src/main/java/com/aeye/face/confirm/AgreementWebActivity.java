@@ -60,6 +60,7 @@ public class AgreementWebActivity extends Activity {
         bindReadButtonText();
         btnRead.setOnClickListener(v -> {
             if (countdownDone && reachedBottom) {
+                AgreementConfig.markAgreed(this);
                 setResult(RESULT_OK);
                 finish();
                 return;

@@ -82,6 +82,10 @@ public class InfoConfirmActivity extends Activity {
         ivAgree = findViewById(R.id.iv_agree);
         ivAgree.setOnClickListener(v -> onAgreeCircleClicked());
         bindAgreeText(findViewById(R.id.tv_agree));
+        if (AgreementConfig.hasAgreed(this)) {
+            agreementRead = true;
+            agreementChecked = true;
+        }
         refreshAgreeUi();
 
         startButton = findViewById(R.id.btn_start);
@@ -172,6 +176,7 @@ public class InfoConfirmActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_AGREEMENT && resultCode == RESULT_OK) {
+            AgreementConfig.markAgreed(this);
             agreementRead = true;
             agreementChecked = true;
             refreshAgreeUi();
