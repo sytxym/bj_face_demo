@@ -106,14 +106,14 @@ public final class FaceApiService {
 
     /**
      * 组装 {@code /fivweb/qrCode/insertRecord} 请求体。
-     * <p>{@code businessCode} 来自 {@link FaceVerifySession}；{@code userId} 非必填。
+     * <p>{@code businessCode} 来自 {@link FaceVerifySession}；{@code uid} 非必填，非空才传入。
      * {@code busId} 以及基本信息由外部业务 App 经 {@link FaceUserInfo} 传入。</p>
      */
     public static String buildInsertRecordRequestJson() throws JSONException {
         FaceUserInfo userInfo = FaceVerifySession.getUserInfo();
-        String userId = FaceVerifySession.getUserId();
-        if (TextUtils.isEmpty(userId) && userInfo != null) {
-            userId = userInfo.getUserId();
+        String uid = FaceVerifySession.getUserId();
+        if (TextUtils.isEmpty(uid) && userInfo != null) {
+            uid = userInfo.getUserId();
         }
         String businessCode = FaceVerifySession.getBusinessCode();
         if (TextUtils.isEmpty(businessCode)) {
@@ -124,7 +124,7 @@ public final class FaceApiService {
             throw new IllegalArgumentException("busId 为空");
         }
         JSONObject req = new JSONObject();
-        putIfNotEmpty(req, "userId", userId);
+        putIfNotEmpty(req, "uid", uid);
         req.put("businessCode", businessCode.trim());
         req.put("busId", busId.trim());
         req.put("source", AEFaceSdk.getLogSource());

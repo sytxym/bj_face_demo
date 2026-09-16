@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String DEMO_BUSINESS_CODE = "12";
 
     /**
-     * 模拟业务 App（H5/RN）传入的启动参数 JSON——在线核验（useType=0）。
+     * 模拟业务 App（H5/RN）传入的启动参数 JSON——在线核验（useType=true）。
      * 正式接入时由业务侧传入该 JSON，未传字段使用默认值；目前联调阶段写死。
      */
     private static final String DEMO_ONLINE_LAUNCH_JSON = "{"
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             + "}";
 
     /**
-     * 模拟业务 App 传入的启动参数 JSON——本地核验（useType=1，不调用我方后台）。
+     * 模拟业务 App 传入的启动参数 JSON——本地核验（useType=false，不调用我方后台）。
      * liveType=0 动作活体，actionType=[抬头,低头,摇头,眨眼,张嘴]，示例为 低头+摇头+眨眼。
      */
     private static final String DEMO_LOCAL_LAUNCH_JSON = "{"

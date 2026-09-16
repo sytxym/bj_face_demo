@@ -91,14 +91,19 @@ public final class FaceVerifyLogManager {
     }
 
     /**
-     * 文档公共可选字段：userId / authRecordId / businessCode / businessName / busId / source / requestIp。
+     * 文档公共可选字段：uid / authRecordId / businessCode / businessName / busId / source / requestIp。
+     * {@code uid} 非空才传入。
      * 不传 brand、证件号等文档未列出的字段。
      */
     private static JSONObject buildCommonBody(Context context) {
         JSONObject body = new JSONObject();
         try {
             FaceActionConfig config = FaceActionConfigManager.getCached();
-            putIfNotEmpty(body, "userId", FaceVerifySession.getUserId());
+            String uid = FaceVerifySession.getUserId();
+            if (TextUtils.isEmpty(uid) && FaceVerifySession.getUserInfo() != null) {
+                uid = FaceVerifySession.getUserInfo().getUserId();
+            }
+            putIfNotEmpty(body, "uid", uid);
             putIfNotEmpty(body, "authRecordId", FaceVerifySession.getAuthRecordId());
             if (config != null) {
                 putIfNotEmpty(body, "businessCode", config.getBusinessCode());

@@ -16,8 +16,8 @@ import org.json.JSONObject;
  *   <li><b>用户基本信息</b>：certName / certType / certNo / country / userId / busId / openId，
  *       解析为 {@link FaceUserInfo}，在线核验时透传给 {@code /assistant/faceIdent}；</li>
  *   <li><b>SDK 配置信息</b>：useType / liveType / actionType，
- *       useType=0 在线核验（SDK 配置以配置接口返回为准），
- *       useType=1 本地核验（不调用我方后台，配置由传入参数决定，
+ *       useType=true 在线核验（SDK 配置以配置接口返回为准），
+ *       useType=false 本地核验（不调用我方后台，配置由传入参数决定，
  *       可通过 {@link #toLocalActionOptions()} 转为 {@link FaceActionOptions}）。</li>
  * </ul>
  *
@@ -36,21 +36,21 @@ import org.json.JSONObject;
  *   "busId": "demoBus001",
  *   "businessCode": "12",
  *   "authRecordId": "123",
- *   "useType": 1,
+ *   "useType": false,
  *   "liveType": 0,
  *   "actionType": [0, 1, 1, 1, 0]
  * }
  * }</pre>
  *
- * <p>默认值：useType=0（在线核验）、liveType=0（动作活体）、
+ * <p>默认值：useType=true（在线核验）、liveType=0（动作活体）、
  * actionType 未传时默认动作为 抬头/摇头/眨眼。</p>
  */
 public final class FaceVerifyLaunchParams {
 
     /** useType：在线核验（调用我方后台，SDK 配置以配置接口为准），默认值 */
-    public static final int USE_TYPE_ONLINE = 0;
+    public static final boolean USE_TYPE_ONLINE = true;
     /** useType：本地核验（不调用我方后台，SDK 配置由传入参数决定） */
-    public static final int USE_TYPE_LOCAL = 1;
+    public static final boolean USE_TYPE_LOCAL = false;
 
     /** liveType：动作活体（默认值，仅本地核验时生效） */
     public static final int LIVE_TYPE_MOTION = 0;
@@ -63,13 +63,13 @@ public final class FaceVerifyLaunchParams {
     private final FaceUserInfo userInfo;
     private final String businessCode;
     private final String authRecordId;
-    private final int useType;
+    private final boolean useType;
     private final int liveType;
     /** 长度 5：[抬头,低头,摇头,眨眼,张嘴]，1=需要该动作；null 表示未传（使用默认动作） */
     private final int[] actionType;
 
     private FaceVerifyLaunchParams(FaceUserInfo userInfo, String businessCode,
-                                   String authRecordId, int useType, int liveType,
+                                   String authRecordId, boolean useType, int liveType,
                                    int[] actionType) {
         this.userInfo = userInfo;
         this.businessCode = businessCode;
@@ -97,10 +97,10 @@ public final class FaceVerifyLaunchParams {
                 .busId(optTrimmed(root, "busId"))
                 .openId(optTrimmed(root, "openId"))
                 .build();
-        int useType = root.optInt("useType", USE_TYPE_ONLINE);
+        boolean useType = root.optBoolean("useType", USE_TYPE_ONLINE);
         int liveType = root.optInt("liveType", LIVE_TYPE_MOTION);
         int[] actions = parseActionArray(root.optJSONArray("actionType"));
-        if (useType == USE_TYPE_LOCAL && liveType == LIVE_TYPE_MOTION
+        if (!useType && liveType == LIVE_TYPE_MOTION
                 && actions != null && countEnabled(actions) == 0) {
             throw new IllegalArgumentException("本地动作活体 actionType 数组中必须至少有一个值为 1");
         }
@@ -111,9 +111,9 @@ public final class FaceVerifyLaunchParams {
                 useType, liveType, actions);
     }
 
-    /** 是否为本地核验（useType=1，不调用我方后台接口）。 */
+    /** 是否为本地核验（useType=false，不调用我方后台接口）。 */
     public boolean isLocalVerify() {
-        return useType == USE_TYPE_LOCAL;
+        return !useType;
     }
 
     /**
@@ -169,7 +169,7 @@ public final class FaceVerifyLaunchParams {
         return authRecordId;
     }
 
-    public int getUseType() {
+    public boolean getUseType() {
         return useType;
     }
 

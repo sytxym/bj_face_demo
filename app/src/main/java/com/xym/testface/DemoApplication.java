@@ -42,7 +42,7 @@ public class DemoApplication extends Application {
         super.onCreate();
 
         AEFaceSdk.init(serverAddr,true);
-        AEFaceSdk.setLogSource("6"); // 掌上海关 APP
+        AEFaceSdk.setLogSource("4"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
 //        AEFaceSdk.setGatewayUrl(gateWayUrl);
 //        AEFaceSdk.setUseGateway(true);
