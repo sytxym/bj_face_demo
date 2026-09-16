@@ -12,9 +12,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.ColorStateList;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -50,8 +47,6 @@ import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -132,14 +127,6 @@ public class RecognizeActivity extends Activity implements
     /** 首次无人脸 / 后续出框 / 多人脸：连续达到该时长后展示「验证失败」，页面同步显示 20s 倒计时 */
     private static final long NO_FACE_FAIL_DELAY_MS = 20000L;
     private static final int NO_FACE_FAIL_SEC = 20;
-    private static final int COUNTDOWN_NONE = 0;
-    private static final int COUNTDOWN_ACTION = 1;
-    /** 第 15 项首次无人脸、第 23 项后续出框，共用 20s，失败文案由 {@link #faceDisplayed} 区分 */
-    private static final int COUNTDOWN_NO_FACE = 2;
-    /** 第 16 项：框内多人连续 20s 未调整 */
-    private static final int COUNTDOWN_MULTI_FACE = 3;
-    /** 第 17/18 项：环境光过暗/过亮连续 20s 未调整 */
-    private static final int COUNTDOWN_LIGHT = 4;
 
     /** 底部提示着色（与 {@link #showHint(String, int)} 的第二个参数对应） */
     public static final int HINT_COLOR_THEME = 0;
@@ -162,10 +149,8 @@ public class RecognizeActivity extends Activity implements
     private TextView introduceBegin;
     /** 人脸检测框视图 **/
     private FaceView faceRect;
-    /** 认证倒计时视图（旧圆形，已隐藏） */
-    private CountView tvRecogTimeCountdown;
-    /** 单动作倒计时「10s」，仅人脸在框内时展示 */
-    private TextView tvActionCountdown;
+    /** 动作 10s / 出框 20s 倒计时 */
+    private FaceCountdownController mCountdown;
     /** 返回按钮、倒计时数字图片、语音开关图片 **/
     private ImageView ivReturn, ivNumber, ivVoice;
     /**
@@ -207,10 +192,6 @@ public class RecognizeActivity extends Activity implements
     /** 当前语音ID **/
     int curVoice = 0;
 
-    /** 倒计时控制器 **/
-    private MyCount countDown = null;
-    /** {@link #COUNTDOWN_ACTION} 入框 10s / {@link #COUNTDOWN_NO_FACE} 出框 20s */
-    private int mCountdownKind = COUNTDOWN_NONE;
     /** 语音是否开启 **/
     private boolean voiceTriggle = false;
     /** 人脸是否已经显示 **/
@@ -225,8 +206,8 @@ public class RecognizeActivity extends Activity implements
     /** 是否是 Android 6.0 及以上系统 **/
     boolean isUpAndroid6 = true;
 
-    /** 扫描环覆盖视图 **/
-    private ScanRingOverlayView scanRingMain;
+    /** 扫描环动画（蓝弧旋转 / 成功填充），绘制在 {@link ScanRingOverlayView} */
+    private ScanRingAnimator mScanRing;
     /** 是否启用扫描环圆外白底遮罩（竖屏白底模式） */
     private boolean mRingHoleUiEnabled;
     /** 定格最后一帧预览 **/
@@ -256,11 +237,6 @@ public class RecognizeActivity extends Activity implements
     private Button btnFailOther;
     /** 提示文本 **/
     private TextView tvHint;
-    /** 检测态蓝弧绕圆旋转（Choreographer / ValueAnimator，避免 Handler 每 60ms 往主队列塞消息） */
-    private ValueAnimator mRingRotateAnimator;
-    /** 无人脸时延迟隐藏蓝弧，避免动作切换瞬间误停动画 */
-    private static final long HIDE_SCAN_ARC_DEBOUNCE_MS = 280L;
-    private final Runnable hideScanArcRunnable = this::hideScanArcIfIdle;
 
     /** 成功页倒计时结束后回调关闭：在 onDestroy 中移除 */
     private Runnable mSuccessFinishRunnable;
@@ -269,12 +245,9 @@ public class RecognizeActivity extends Activity implements
     private boolean mInPlaceSuccessUi;
     /** 活体动作已完成，正在提交 / 轮询核验结果；此期间禁止返回 */
     private boolean mFaceVerifying;
-    /** 「人脸核验中」UI 兜底超时（faceIdent + queryVerifyResult 轮询），需 ≥ FaceVerifyManager 整体耗时 */
-    private static final long FACE_VERIFY_UI_TIMEOUT_MS = 70_000L;
     /** 核验成功后倒计时秒数，到 0 关闭页面 */
     private static final int SUCCESS_AUTO_FINISH_SEC = 3;
     private Runnable mVerifyTimeoutRunnable;
-    private ValueAnimator mRingSuccessAnimator;
     /** 取景页内联失败/超时态（粉环 + 红色提示 + 底部按钮） */
     private boolean mInPlaceFailUi;
     private boolean mInPlaceFailIsTimeout;
@@ -338,13 +311,15 @@ public class RecognizeActivity extends Activity implements
     private Runnable mGuideUiRunnable;
     /** 已排队的防抖方向：true 入框 / false 出框 */
     private Boolean mPendingGuideUiIn;
-    /** 后台已切 20s、页面仍显示动作倒计时 */
-    private boolean mCountdownUiFrozen = false;
-    /** 短暂出框后回框时恢复的动作剩余秒数 */
-    private int mActionRemainSec = 0;
     private String mPendingOutHintKey;
-    private static final long GUIDE_LEAVE_UI_DELAY_MS = 500L;
-    private static final long GUIDE_ENTER_UI_DELAY_MS = 200L;
+    /** 出框文案实际展示时间，避免「靠近」与「移入框内」每帧对打 */
+    private long mOutHintAppliedAt;
+    private static final long OUT_HINT_SWITCH_MS = 800L;
+    private static final long GUIDE_LEAVE_UI_DELAY_MS = 700L;
+    private static final long GUIDE_ENTER_UI_DELAY_MS = 500L;
+    /** 过远需稳定后再切，避免与动作 10s 来回跳 */
+    private static final long FAR_UI_HOLD_MS = 350L;
+    private Runnable mPendingFarUiRunnable;
     /** 炫彩色光序列是否已启动（纯炫彩需检测到人脸后再启动，避免帧与色序错位） */
     private volatile boolean mLightFlashStarted = false;
     /** 纯炫彩：人脸稳定后再延迟启动色光，避免入框瞬间就开始闪光 */
@@ -556,19 +531,20 @@ public class RecognizeActivity extends Activity implements
         faceRect = (FaceView) findViewById(R.id.faceRect);
         faceRect.setSuppressFaceRect(true);
         /** 认证倒计时 **/
-        tvRecogTimeCountdown = (CountView) findViewById(R.id.tvRecogTimeCountdown);
-        tvActionCountdown = findViewById(R.id.tvActionCountdown);
+        mCountdown = new FaceCountdownController(
+                findViewById(R.id.tvRecogTimeCountdown),
+                findViewById(R.id.tvActionCountdown),
+                new CountdownHost());
+        mCountdown.hide();
 
-        scanRingMain = findViewById(R.id.scan_ring_overlay);
+        mScanRing = new ScanRingAnimator(findViewById(R.id.scan_ring_overlay), this::isScanRingBlocked);
         ivPreviewFreeze = findViewById(R.id.iv_preview_freeze);
         faceSubmitOverlay = findViewById(R.id.face_submit_overlay);
         pbSubmitLoading = findViewById(R.id.pb_submit_loading);
         applySubmitOverlayCircleClip();
         mRingHoleUiEnabled = AEFacePack.getInstance().isWhiteBackgroud()
                 && !AEFacePack.getInstance().isLand();
-        if (scanRingMain != null) {
-            scanRingMain.setHoleMaskEnabled(mRingHoleUiEnabled);
-        }
+        mScanRing.setHoleMaskEnabled(mRingHoleUiEnabled);
         tvFailDetail = findViewById(R.id.tvFailDetail);
         faceResultIconWrap = findViewById(R.id.face_result_icon_wrap);
         ivResultBadge = findViewById(R.id.iv_result_badge);
@@ -651,7 +627,7 @@ public class RecognizeActivity extends Activity implements
             ivReturn.setVisibility(View.VISIBLE);
         }
 
-        tvRecogTimeCountdown.setVisibility(View.INVISIBLE);
+        mCountdown.setLegacyVisible(false);
         initVoice();
         tvMaskHint = findViewById(R.id.tvMaskHint);
         setWindowBrightness(255);
@@ -750,6 +726,9 @@ public class RecognizeActivity extends Activity implements
                     }
                     String text = (String) msg.obj;
                     int hintColorKind = msg.arg1;
+                    if ("aeye_camera_notice".equals(text)) {
+                        break;
+                    }
                     if ("aeye_quality_out".equals(text) || "quality_out".equals(text)
                             || "face_far".equals(text)) {
                         hintColorKind = HINT_COLOR_THEME;
@@ -757,6 +736,10 @@ public class RecognizeActivity extends Activity implements
                             break;
                         }
                         if (shouldHoldOutOfFrameHint()) {
+                            mPendingOutHintKey = text;
+                            break;
+                        }
+                        if (shouldHoldOutHintSwitch(text)) {
                             mPendingOutHintKey = text;
                             break;
                         }
@@ -783,15 +766,12 @@ public class RecognizeActivity extends Activity implements
                         case "quality_out":
                             shownResId = R.string.aeye_quality_out;
                             tvCheckHint.setText(shownResId);
-                            break;
-                        case "aeye_camera_notice":
-                            Log.e(TAG, "请正视摄像头  showhint");
-                            shownResId = R.string.aeye_camera_notice;
-                            tvCheckHint.setText(shownResId);
+                            mOutHintAppliedAt = SystemClock.elapsedRealtime();
                             break;
                         case "face_far":
                             shownResId = R.string.aeye_face_far;
                             tvCheckHint.setText(shownResId);
+                            mOutHintAppliedAt = SystemClock.elapsedRealtime();
                             break;
                         case "aeye_eye_blink":
                             shownResId = R.string.aeye_face_blick;
@@ -945,26 +925,29 @@ public class RecognizeActivity extends Activity implements
      * @param anim 是否显示动画(目前暂未使用)
      */
     public void showAlivePose(int id, boolean voice, boolean anim) {
-        int animId, audioId, hintResId;
+        int audioId, hintResId;
         try {
             hintResId = resolvePoseHintTextId(id);
             audioId = resolvePoseHintAudioId(id);
         } catch (Exception e) {
-            audioId = 0;
-            animId = 0;
             Log.e("AEYE", "m_Afd == null " + e.toString());
+            return;
+        }
+        if (hintResId == 0 && audioId == 0) {
             return;
         }
 
         anim = true;
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            applyCheckHintText(hintResId, HINT_COLOR_THEME);
-        } else {
-            Message msg = new Message();
-            msg.what = UI_MSG_HINT_SHOW;
-            msg.obj = hintResId;
-            msg.arg1 = HINT_COLOR_THEME;
-            mUIHandler.sendMessage(msg);
+        if (hintResId != 0) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                applyCheckHintText(hintResId, HINT_COLOR_THEME);
+            } else {
+                Message msg = new Message();
+                msg.what = UI_MSG_HINT_SHOW;
+                msg.obj = hintResId;
+                msg.arg1 = HINT_COLOR_THEME;
+                mUIHandler.sendMessage(msg);
+            }
         }
 
 		
@@ -975,7 +958,7 @@ public class RecognizeActivity extends Activity implements
 			animationDrawable.setOneShot(true);
 		}
 		animationDrawable.start();*/
-        if (voice && voiceTriggle) {
+        if (voice && voiceTriggle && audioId != 0) {
             final Handler decodeCtl = isLightAliveMode() ? lightHandler : handler;
             if (decodeCtl != null) {
                 if (decodeCtl instanceof CaptureActivityHandler) {
@@ -1007,51 +990,24 @@ public class RecognizeActivity extends Activity implements
     }
 
     public void stopTimer() {
-        if (countDown != null) {
-            countDown.cancel();
+        if (mCountdown != null) {
+            mCountdown.stop();
         }
-        mCountdownKind = COUNTDOWN_NONE;
-        hideActionCountdown();
     }
 
     public void restartTimer(long timeout) {
-        restartTimer(timeout, COUNTDOWN_ACTION);
+        restartTimer(timeout, FaceCountdownController.ACTION);
     }
 
     private void restartTimer(long timeout, int kind) {
-        if (kind == COUNTDOWN_ACTION) {
-            if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
-                return;
-            }
-            if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT && mLightFlashStarted) {
-                return;
-            }
-        }
-        if (mInPlaceFailUi || mInPlaceSuccessUi || mFaceVerifying || mFinish || m_hasFinishReturn) {
+        if (mCountdown == null || !mCountdown.restart(timeout, kind)) {
             return;
         }
-        Handler timerHandler = mUIHandler != null ? mUIHandler : handler;
-        if (timerHandler == null) {
-            return;
-        }
-        if (countDown != null) {
-            countDown.cancel();
-        } else {
-            countDown = new MyCount(timerHandler);
-        }
-
-        mCountdownKind = kind;
-        countDown.init((int) timeout);
-        countDown.start();
-
-        if (kind == COUNTDOWN_ACTION && handler != null && AEFacePack.getInstance().isAliveOff() &&
-                AEFacePack.getInstance().isModelAllSide()) {
+        if (kind == FaceCountdownController.ACTION && handler != null
+                && AEFacePack.getInstance().isAliveOff()
+                && AEFacePack.getInstance().isModelAllSide()) {
             if (!handler.startOneSide()) {
-                if (countDown != null) {
-                    countDown.cancel();
-                }
-                mCountdownKind = COUNTDOWN_NONE;
-                hideActionCountdown();
+                mCountdown.stop();
                 mUIHandler.sendEmptyMessage(UI_MSG_MESSAGE_BOX);
             }
         }
@@ -1091,57 +1047,39 @@ public class RecognizeActivity extends Activity implements
         return aliveMode == AEFaceParam.ALIVEMODE_MOTION || isLightAliveMode();
     }
 
-    private void showActionCountdown(int seconds) {
-        if (tvActionCountdown == null) {
-            return;
-        }
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            final int sec = seconds;
-            runOnUiThread(() -> showActionCountdown(sec));
-            return;
-        }
-        if (mCountdownUiFrozen) {
-            return;
-        }
-        if (!canShowCountdownNumber()) {
-            tvActionCountdown.setVisibility(View.INVISIBLE);
-            return;
-        }
-        tvActionCountdown.setText(seconds + "s");
-        tvActionCountdown.setVisibility(View.VISIBLE);
-    }
-
     private void hideActionCountdown() {
-        if (tvActionCountdown == null) {
-            return;
+        if (mCountdown != null) {
+            mCountdown.hide();
         }
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            runOnUiThread(this::hideActionCountdown);
-            return;
-        }
-        tvActionCountdown.setVisibility(View.INVISIBLE);
     }
 
     /** 人脸入框：立刻取消 20 秒并恢复动作计时；文案等稳定后再切 */
     private void onFaceEnteredGuide() {
+        cancelPendingFarUi();
         mGuideOvalState = 1;
         cancelNoFaceFailTimer();
         cancelMultiFaceFailTimer();
         faceDisplayed = true;
         mPendingOutHintKey = null;
         if (shouldShowActionCountdown()) {
-            int sec = (mDisplayedGuideState != -1 && mActionRemainSec > 0)
-                    ? mActionRemainSec
-                    : (int) AEFacePack.getInstance().getMotionTime();
-            mActionRemainSec = 0;
             if (mDisplayedGuideState != 1) {
-                mCountdownUiFrozen = true;
+                mCountdown.setFrozen(true);
+                hideActionCountdown();
+                // 出框后再入框按产品重计 10s；尚未展示入框 UI 时先不启动，避免第一眼就是 9s
+                if (mDisplayedGuideState == -1 || mCountdown.getActionRemainSec() <= 0) {
+                    mCountdown.setActionRemainSec((int) AEFacePack.getInstance().getMotionTime());
+                }
             } else {
-                mCountdownUiFrozen = false;
+                mCountdown.setFrozen(false);
+                int sec = mCountdown.getActionRemainSec() > 0
+                        ? mCountdown.getActionRemainSec()
+                        : (int) AEFacePack.getInstance().getMotionTime();
+                mCountdown.clearActionRemain();
+                restartTimer(sec, FaceCountdownController.ACTION);
             }
-            restartTimer(sec, COUNTDOWN_ACTION);
-        } else if (isLightAliveMode()) {
+        } else {
             stopTimer();
+            hideActionCountdown();
         }
         scheduleGuideUiCommit(true);
     }
@@ -1156,11 +1094,10 @@ public class RecognizeActivity extends Activity implements
             scheduleGuideUiCommit(false);
             return;
         }
-        if (mCountdownKind == COUNTDOWN_ACTION && countDown != null) {
-            mActionRemainSec = countDown.getRemain();
-        }
+        mCountdown.stashActionRemain();
         if (mDisplayedGuideState != -1) {
-            mCountdownUiFrozen = true;
+            mCountdown.setFrozen(true);
+            // 仍展示入框 UI 时不要立刻藏 10s，等出框提交后再切，避免临界抖动
         }
         if (mNoFaceSinceElapsedMs < 0) {
             FaceVerifyLogManager.uploadNoFace(getApplicationContext());
@@ -1175,6 +1112,83 @@ public class RecognizeActivity extends Activity implements
 
     private boolean shouldHoldInFrameHint() {
         return mGuideOvalState > 0 && mDisplayedGuideState <= 0;
+    }
+
+    private static boolean isOutHintKey(String key) {
+        return "aeye_quality_out".equals(key) || "quality_out".equals(key) || "face_far".equals(key);
+    }
+
+    private static boolean sameOutHint(String a, String b) {
+        boolean aOut = "aeye_quality_out".equals(a) || "quality_out".equals(a);
+        boolean bOut = "aeye_quality_out".equals(b) || "quality_out".equals(b);
+        if (aOut && bOut) {
+            return true;
+        }
+        return TextUtils.equals(a, b);
+    }
+
+    /** 靠近一点不要挡住「移入框内」；反过来才短防抖，避免两句对打。 */
+    private boolean shouldHoldOutHintSwitch(String incoming) {
+        if (!"face_far".equals(incoming)) {
+            return false;
+        }
+        if (!isOutHintKey(mDisplayedCheckHintKey) || "face_far".equals(mDisplayedCheckHintKey)) {
+            return false;
+        }
+        if (tvCheckHint == null || tvCheckHint.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        return SystemClock.elapsedRealtime() - mOutHintAppliedAt < OUT_HINT_SWITCH_MS;
+    }
+
+    private boolean shouldHoldOutHintRes(int incomingResId) {
+        if (incomingResId != R.string.aeye_face_far) {
+            return false;
+        }
+        if (mDisplayedCheckHintResId != R.string.aeye_quality_out) {
+            return false;
+        }
+        if (tvCheckHint == null || tvCheckHint.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        return SystemClock.elapsedRealtime() - mOutHintAppliedAt < OUT_HINT_SWITCH_MS;
+    }
+
+    /**
+     * 出框/过远提示。解码线程每帧都可能回调，文案必须走滞回，不能直接刷。
+     */
+    public void notifyOutOfFrameHint(String key) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            final String k = key;
+            runOnUiThread(() -> notifyOutOfFrameHint(k));
+            return;
+        }
+        if (TextUtils.isEmpty(key)) {
+            key = "aeye_quality_out";
+        }
+        mPendingOutHintKey = key;
+        if (shouldHoldOutOfFrameHint()) {
+            return;
+        }
+        if (shouldHoldOutHintSwitch(key)) {
+            return;
+        }
+        if ("face_far".equals(key) || mDisplayedGuideState < 0 || mFaceOK < 0) {
+            showHint(key, HINT_COLOR_THEME);
+        }
+    }
+
+    /** 已处于出框展示时，仍要把 pending 文案刷上去（例如从「靠近一点」变成无人脸）。 */
+    private void publishPendingOutHint() {
+        if (mWaitingMultiFace || mWaitingLightAbnormal) {
+            return;
+        }
+        String key = mPendingOutHintKey != null ? mPendingOutHintKey : "aeye_quality_out";
+        if (sameOutHint(key, mDisplayedCheckHintKey)
+                && tvCheckHint != null && tvCheckHint.getVisibility() == View.VISIBLE) {
+            return;
+        }
+        showHint(key, HINT_COLOR_THEME);
     }
 
     private void cancelGuideUiCommit() {
@@ -1196,7 +1210,10 @@ public class RecognizeActivity extends Activity implements
         }
         int want = inOval ? 1 : -1;
         if (mDisplayedGuideState == want) {
-            mCountdownUiFrozen = false;
+            mCountdown.setFrozen(false);
+            if (!inOval) {
+                publishPendingOutHint();
+            }
             return;
         }
         if (mGuideUiRunnable != null && mPendingGuideUiIn != null && mPendingGuideUiIn == inOval) {
@@ -1229,9 +1246,20 @@ public class RecognizeActivity extends Activity implements
 
     private void commitGuideUi(boolean inOval) {
         mDisplayedGuideState = inOval ? 1 : -1;
-        mCountdownUiFrozen = false;
+        mCountdown.setFrozen(false);
         if (inOval) {
             mPendingOutHintKey = null;
+            if (mDisplayedCheckHintResId == R.string.aeye_face_far) {
+                mDisplayedCheckHintResId = 0;
+                mDisplayedCheckHintKey = null;
+            }
+            if (shouldShowActionCountdown() && !mCountdown.isAction()) {
+                int sec = mCountdown.getActionRemainSec() > 0
+                        ? mCountdown.getActionRemainSec()
+                        : (int) AEFacePack.getInstance().getMotionTime();
+                mCountdown.clearActionRemain();
+                restartTimer(sec, FaceCountdownController.ACTION);
+            }
             publishCountdownNow();
             restoreInFrameHint();
             return;
@@ -1246,6 +1274,7 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         String key = mPendingOutHintKey != null ? mPendingOutHintKey : "aeye_quality_out";
+        mOutHintAppliedAt = SystemClock.elapsedRealtime();
         showHint(key, HINT_COLOR_THEME);
         if (voiceTriggle) {
             if ("face_far".equals(key)) {
@@ -1283,10 +1312,8 @@ public class RecognizeActivity extends Activity implements
     }
 
     private void publishCountdownNow() {
-        if (countDown != null && mCountdownKind != COUNTDOWN_NONE) {
-            showActionCountdown(countDown.getRemain());
-        } else if (isLightAliveMode() && !shouldShowActionCountdown()) {
-            hideActionCountdown();
+        if (mCountdown != null) {
+            mCountdown.publishNow();
         }
     }
 
@@ -1562,7 +1589,7 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         handler.startPreview();
-        tvRecogTimeCountdown.setVisibility(View.GONE);
+        mCountdown.setLegacyGone();
         if (AEFacePack.getInstance().isShowPrepare()) {
             mUIHandler.sendEmptyMessage(UI_MSG_TVENVHINT_HIDE);
             Drawable[] drawable = tvEnvHint.getCompoundDrawables();
@@ -1570,14 +1597,6 @@ public class RecognizeActivity extends Activity implements
             ivNumber.setVisibility(View.VISIBLE);
             AnimationDrawable anim = (AnimationDrawable) ivNumber.getBackground();
             anim.start();
-            if (!AEFacePack.getInstance().isAliveOff() ||
-                    !AEFacePack.getInstance().isModelAllSide()) {
-                showAlivePose(0, true, false);
-            } else {
-                showAlivePose(0, false, false);
-            }
-            showHint("aeye_camera_notice", HINT_COLOR_THEME);
-
             armLightCheckGrace();
             handler.postDelayed(new Runnable() {
 
@@ -1612,7 +1631,7 @@ public class RecognizeActivity extends Activity implements
         if (lightHandler != null) {
             lightHandler.startPreview();
         }
-        tvRecogTimeCountdown.setVisibility(View.INVISIBLE);
+        mCountdown.setLegacyVisible(false);
         if (tvEnvHint != null) {
             tvEnvHint.setVisibility(View.INVISIBLE);
         }
@@ -1865,9 +1884,9 @@ public class RecognizeActivity extends Activity implements
         syncFlashHoleToPreviewPanel();
         faceBgView.setVisibility(View.VISIBLE);
         // 闪光时关掉圆外白底，避免盖住色光；扫描环本身在 chrome 层仍可见
-        if (scanRingMain != null) {
-            scanRingMain.setHoleMaskEnabled(false);
-            scanRingMain.setVisibility(View.VISIBLE);
+        if (mScanRing != null) {
+            mScanRing.setHoleMaskEnabled(false);
+            mScanRing.setVisible(true);
         }
         // 文案浮层 / 顶栏叠在闪光之上；闪光底色较深时用白色文字保证可读
         View chrome = findViewById(R.id.face_chrome_overlay);
@@ -1961,8 +1980,8 @@ public class RecognizeActivity extends Activity implements
         }
         faceBgView.clearPreviewHole();
         faceBgView.setVisibility(View.GONE);
-        if (scanRingMain != null) {
-            scanRingMain.setHoleMaskEnabled(mRingHoleUiEnabled);
+        if (mScanRing != null) {
+            mScanRing.setHoleMaskEnabled(mRingHoleUiEnabled);
         }
         applyFlashChromeTextColors(false);
     }
@@ -2181,7 +2200,7 @@ public class RecognizeActivity extends Activity implements
         mResumeFromBackground = true;
         mPausedWhileInAction = mGuideOvalState == 1 && shouldShowActionCountdown();
         stopTimer();
-        mActionRemainSec = 0;
+        mCountdown.clearActionRemain();
         cancelNoFaceFailTimer();
         cancelMultiFaceFailTimer();
         cancelLightAbnormalTimer(false);
@@ -2194,12 +2213,12 @@ public class RecognizeActivity extends Activity implements
 
     /** 后台返回：立刻恢复当前动作文案，并从头再计该动作的 10s。 */
     private void restoreCurrentActionAfterResume() {
-        mCountdownUiFrozen = false;
+        mCountdown.setFrozen(false);
         mDisplayedGuideState = 1;
         mGuideOvalState = 1;
         restoreInFrameHint();
         if (shouldShowActionCountdown()) {
-            restartTimer((int) AEFacePack.getInstance().getMotionTime(), COUNTDOWN_ACTION);
+            restartTimer((int) AEFacePack.getInstance().getMotionTime(), FaceCountdownController.ACTION);
         }
     }
 
@@ -2238,9 +2257,8 @@ public class RecognizeActivity extends Activity implements
             lightHandler.quitSynchronously();
             lightHandler = null;
         }
-        if (countDown != null) {
-            countDown.cancel();
-            countDown = null;
+        if (mCountdown != null) {
+            mCountdown.release();
         }
         timeHandler.removeMessages(MSG_CODE_UPDATE);
         timeHandler.removeMessages(MSG_CODE_START);
@@ -2255,14 +2273,8 @@ public class RecognizeActivity extends Activity implements
             CameraManagerLight.unInit();
         }
         AudioUtils.destroyPlayer();
-        stopRingProgress();
-        if (mRingRotateAnimator != null) {
-            mRingRotateAnimator.cancel();
-            mRingRotateAnimator = null;
-        }
-        if (mRingSuccessAnimator != null) {
-            mRingSuccessAnimator.cancel();
-            mRingSuccessAnimator = null;
+        if (mScanRing != null) {
+            mScanRing.release();
         }
         if (mSuccessFinishRunnable != null) {
             mUIHandler.removeCallbacks(mSuccessFinishRunnable);
@@ -2323,8 +2335,7 @@ public class RecognizeActivity extends Activity implements
                 voiceId = R.raw.aeye_quality_near;
                 break;
             case AEFaceQuality.QUALITY_FAR:
-                mId = R.string.aeye_quality_far;
-                voiceId = R.raw.aeye_quality_far;
+                // 文案和倒计时由 showFaceTooFar 防抖后再切
                 break;
             case AEFaceQuality.QUALITY_BRIGHT:
                 mId = R.string.aeye_quality_bright;
@@ -2340,8 +2351,7 @@ public class RecognizeActivity extends Activity implements
             case QUALITY_OUT:
                 mId = R.string.aeye_quality_out;
                 voiceId = R.raw.aeye_out;
-                // 丢脸时必须刷新底部文案，否则会一直停留在上一条（如「请保持姿势不动」）
-                showHint("quality_out", HINT_COLOR_THEME);
+                // 文案走 notifyOutOfFrameHint / commitGuideUi 防抖，避免与「请靠近一点」每帧对打
                 break;
             case QUALITY_SIDE:
                 mId = R.string.aeye_quality_side;
@@ -2447,7 +2457,7 @@ public class RecognizeActivity extends Activity implements
 
     private int resolvePoseHintTextId(int poseId) {
         if (!AEFacePack.getInstance().isAlivePose()) {
-            return R.string.aeye_camera_notice;
+            return 0;
         }
         if (poseId == AEFaceAlive.POSE_FACE_UP) {
             return R.string.aeye_face_up;
@@ -2464,12 +2474,12 @@ public class RecognizeActivity extends Activity implements
         if (poseId == AEFaceAlive.POSE_EYE_BLINK) {
             return R.string.aeye_face_blick;
         }
-        return R.string.aeye_camera_notice;
+        return 0;
     }
 
     private int resolvePoseHintAudioId(int poseId) {
         if (!AEFacePack.getInstance().isAlivePose()) {
-            return R.raw.aeye_face;
+            return 0;
         }
         if (poseId == AEFaceAlive.POSE_FACE_UP) {
             return R.raw.aeye_up;
@@ -2486,7 +2496,7 @@ public class RecognizeActivity extends Activity implements
         if (poseId == AEFaceAlive.POSE_EYE_BLINK) {
             return R.raw.aeye_eye;
         }
-        return R.raw.aeye_face;
+        return 0;
     }
 
     private boolean isShowingCurrentPoseHint() {
@@ -2518,6 +2528,16 @@ public class RecognizeActivity extends Activity implements
                 && textResId != R.string.aeye_face_far) {
             return;
         }
+        // 出框 UI 未提交前不刷动作口令，避免和「移入框内 / 靠近一点」对打
+        if (mDisplayedGuideState != 1
+                && textResId != R.string.aeye_quality_out
+                && textResId != R.string.aeye_face_far) {
+            return;
+        }
+        if ((textResId == R.string.aeye_quality_out || textResId == R.string.aeye_face_far)
+                && shouldHoldOutHintRes(textResId)) {
+            return;
+        }
         if (isUpAndroid6) {
             int color = ContextCompat.getColor(this, hintColorResId(hintColorKind));
             if (mDisplayedCheckHintResId == textResId
@@ -2537,7 +2557,15 @@ public class RecognizeActivity extends Activity implements
             }
             tvCheckHint.setText(textResId);
             mDisplayedCheckHintResId = textResId;
-            mDisplayedCheckHintKey = null;
+            if (textResId == R.string.aeye_quality_out) {
+                mDisplayedCheckHintKey = "aeye_quality_out";
+                mOutHintAppliedAt = SystemClock.elapsedRealtime();
+            } else if (textResId == R.string.aeye_face_far) {
+                mDisplayedCheckHintKey = "face_far";
+                mOutHintAppliedAt = SystemClock.elapsedRealtime();
+            } else {
+                mDisplayedCheckHintKey = null;
+            }
             textId = textResId;
             cancelPendingOutVoiceIfPoseHint(textResId);
         } else {
@@ -2598,10 +2626,9 @@ public class RecognizeActivity extends Activity implements
         if (AEFacePack.getInstance().isFaceAppearStartMode() && !faceDisplayed) {
             mUIHandler.sendEmptyMessage(UI_MSG_TIMEOUTCOUNT_SHOW);
             showAlivePose(handler.getCurPos(), false, false);
-            restartTimer(AEFacePack.getInstance().getMotionTime());
+            // 10s 只由 onFaceEnteredGuide 在入框确认后启动，避免 QUALITY_OK 先闪 10s
         }
         faceDisplayed = true;
-        cancelNoFaceFailTimer();
     }
 
     /*mFaceOK
@@ -2620,9 +2647,13 @@ public class RecognizeActivity extends Activity implements
         }
         if (inRange) {
             mLightSeqResetDone = false;
-        } else if (isLightAliveMode()) {
-            pauseLightFlashSequence();
-            mLightSeqResetDone = true;
+            cancelPendingFarUi();
+        } else {
+            cancelPendingFarUi();
+            if (isLightAliveMode()) {
+                pauseLightFlashSequence();
+                mLightSeqResetDone = true;
+            }
         }
         if ((inRange && mFaceOK < 0) ||
                 (!inRange && mFaceOK > 0) || mFaceOK == 0) {
@@ -2684,6 +2715,8 @@ public class RecognizeActivity extends Activity implements
     public void showNoFace() {
         mFaceOK = -1;
         sFaceOK = mFaceOK;
+        cancelPendingFarUi();
+        mPendingOutHintKey = "aeye_quality_out";
         if (isLightAliveMode()) {
             pauseLightFlashSequence();
             mLightSeqResetDone = false;
@@ -2743,11 +2776,42 @@ public class RecognizeActivity extends Activity implements
 
     /**
      * 检测到人脸但人脸过小：提示靠近一点，与「无人脸」的「请将脸移入框内」区分。
-     * 必须在主线程更新文案，且不能先走 {@link #showFaceOut(boolean)}，否则 QUALITY_OUT 会盖掉本提示。
+     * 距离临界时需稳定一段时间再切，避免 10s 与「请靠近一点」来回跳。
      */
     public void showFaceTooFar() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             runOnUiThread(this::showFaceTooFar);
+            return;
+        }
+        if ("face_far".equals(mDisplayedCheckHintKey) && mDisplayedGuideState < 0) {
+            // 已在出框/无人脸流程时，不要把 pending 重新钉成「靠近一点」
+            if (!"aeye_quality_out".equals(mPendingOutHintKey)
+                    && !"quality_out".equals(mPendingOutHintKey)) {
+                mPendingOutHintKey = "face_far";
+            }
+            return;
+        }
+        if (mPendingFarUiRunnable != null) {
+            return;
+        }
+        mPendingFarUiRunnable = this::applyFaceTooFarNow;
+        if (mUIHandler != null) {
+            mUIHandler.postDelayed(mPendingFarUiRunnable, FAR_UI_HOLD_MS);
+        } else {
+            applyFaceTooFarNow();
+        }
+    }
+
+    private void cancelPendingFarUi() {
+        if (mPendingFarUiRunnable != null && mUIHandler != null) {
+            mUIHandler.removeCallbacks(mPendingFarUiRunnable);
+        }
+        mPendingFarUiRunnable = null;
+    }
+
+    private void applyFaceTooFarNow() {
+        mPendingFarUiRunnable = null;
+        if (mInPlaceFailUi || mInPlaceSuccessUi || mFaceVerifying || mFinish || m_hasFinishReturn) {
             return;
         }
         if (isLightAliveMode()) {
@@ -2769,6 +2833,7 @@ public class RecognizeActivity extends Activity implements
         }
         mPendingOutHintKey = "face_far";
         onFaceLeftGuide();
+        notifyOutOfFrameHint("face_far");
     }
 
     public void showTipAfterHasFace() {
@@ -2816,12 +2881,13 @@ public class RecognizeActivity extends Activity implements
         if (mInPlaceFailUi || mInPlaceSuccessUi) {
             return;
         }
-        if (mCountdownKind == COUNTDOWN_NO_FACE) {
+        if (mCountdown.isNoFace()) {
             return;
         }
-        // 出框文案尚未提交时先冻住数字，等 commitGuideUi 与「请将脸移入框内」一起出
+        // 出框文案尚未提交时先冻住并藏掉数字，等 commitGuideUi 与「请将脸移入框内」一起出
         if (mDisplayedGuideState != -1) {
-            mCountdownUiFrozen = true;
+            mCountdown.setFrozen(true);
+            hideActionCountdown();
         }
         long now = SystemClock.elapsedRealtime();
         if (mNoFaceSinceElapsedMs < 0) {
@@ -2841,7 +2907,7 @@ public class RecognizeActivity extends Activity implements
         if (remainSec > NO_FACE_FAIL_SEC) {
             remainSec = NO_FACE_FAIL_SEC;
         }
-        restartTimer(remainSec, COUNTDOWN_NO_FACE);
+        restartTimer(remainSec, FaceCountdownController.NO_FACE);
     }
 
     private void cancelNoFaceFailTimer() {
@@ -2850,11 +2916,8 @@ public class RecognizeActivity extends Activity implements
             mUIHandler.removeCallbacks(mNoFaceFailRunnable);
             mNoFaceFailRunnable = null;
         }
-        if (mCountdownKind == COUNTDOWN_NO_FACE) {
-            if (countDown != null) {
-                countDown.cancel();
-            }
-            mCountdownKind = COUNTDOWN_NONE;
+        if (mCountdown != null) {
+            mCountdown.cancelKind(FaceCountdownController.NO_FACE);
         }
     }
 
@@ -2892,10 +2955,8 @@ public class RecognizeActivity extends Activity implements
         cancelGuideUiCommit();
         mGuideOvalState = -1;
         mDisplayedGuideState = -1;
-        mCountdownUiFrozen = false;
-        if (mCountdownKind == COUNTDOWN_ACTION && countDown != null) {
-            mActionRemainSec = countDown.getRemain();
-        }
+        mCountdown.setFrozen(false);
+        mCountdown.stashActionRemain();
         cancelNoFaceFailTimer();
         cancelLightAbnormalTimer(false);
         if (mMultiFaceSinceElapsedMs < 0) {
@@ -2921,7 +2982,7 @@ public class RecognizeActivity extends Activity implements
         if (mInPlaceFailUi || mInPlaceSuccessUi) {
             return;
         }
-        if (mCountdownKind == COUNTDOWN_MULTI_FACE) {
+        if (mCountdown.isMultiFace()) {
             return;
         }
         long now = SystemClock.elapsedRealtime();
@@ -2941,17 +3002,14 @@ public class RecognizeActivity extends Activity implements
         if (remainSec > NO_FACE_FAIL_SEC) {
             remainSec = NO_FACE_FAIL_SEC;
         }
-        restartTimer(remainSec, COUNTDOWN_MULTI_FACE);
+        restartTimer(remainSec, FaceCountdownController.MULTI_FACE);
     }
 
     private void cancelMultiFaceFailTimer() {
         mWaitingMultiFace = false;
         mMultiFaceSinceElapsedMs = -1L;
-        if (mCountdownKind == COUNTDOWN_MULTI_FACE) {
-            if (countDown != null) {
-                countDown.cancel();
-            }
-            mCountdownKind = COUNTDOWN_NONE;
+        if (mCountdown != null) {
+            mCountdown.cancelKind(FaceCountdownController.MULTI_FACE);
         }
     }
 
@@ -2988,6 +3046,13 @@ public class RecognizeActivity extends Activity implements
             cancelLightAbnormalTimer(false);
             return;
         }
+        // 出框 / 过远 / 入框防抖期间，边缘脸很容易被判过暗，不当成环境光
+        if (mGuideOvalState != 1 || mDisplayedGuideState != 1) {
+            if (mWaitingLightAbnormal) {
+                cancelLightAbnormalTimer(false);
+            }
+            return;
+        }
         if (!abnormal) {
             notifyLightNormal();
             return;
@@ -3022,9 +3087,7 @@ public class RecognizeActivity extends Activity implements
             pauseLightFlashSequence();
             mLightSeqResetDone = true;
         }
-        if (mCountdownKind == COUNTDOWN_ACTION && countDown != null) {
-            mActionRemainSec = countDown.getRemain();
-        }
+        mCountdown.stashActionRemain();
         cancelNoFaceFailTimer();
         if (mLightAbnormalQuality != quality) {
             mLightAbnormalSinceElapsedMs = SystemClock.elapsedRealtime();
@@ -3062,7 +3125,7 @@ public class RecognizeActivity extends Activity implements
         if (mInPlaceFailUi || mInPlaceSuccessUi || mWaitingMultiFace) {
             return;
         }
-        if (mCountdownKind == COUNTDOWN_LIGHT) {
+        if (mCountdown.isLight()) {
             return;
         }
         long now = SystemClock.elapsedRealtime();
@@ -3082,7 +3145,7 @@ public class RecognizeActivity extends Activity implements
         if (remainSec > NO_FACE_FAIL_SEC) {
             remainSec = NO_FACE_FAIL_SEC;
         }
-        restartTimer(remainSec, COUNTDOWN_LIGHT);
+        restartTimer(remainSec, FaceCountdownController.LIGHT);
     }
 
     /**
@@ -3093,18 +3156,15 @@ public class RecognizeActivity extends Activity implements
         mWaitingLightAbnormal = false;
         mLightAbnormalQuality = 0;
         mLightAbnormalSinceElapsedMs = -1L;
-        if (mCountdownKind == COUNTDOWN_LIGHT) {
-            if (countDown != null) {
-                countDown.cancel();
-            }
-            mCountdownKind = COUNTDOWN_NONE;
+        if (mCountdown != null) {
+            mCountdown.cancelKind(FaceCountdownController.LIGHT);
         }
         if (resumeAction && wasWaiting && mGuideOvalState == 1 && shouldShowActionCountdown()) {
-            int sec = mActionRemainSec > 0
-                    ? mActionRemainSec
+            int sec = mCountdown.getActionRemainSec() > 0
+                    ? mCountdown.getActionRemainSec()
                     : (int) AEFacePack.getInstance().getMotionTime();
-            mActionRemainSec = 0;
-            restartTimer(sec, COUNTDOWN_ACTION);
+            mCountdown.clearActionRemain();
+            restartTimer(sec, FaceCountdownController.ACTION);
             restoreInFrameHint();
         }
     }
@@ -3286,11 +3346,13 @@ public class RecognizeActivity extends Activity implements
         sFaceOK = 0;
         mGuideOvalState = 0;
         mDisplayedGuideState = 0;
-        mCountdownUiFrozen = false;
-        mActionRemainSec = 0;
+        if (mCountdown != null) {
+            mCountdown.resetSessionFlags();
+        }
         mPendingOutHintKey = null;
         mPendingGuideUiIn = null;
         cancelGuideUiCommit();
+        cancelPendingFarUi();
         faceDisplayed = false;
         mWaitingMultiFace = false;
         mMultiFaceSinceElapsedMs = -1L;
@@ -3519,7 +3581,7 @@ public class RecognizeActivity extends Activity implements
         final String alivePic = BitmapUtils.convertIconToString(cuesBitmap);
         final JSONArray colorPics = new JSONArray();
         colorPics.put(alivePic);
-        scheduleVerifyTimeout(FACE_VERIFY_UI_TIMEOUT_MS);
+        scheduleVerifyTimeout(faceVerifyUiTimeoutMs());
         submitFaceVerifyWithColor(seq, facePics, colorPics);
     }
 
@@ -3637,7 +3699,7 @@ public class RecognizeActivity extends Activity implements
         tvCheckHint.setTextColor(ContextCompat.getColor(this, R.color.face_theme_primary));
         clearCheckHintLeadingIcon();
         if (scheduleDefaultTimeout) {
-            scheduleVerifyTimeout(FACE_VERIFY_UI_TIMEOUT_MS);
+            scheduleVerifyTimeout(faceVerifyUiTimeoutMs());
         }
         // scheduleDefaultTimeout=false 时不 cancel：调用方可能已在工作线程安排了 Thunder 长超时，
         // 若此处 cancel 会因 runOnUiThread 时序把刚设好的超时清掉。
@@ -3646,23 +3708,24 @@ public class RecognizeActivity extends Activity implements
     /**
      * 进入「提交核验中」时，把扫描环对齐到与动作模式一致的取景态：可见 + 灰色轨道 + 进度归零。
      * 动作模式检测期已进入该态，此处对炫彩/动作+炫彩尤为必要——否则扫描环可能停留在旧状态，
-     * 后续 {@link #animateScanRingToSuccess()} 的「核验通过」蓝弧填充/绿环无从显示。
+     * 后续 {@link ScanRingAnimator#animateToSuccess()} 的「核验通过」蓝弧填充/绿环无从显示。
      */
     private void startVerifyingRingArc() {
-        if (scanRingMain == null || mInPlaceSuccessUi || mInPlaceFailUi) {
+        if (mInPlaceSuccessUi || mInPlaceFailUi || mScanRing == null) {
             return;
         }
-        stopRingProgress();
-        scanRingMain.setMode(ScanRingOverlayView.MODE_SCANNING);
-        scanRingMain.setScanArcEnabled(false);
-        scanRingMain.setProgress(0f);
-        scanRingMain.setVisibility(View.VISIBLE);
+        mScanRing.prepareVerifying();
+    }
+
+    /** 「人脸核验中」UI 兜底超时（faceIdent + queryVerifyResult 轮询） */
+    private long faceVerifyUiTimeoutMs() {
+        return FaceVerifyManager.recommendedUiTimeoutMs();
     }
 
     /** 核验请求挂死时，超时切到失败 UI，避免一直停在「人脸核验中」 */
     private void scheduleVerifyTimeout(long timeoutMs) {
         cancelVerifyTimeout();
-        final long delay = timeoutMs > 0 ? timeoutMs : FACE_VERIFY_UI_TIMEOUT_MS;
+        final long delay = timeoutMs > 0 ? timeoutMs : faceVerifyUiTimeoutMs();
         mVerifyTimeoutRunnable = () -> {
             mVerifyTimeoutRunnable = null;
             if (isFinishing() || !mFaceVerifying || mInPlaceFailUi || mInPlaceSuccessUi) {
@@ -3686,7 +3749,9 @@ public class RecognizeActivity extends Activity implements
         }
         cancelVerifyTimeout();
         cancelGuideUiCommit();
-        mCountdownUiFrozen = false;
+        if (mCountdown != null) {
+            mCountdown.setFrozen(false);
+        }
         setFaceVerifying(false);
         mInPlaceSuccessUi = true;
         hideSubmitOverlay();
@@ -3801,8 +3866,8 @@ public class RecognizeActivity extends Activity implements
         if (slot != null) {
             slot.setVisibility(View.GONE);
         }
-        if (scanRingMain != null) {
-            scanRingMain.setVisibility(View.GONE);
+        if (mScanRing != null) {
+            mScanRing.setVisible(false);
         }
         if (faceBgView != null) {
             hideFaceBgFlash();
@@ -3838,8 +3903,8 @@ public class RecognizeActivity extends Activity implements
         if (faceResultTopGap != null) {
             faceResultTopGap.setVisibility(View.VISIBLE);
         }
-        if (tvActionCountdown != null) {
-            tvActionCountdown.setVisibility(View.GONE);
+        if (mCountdown != null) {
+            mCountdown.hideForResult();
         }
     }
 
@@ -3875,36 +3940,16 @@ public class RecognizeActivity extends Activity implements
         if (slot != null) {
             slot.setVisibility(View.VISIBLE);
         }
-        if (scanRingMain != null) {
-            scanRingMain.setVisibility(View.VISIBLE);
+        if (mScanRing != null) {
+            mScanRing.setVisible(true);
         }
     }
 
     /** 蓝弧扫满后切换为绿色整圈，与产品稿第二张一致 */
     private void animateScanRingToSuccess() {
-        if (scanRingMain == null) {
-            return;
+        if (mScanRing != null) {
+            mScanRing.animateToSuccess();
         }
-        scanRingMain.setVisibility(View.VISIBLE);
-        if (mRingRotateAnimator != null) {
-            mRingRotateAnimator.cancel();
-        }
-        if (mRingSuccessAnimator != null) {
-            mRingSuccessAnimator.cancel();
-        }
-        final float start = scanRingMain.getProgress();
-        mRingSuccessAnimator = ValueAnimator.ofFloat(start, 1f);
-        mRingSuccessAnimator.setDuration(420);
-        mRingSuccessAnimator.setInterpolator(new DecelerateInterpolator());
-        mRingSuccessAnimator.addUpdateListener(animation ->
-                scanRingMain.setProgress((Float) animation.getAnimatedValue()));
-        mRingSuccessAnimator.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                scanRingMain.setMode(ScanRingOverlayView.MODE_SUCCESS);
-            }
-        });
-        mRingSuccessAnimator.start();
     }
 
     private void deliverSuccessCallbackAndFinish() {
@@ -4012,15 +4057,14 @@ public class RecognizeActivity extends Activity implements
         cancelMultiFaceFailTimer();
         cancelLightAbnormalTimer(false);
         cancelGuideUiCommit();
-        mCountdownUiFrozen = false;
+        if (mCountdown != null) {
+            mCountdown.setFrozen(false);
+        }
         mInPlaceFailUi = true;
         mInPlaceFailIsTimeout = timeout;
         mInPlaceFailIsSubmit = submitFailure && !timeout;
         stopRingProgress();
-        if (countDown != null) {
-            countDown.cancel();
-        }
-        hideActionCountdown();
+        stopTimer();
         collapseTipColumnForResult();
         // 炫彩失败时也必须停 lightHandler / 色序定时器，避免后台仍在切色或占着解码
         if (isLightAliveMode()) {
@@ -4184,10 +4228,8 @@ public class RecognizeActivity extends Activity implements
         if (tvCheckHint != null) {
             tvCheckHint.setVisibility(View.GONE);
         }
-        if (scanRingMain != null) {
-            scanRingMain.setMode(ScanRingOverlayView.MODE_SCANNING);
-            scanRingMain.setScanArcEnabled(false);
-            scanRingMain.setProgress(0f);
+        if (mScanRing != null) {
+            mScanRing.resetForRetry();
         }
         showVerifySubtitle();
     }
@@ -4270,9 +4312,7 @@ public class RecognizeActivity extends Activity implements
         m_hasFinishReturn = true;
         cancelNoFaceFailTimer();
         stopRingProgress();
-        if (countDown != null) {
-            countDown.cancel();
-        }
+        stopTimer();
         if (handler != null) {
             handler.cancelDecodeTask();
         }
@@ -4346,219 +4386,128 @@ public class RecognizeActivity extends Activity implements
         }
     }
 
-    private void hideScanArcIfIdle() {
-        if (scanRingMain == null || mFinish || m_hasFinishReturn) {
-            return;
-        }
-        if (mInPlaceSuccessUi || mInPlaceFailUi || mFaceVerifying) {
-            return;
-        }
-        if (scanRingMain.getMode() == ScanRingOverlayView.MODE_SCANNING
-                && scanRingMain.getProgress() <= 0f) {
-            scanRingMain.setScanArcEnabled(false);
-        }
+    private boolean isScanRingBlocked() {
+        return mFinish || m_hasFinishReturn || mInPlaceSuccessUi || mInPlaceFailUi || mFaceVerifying;
     }
 
     private void stopRingProgress() {
-        if (scanRingMain != null) {
-            scanRingMain.removeCallbacks(hideScanArcRunnable);
-        }
-        if (mRingRotateAnimator != null) {
-            mRingRotateAnimator.cancel();
-        }
-        if (scanRingMain != null
-                && scanRingMain.getMode() == ScanRingOverlayView.MODE_SCANNING
-                && scanRingMain.getProgress() <= 0f) {
-            scanRingMain.setScanArcEnabled(false);
+        if (mScanRing != null) {
+            mScanRing.stop();
         }
     }
 
     /** 仅展示灰色轨道，不启动蓝色旋转弧（动画时钟保持，避免下一动作重开时卡顿） */
     private void prepareScanRingOverlay() {
-        if (scanRingMain == null) {
-            return;
+        if (mScanRing != null) {
+            mScanRing.prepare();
         }
-        scanRingMain.removeCallbacks(hideScanArcRunnable);
-        scanRingMain.setMode(ScanRingOverlayView.MODE_SCANNING);
-        scanRingMain.setVisibility(View.VISIBLE);
-        scanRingMain.setScanArcEnabled(false);
-        scanRingMain.setProgress(0f);
     }
 
     /** 有人脸时启动蓝色旋转弧。纯动作无人脸延迟隐藏以免切动作停一帧；炫彩/动作+炫彩出框立即停。 */
     private void updateScanRingForFace(boolean hasFace) {
-        if (mInPlaceSuccessUi || mInPlaceFailUi || mFaceVerifying || mFinish || m_hasFinishReturn) {
+        if (isScanRingBlocked() || mScanRing == null) {
             return;
         }
-        if (hasFace) {
-            if (scanRingMain != null) {
-                scanRingMain.removeCallbacks(hideScanArcRunnable);
-            }
-            startRingProgress();
-        } else if (scanRingMain != null) {
-            scanRingMain.removeCallbacks(hideScanArcRunnable);
-            if (isLightAliveMode()) {
-                hideScanArcIfIdle();
-            } else {
-                scanRingMain.postDelayed(hideScanArcRunnable, HIDE_SCAN_ARC_DEBOUNCE_MS);
-            }
+        if (hasFace && mScanRing.isAvailable()) {
+            cancelNoFaceFailTimer();
         }
-    }
-
-    private void startRingProgress() {
-        if (scanRingMain == null) {
-            return;
-        }
-        if (mInPlaceSuccessUi || mInPlaceFailUi || mFaceVerifying) {
-            return;
-        }
-        cancelNoFaceFailTimer();
-        scanRingMain.removeCallbacks(hideScanArcRunnable);
-        scanRingMain.setMode(ScanRingOverlayView.MODE_SCANNING);
-        scanRingMain.setVisibility(View.VISIBLE);
-        scanRingMain.setScanArcEnabled(true);
-        if (mRingRotateAnimator != null && mRingRotateAnimator.isStarted()) {
-            return;
-        }
-        if (mRingRotateAnimator == null) {
-            mRingRotateAnimator = ValueAnimator.ofFloat(0f, 360f);
-            mRingRotateAnimator.setDuration(1400);
-            mRingRotateAnimator.setRepeatCount(ValueAnimator.INFINITE);
-            mRingRotateAnimator.setInterpolator(new LinearInterpolator());
-            mRingRotateAnimator.addUpdateListener(animation -> {
-                if (scanRingMain == null || mFinish || m_hasFinishReturn) {
-                    return;
-                }
-                if (mInPlaceSuccessUi || mInPlaceFailUi || mFaceVerifying) {
-                    return;
-                }
-                if (!scanRingMain.isScanArcEnabled()) {
-                    return;
-                }
-                scanRingMain.setArcStartAngle((Float) animation.getAnimatedValue());
-            });
-        }
-        float current = scanRingMain.getArcStartAngle();
-        long duration = mRingRotateAnimator.getDuration();
-        if (duration > 0) {
-            mRingRotateAnimator.setCurrentPlayTime(
-                    (long) ((current / 360f) * duration));
-        }
-        mRingRotateAnimator.start();
+        mScanRing.updateForFace(hasFace, isLightAliveMode());
     }
 
     public void showMessage(String s) {
         tvMaskHint.setText(s);
     }
 
-
-    public class MyCount implements Runnable {
-        private Handler mHandler;
-        private int time, count;
-
-        public MyCount(Handler handler) {
-            mHandler = handler;
-        }
-
-        public void init(int second) {
-            time = Math.max(1, second);
-            count = time;
-            if (tvRecogTimeCountdown != null) {
-                tvRecogTimeCountdown.setCount(time, time);
-            }
-            showActionCountdown(time);
-        }
-
-        public void start() {
-            count = time;
-            if (tvRecogTimeCountdown != null) {
-                tvRecogTimeCountdown.setCount(time, count);
-            }
-            // 先展示完整秒数（10s），满 1 秒后再减，避免一进来就是 9s
-            showActionCountdown(count);
-            mHandler.removeCallbacks(this);
-            mHandler.postDelayed(this, 1000);
-        }
-
-        public void cancel() {
-            mHandler.removeCallbacks(this);
-        }
-
-        public int getRemain() {
-            return Math.max(0, count);
-        }
-
-        private void onTick() {
-            if (tvRecogTimeCountdown != null) {
-                tvRecogTimeCountdown.setCount(time, count);
-            }
-            showActionCountdown(count);
-        }
-
-        private void finish() {
-            int kind = mCountdownKind;
-            mCountdownKind = COUNTDOWN_NONE;
-            hideActionCountdown();
-            if (m_hasFinishReturn)
-                return;
-            if (kind == COUNTDOWN_NO_FACE) {
-                noteLivenessFailForQrRecord();
-                showInPlaceFailUi(false, resolveLoseFaceFailDetail(), resolveLoseFaceFailCode());
-                return;
-            }
-            if (kind == COUNTDOWN_MULTI_FACE) {
-                failByMultiFace();
-                return;
-            }
-            if (kind == COUNTDOWN_LIGHT) {
-                failByLightAbnormal();
-                return;
-            }
-            if (kind == COUNTDOWN_ACTION) {
-                noteLivenessFailForQrRecord();
-                showInPlaceFailUi(false, getString(R.string.face_fail_action_no_face_detail),
-                        FaceUniResultCodes.RESULT_ACTION_TIMEOUT);
-                return;
-            }
-
-            if (AEFacePack.getInstance().isModelAllSide() &&
-                    AEFacePack.getInstance().isAliveOff()) {
-                int side = handler.getNextSide();
-                if (side <= IDConstants.SIDE_MAX) {
-                    showAlivePose(side, true, false);
-                    restartTimer(AEFacePack.getInstance().getMotionTime());
-                    return;
-                } else {
-                    if (IDConstants.SIDE_NUM == PictureManagerUtils.getPictureManager().getCurNum()) {
-                        finishActivityBySuccessful();
-                    }
-                }
-            } else {
-                if (AEFacePack.getInstance().isNoticeTimeout()) {
-                    if (faceDisplayed) {
-                        mUIHandler.sendEmptyMessage(UI_MSG_TIMEOUT_BOX);
-                    } else {
-                        Log.d(TAG,"finish showMessageBox ");
-                        mUIHandler.sendEmptyMessage(UI_MSG_MESSAGE_BOX);
-                    }
-                } else {
-                    showInPlaceFailUi(true, null);
-                }
-
-            }
+    private final class CountdownHost implements FaceCountdownController.Host {
+        @Override
+        public boolean isCountdownBlocked() {
+            return mInPlaceFailUi || mInPlaceSuccessUi || mFaceVerifying || mFinish || m_hasFinishReturn;
         }
 
         @Override
-        public void run() {
-            count--;
-            if (count <= 0) {
-                finish();
-                return;
-            }
-            onTick();
-            mHandler.postDelayed(this, 1000);
+        public boolean shouldShowActionCountdown() {
+            return RecognizeActivity.this.shouldShowActionCountdown();
         }
 
+        @Override
+        public boolean canShowCountdownNumber() {
+            return RecognizeActivity.this.canShowCountdownNumber();
+        }
+
+        @Override
+        public boolean shouldSkipActionTimer() {
+            if (aliveMode == AEFaceParam.ALIVEMODE_LIGHT) {
+                return true;
+            }
+            return aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT && mLightFlashStarted;
+        }
+
+        @Override
+        public int displayedGuideState() {
+            return mDisplayedGuideState;
+        }
+
+        @Override
+        public Handler timerHandler() {
+            return mUIHandler != null ? mUIHandler : handler;
+        }
+
+        @Override
+        public void postToUi(Runnable r) {
+            runOnUiThread(r);
+        }
+
+        @Override
+        public void onCountdownFinished(int kind) {
+            handleCountdownFinished(kind);
+        }
+    }
+
+    private void handleCountdownFinished(int kind) {
+        if (m_hasFinishReturn) {
+            return;
+        }
+        if (kind == FaceCountdownController.NO_FACE) {
+            noteLivenessFailForQrRecord();
+            showInPlaceFailUi(false, resolveLoseFaceFailDetail(), resolveLoseFaceFailCode());
+            return;
+        }
+        if (kind == FaceCountdownController.MULTI_FACE) {
+            failByMultiFace();
+            return;
+        }
+        if (kind == FaceCountdownController.LIGHT) {
+            failByLightAbnormal();
+            return;
+        }
+        if (kind == FaceCountdownController.ACTION) {
+            noteLivenessFailForQrRecord();
+            showInPlaceFailUi(false, getString(R.string.face_fail_action_no_face_detail),
+                    FaceUniResultCodes.RESULT_ACTION_TIMEOUT);
+            return;
+        }
+
+        if (AEFacePack.getInstance().isModelAllSide() &&
+                AEFacePack.getInstance().isAliveOff()) {
+            int side = handler.getNextSide();
+            if (side <= IDConstants.SIDE_MAX) {
+                showAlivePose(side, true, false);
+                restartTimer(AEFacePack.getInstance().getMotionTime());
+            } else if (IDConstants.SIDE_NUM == PictureManagerUtils.getPictureManager().getCurNum()) {
+                finishActivityBySuccessful();
+            }
+            return;
+        }
+        if (AEFacePack.getInstance().isNoticeTimeout()) {
+            if (faceDisplayed) {
+                mUIHandler.sendEmptyMessage(UI_MSG_TIMEOUT_BOX);
+            } else {
+                Log.d(TAG, "finish showMessageBox ");
+                mUIHandler.sendEmptyMessage(UI_MSG_MESSAGE_BOX);
+            }
+        } else {
+            showInPlaceFailUi(true, null);
+        }
     }
 
     @Override
@@ -4603,7 +4552,7 @@ public class RecognizeActivity extends Activity implements
             return;
         }
         mQrRecordFinalized = true;
-        // queryVerifyResult 5 次未拿到 4/5 已上报 status=2，勿再覆盖为 4
+        // queryVerifyResult 轮询结束后仍未拿到 4/5 已上报 status=2，勿再覆盖为 4
         if (QrRecordStatusManager.isTerminalReported()) {
             return;
         }

@@ -423,14 +423,16 @@ public final class CaptureActivityHandlerLight extends Handler implements AEFace
 	}
 	
 	public int updateToNextPose() {
+		if (poseArray == null || poseArray.length == 0 || poseIndex >= poseArray.length) {
+			return getCurPos();
+		}
 		int size = poseIndex++;
-		if(size<5)
 		mCurPos = poseArray[size];
 		return getCurPos();
 	}
 	
 	public void flashDisplay(final boolean voicePlay, final boolean anim) {
-		if (mCurPos >= 0 && mCurPos <= 6) {
+		if (mCurPos >= AEFaceAlive.POSE_MIN && mCurPos <= AEFaceAlive.POSE_EYE_BLINK) {
 			activity.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {

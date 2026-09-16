@@ -89,6 +89,10 @@ public class DecodeHandlerLight extends Handler {
 	private boolean cfgShowRect = false;
 	/** 椭圆滞回：上一帧是否在框内，避免边界来回跳 */
 	private boolean mLastInGuideOval = false;
+	private boolean mLastFaceFar = false;
+	private int mFarFlipCount = 0;
+	private static final int FAR_ENTER_FRAMES = 4;
+	private static final int FAR_LEAVE_FRAMES = 3;
 	private int CfgLoseFace = 2;
 	private int CfgPicNum = 1;
 	private int CfgCapFace = 2;
@@ -102,7 +106,7 @@ public class DecodeHandlerLight extends Handler {
 	//	int[] envCount = new int[]{0,0,0,0,0};
 	private int envPreFrm;
 	private int envCount;
-	int ENV_COUNT_MAX = 3;
+	int ENV_COUNT_MAX = 4;
 	private int envLast = AEFaceQuality.QUALITY_OK;
 	private int currentColorIndex=-1;
 	/**
@@ -145,6 +149,8 @@ public class DecodeHandlerLight extends Handler {
 		shakeStatus = false;
 		isFisrt = true;
 		mLastInGuideOval = false;
+		mLastFaceFar = false;
+		mFarFlipCount = 0;
 
 		envLast = AEFaceQuality.QUALITY_OK;
 		envCount = 0;
@@ -444,23 +450,35 @@ public class DecodeHandlerLight extends Handler {
 				aliveCount = 1;
 				currentColorIndex = -1;
 				mLastInGuideOval = false;
+				mLastFaceFar = false;
+				mFarFlipCount = 0;
 				removeCurrentMessage();
 			} else if (rect != null && rect.length > 0) {
 				activity.notifyMultiFace(false);
 				loseCount = 0;
 				faceInfo.faceNumber = rect.length;
-				boolean faceFar = rect[0].width() < 340;
-				if (blockIfLightAbnormal(faceInfo, rect[0])) {
+				boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
+				if (!inOval) {
+					mLastFaceFar = false;
+					mFarFlipCount = 0;
+				}
+				boolean faceFar = inOval && isFaceTooFar(rect[0].width());
+				if (!inOval || faceFar) {
+					activity.notifyLightNormal();
+				}
+				if (inOval && !faceFar && blockIfLightAbnormal(faceInfo, rect[0])) {
 					mLastInGuideOval = false;
-				} else if (faceFar) {
-					// 不要走 showFaceOut(false)：会异步刷 QUALITY_OUT「请将脸移入框内」，盖掉靠近提示
+				} else if (inOval && faceFar) {
+					// 仅脸还在圆框内但过小时「请靠近一点」；出框走移入框内
 					activity.showFaceTooFar();
 					aliveCount = 1;
 					currentColorIndex = -1;
 					removeCurrentMessage();
 				} else if (isMotionAliveSuc) {
 						activity.notifyLightNormal();
-						boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
+						if (!inOval) {
+							activity.notifyOutOfFrameHint("aeye_quality_out");
+						}
 						// 闪光中只要还能检测到人脸就保持色光；出圆框只走 20 秒失败，不暂停色序
 						activity.showFaceOut(true);
 						activity.setLightScanArcEnabled(inOval);
@@ -577,8 +595,10 @@ public class DecodeHandlerLight extends Handler {
 						}
 //			}
 				}else{
-					// 动作阶段：入圆框才跑 10 秒动作倒计时；出框走 20 秒失败（不展示）
-					boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
+					// 动作阶段：入圆框才跑 10 秒动作倒计时；出框走 20 秒失败
+					if (!inOval) {
+						activity.notifyOutOfFrameHint("aeye_quality_out");
+					}
 					activity.showFaceOut(inOval);
 					if (inOval) {
 						activity.showTipAfterHasFace();
@@ -604,6 +624,8 @@ public class DecodeHandlerLight extends Handler {
 						}
 					}
 					mLastInGuideOval = false;
+					mLastFaceFar = false;
+					mFarFlipCount = 0;
 					activity.showNoFace();
 					activity.clearPicNumber();
 					removeCurrentMessage();
@@ -913,18 +935,40 @@ public class DecodeHandlerLight extends Handler {
 	private void elseProcess(AEFaceInfo faceInfo, boolean haveFace) {
 		faceCount = 0;
 		faceInfo.imgRect = null;
+		mLastFaceFar = false;
+		mFarFlipCount = 0;
 		if (cfgShowRect) {
 			activity.getLightHandler().sendMessage(activity.getLightHandler().
 					obtainMessage(IDConstants.id_draw_faceRect, faceInfo.width, faceInfo.height, null));
 		}
 		if (haveFace) {
-			activity.showHint("aeye_quality_out", Color.WHITE);
+			activity.notifyOutOfFrameHint("aeye_quality_out");
 			activity.showFaceOut(false);
 		} else if ((loseCount++) == CfgLoseFace && activity.getDecodeStatus()
 				&& (!AEFacePack.getInstance().isAliveOff() || activity.isSilentAliveMode())) {
-			activity.showHint("aeye_quality_out", Color.WHITE);
+			activity.notifyOutOfFrameHint("aeye_quality_out");
 			activity.showNoFace();
 		}
+	}
+
+	/**
+	 * 人脸过小滞回：进入「请靠近一点」用较严阈值，离开用较宽阈值，并连续多帧确认。
+	 */
+	private boolean isFaceTooFar(int faceWidth) {
+		int enter = 320;
+		int leave = 330;
+		boolean wantFar = faceWidth < (mLastFaceFar ? leave : enter);
+		if (wantFar == mLastFaceFar) {
+			mFarFlipCount = 0;
+			return mLastFaceFar;
+		}
+		mFarFlipCount++;
+		int need = wantFar ? FAR_ENTER_FRAMES : FAR_LEAVE_FRAMES;
+		if (mFarFlipCount >= need) {
+			mLastFaceFar = wantFar;
+			mFarFlipCount = 0;
+		}
+		return mLastFaceFar;
 	}
 
 	/**
@@ -941,8 +985,8 @@ public class DecodeHandlerLight extends Handler {
 		float dx = face.centerX() - cx;
 		float dy = face.centerY() - cy;
 		float minSide = Math.min(imgW, imgH);
-		float enterR = minSide * 0.45f;
-		float leaveR = minSide * 0.52f;
+		float enterR = minSide * 0.42f;
+		float leaveR = minSide * 0.54f;
 		float dist2 = dx * dx + dy * dy;
 		if (mLastInGuideOval) {
 			mLastInGuideOval = dist2 <= leaveR * leaveR;
@@ -986,7 +1030,7 @@ public class DecodeHandlerLight extends Handler {
 	}
 
 	private int facePosition(Rect rect, int width, int height) {
-		ENV_COUNT_MAX = 3;
+		ENV_COUNT_MAX = 4;
 		int result = envLast;
 		Rect face = new Rect(rect);
 		face.top = rect.top - rect.height()/6;
@@ -1014,9 +1058,9 @@ public class DecodeHandlerLight extends Handler {
 				face.top < minY || face.bottom > maxY || rate < 1.1) {
 			if (activity.getLightHandler().getCurPos() == AEFaceAlive.POSE_MOUTH_OPEN ||
 					face.top < (minY / 2) || face.bottom > maxY + (minY / 2) || rate < 1.1) {
-				ENV_COUNT_MAX = 1;
+				ENV_COUNT_MAX = 2;
 			} else {
-				ENV_COUNT_MAX = 5;
+				ENV_COUNT_MAX = 6;
 			}
 			if (envDelay(RecognizeActivity.QUALITY_OUT)) {
 				result = RecognizeActivity.QUALITY_OUT;

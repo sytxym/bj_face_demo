@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   <li>用户返回取消 {@link QrRecordStatus#TASK_CANCELLED} → {@link QrRecordStatus.FailedType#CANCELLED}</li>
  *   <li>动作活体检测未通过 3 次 → {@link QrRecordStatus#NOT_PASS} + {@link QrRecordStatus.FailedType#LIVENESS_ACTION}</li>
  * </ul>
- * <p>{@code status=2}（异常退出）在 queryVerifyResult 轮询 5 次仍未得到 4/5 时上报，不传 failedType。</p>
+ * <p>{@code status=2}（异常退出）在 queryVerifyResult 按配置轮询仍未得到 4/5 时上报，不传 failedType。</p>
  */
 public final class QrRecordStatusManager {
 

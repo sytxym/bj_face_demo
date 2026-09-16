@@ -7,6 +7,8 @@ import com.aeye.face.AEFaceSdk;
 import com.aeye.face.api.FaceApiService;
 import com.aeye.face.api.model.AuthStatusResult;
 import com.aeye.face.api.model.FaceIdentResult;
+import com.aeye.face.config.FaceActionConfig;
+import com.aeye.face.config.FaceActionConfigManager;
 
 import org.json.JSONArray;
 
@@ -36,9 +38,10 @@ public final class FaceVerifyManager {
      * 略大于 {@link FaceApiService} faceIdent 的 HTTP 超时，避免过早 cancel 打断上传。
      */
     private static final long VERIFY_TIMEOUT_MS = 45_000L;
-    /** 按 0/1/2/3/4 秒间隔查询，最多 5 次；仍未拿到 status=4/5 则异常退出 */
-    private static final int AUTH_STATUS_MAX_TRIES = 5;
-    private static final long AUTH_STATUS_INTERVAL_STEP_MS = 1_000L;
+    /** 「人脸核验中」UI 最短兜底，需盖住 faceIdent 超时 */
+    private static final long VERIFY_UI_TIMEOUT_FLOOR_MS = 70_000L;
+    /** 每次 queryVerifyResult 预留的网络耗时 */
+    private static final long POLL_HTTP_BUDGET_MS = 3_000L;
 
     public interface Callback {
         void onPassed(FaceIdentResult result);
@@ -130,8 +133,8 @@ public final class FaceVerifyManager {
 
     /**
      * faceIdent 提交成功后以 {@code /faceRecord/queryVerifyResult} 为最终结果：
-     * 按 0/1/2/3/4 秒间隔查询，最多 5 次；拿到 status=4/5 即结束；
-     * 5 次仍未拿到则上报 {@code updateRecord status=2}（异常退出）。
+     * 按配置 {@code pollingTime} 秒等间隔查询，共 {@code pollingCount} 次（时刻 0、T、2T…）；
+     * 拿到 status=4/5 即结束；仍未拿到则上报 {@code updateRecord status=2}（异常退出）。
      */
     private static void dispatchFinalFromAuthStatus(AtomicBoolean finished, Callback callback,
                                                     FaceIdentResult identResult) {
@@ -159,37 +162,63 @@ public final class FaceVerifyManager {
         }
     }
 
+    /**
+     * 「人脸核验中」UI 兜底超时：faceIdent 上传 + 按配置轮询 queryVerifyResult。
+     */
+    public static long recommendedUiTimeoutMs() {
+        FaceActionConfig config = FaceActionConfigManager.getCached();
+        int count = config != null
+                ? config.resolvedPollingCount()
+                : FaceActionConfig.DEFAULT_POLLING_COUNT;
+        long pollWait = config != null
+                ? config.pollingSpanMs()
+                : (long) (FaceActionConfig.DEFAULT_POLLING_COUNT - 1)
+                * FaceActionConfig.DEFAULT_POLLING_TIME_SEC * 1000L;
+        long need = VERIFY_TIMEOUT_MS + pollWait + (long) count * POLL_HTTP_BUDGET_MS;
+        return Math.max(VERIFY_UI_TIMEOUT_FLOOR_MS, need);
+    }
+
     private static AuthStatusResult pollAuthStatus() throws Exception {
         String authRecordId = FaceVerifySession.getAuthRecordId();
         if (TextUtils.isEmpty(authRecordId)) {
             throw new IllegalArgumentException("authRecordId 为空");
         }
+        FaceActionConfig config = FaceActionConfigManager.getCached();
+        int maxTries = config != null
+                ? config.resolvedPollingCount()
+                : FaceActionConfig.DEFAULT_POLLING_COUNT;
+        long intervalMs = (config != null
+                ? config.resolvedPollingTimeSec()
+                : FaceActionConfig.DEFAULT_POLLING_TIME_SEC) * 1000L;
+        Log.d(TAG, "poll queryVerifyResult count=" + maxTries
+                + ", intervalSec=" + (intervalMs / 1000)
+                + ", authRecordId=" + authRecordId);
         AuthStatusResult last = null;
-        for (int i = 0; i < AUTH_STATUS_MAX_TRIES; i++) {
-            if (i > 0) {
-                Thread.sleep(i * AUTH_STATUS_INTERVAL_STEP_MS);
+        for (int i = 0; i < maxTries; i++) {
+            if (i > 0 && intervalMs > 0) {
+                Thread.sleep(intervalMs);
             }
             try {
                 last = FaceApiService.queryVerifyResult(AEFaceSdk.getApiBaseUrl(), authRecordId);
                 if (last.isApiError() || last.isFinishedResult()) {
                     return last;
                 }
-                Log.d(TAG, "queryVerifyResult try " + (i + 1) + "/" + AUTH_STATUS_MAX_TRIES
+                Log.d(TAG, "queryVerifyResult try " + (i + 1) + "/" + maxTries
                         + " status=" + last.getStatus() + ", wait next");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw e;
             } catch (Exception e) {
-                Log.w(TAG, "queryVerifyResult try " + (i + 1) + "/" + AUTH_STATUS_MAX_TRIES
+                Log.w(TAG, "queryVerifyResult try " + (i + 1) + "/" + maxTries
                         + " failed: " + e.getMessage());
             }
         }
         if (AEFaceSdk.isUseMockOnError()) {
-            Log.w(TAG, "queryVerifyResult no result after " + AUTH_STATUS_MAX_TRIES
+            Log.w(TAG, "queryVerifyResult no result after " + maxTries
                     + " tries, fallback mock pass");
             return AuthStatusResult.of(QrRecordStatus.PASSED, null);
         }
-        Log.w(TAG, "queryVerifyResult no result after " + AUTH_STATUS_MAX_TRIES
+        Log.w(TAG, "queryVerifyResult no result after " + maxTries
                 + " tries, report updateRecord status=2");
         QrRecordStatusManager.update(QrRecordStatus.ABNORMAL_EXIT);
         return AuthStatusResult.abnormalExit();

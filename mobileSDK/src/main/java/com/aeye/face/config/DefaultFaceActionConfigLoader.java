@@ -61,6 +61,9 @@ public final class DefaultFaceActionConfigLoader implements FaceActionConfigLoad
                 postError(callback, "获取动作活体配置失败");
                 return;
             }
+            if (AEFaceSdk.isHttpLogEnabled()) {
+                Log.d(TAG, (fromRemote ? "远程" : "回退") + "动作配置 " + config.toSummaryText());
+            }
             final FaceActionConfig result = config;
             final boolean remote = fromRemote;
             MAIN.post(() -> {

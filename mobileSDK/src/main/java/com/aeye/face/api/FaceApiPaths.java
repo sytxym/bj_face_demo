@@ -18,7 +18,7 @@ public final class FaceApiPaths {
     /** POST {@code /fivweb/assistant/faceIdent} 人脸核验 */
     public static final String FACE_IDENT = API_CONTEXT + "/assistant/faceIdent";
 
-    /** POST {@code /fivweb/logManagement/saveFaceVerifyLog} 核验日志记录 */
+    /** POST {@code /fivweb/logManagement/saveFaceVerifyLog} 核验日志记录（含 authRecordId） */
     public static final String SAVE_FACE_VERIFY_LOG = API_CONTEXT + "/logManagement/saveFaceVerifyLog";
 
     /** POST {@code /fivweb/qrCode/insertRecord} 新增认证记录 */

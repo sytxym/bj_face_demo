@@ -296,10 +296,23 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
             return;
         }
         poseTotal = AEFacePack.getInstance().getAlivePose();
+        if (poseTotal == null || poseTotal.length == 0) {
+            poseTotal = new int[]{
+                    AEFaceAlive.POSE_FACE_SHAKE,
+                    AEFaceAlive.POSE_FACE_UP,
+                    AEFaceAlive.POSE_FACE_DOWN,
+                    AEFaceAlive.POSE_MOUTH_OPEN,
+                    AEFaceAlive.POSE_EYE_BLINK
+            };
+        }
         if (!AEFacePack.getInstance().isAliveOff()) {
             int motion = AEFacePack.getInstance().getAliveMotions();
             poseArray = computePoseArray(motion);
             mCurPos = 0;//poseArray[0];//
+            if (poseArray != null && poseArray.length > 0) {
+                AEFaceAlive.getInstance().AEYE_Alive_setAliveParamVIS(
+                        poseArray.length, AEFacePack.getInstance().getAliveLevel());
+            }
         } else if (AEFacePack.getInstance().isModelAllSide()) {
             poseIndex = IDConstants.SIDE_MIN;
         }
@@ -394,10 +407,13 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
         for (; item < action; item++) {
             if (list.isEmpty() && action > item) {
                 for (int i = 0; i < poseTotal.length; i++) {
-                    if (ret[item - 1] != poseTotal[i]) {
+                    if (item == 0 || ret[item - 1] != poseTotal[i]) {
                         list.add(poseTotal[i]);
                     }
                 }
+            }
+            if (list.isEmpty()) {
+                break;
             }
             int index = rand.nextInt(list.size());
             ret[item] = list.get(index);
@@ -411,12 +427,15 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
     }
 
     public int updateToNextPose() {
+        if (poseArray == null || poseArray.length == 0 || poseIndex >= poseArray.length) {
+            return getCurPos();
+        }
         mCurPos = poseArray[poseIndex++];
         return getCurPos();
     }
 
     public void flashDisplay(final boolean voicePlay, final boolean anim) {
-        if (mCurPos >= 0 && mCurPos <= 6) {
+        if (mCurPos >= AEFaceAlive.POSE_MIN && mCurPos <= AEFaceAlive.POSE_EYE_BLINK) {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -533,9 +552,8 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 //				}
 //			} else {
         displayPoseChange(pose != AEFaceAlive.POSE_MOUTH_OPEN);
-        if (!AEFacePack.getInstance().isUseGlobalTime()) {
-            activity.stopTimer();
-        }
+        // 下一个动作的 10s 由 displayPoseChange 内 restartTimer 负责，这里不要 stopTimer，
+        // 否则主线程上「重启」和「隐藏」打架，用户看到的第一下会变成 9s
 //			}
 
 //		}

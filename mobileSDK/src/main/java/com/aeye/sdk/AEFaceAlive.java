@@ -31,6 +31,14 @@ public class AEFaceAlive {
     private int mCurPose = -1;
     private int mPoseNum = -1;
     private int mPoseCount = 0;
+    /** 上一动作刚通过：须先回正视，避免抬头回落被当成低头等连跳。 */
+    private boolean mWaitFront = false;
+    private int mSkipAfterPose = 0;
+    private static final int POSE_CHANGE_SKIP_FRAMES = 4;
+    private static final float FRONT_AXIS_Z = 15.0F;
+    private static final float FRONT_AXIS_X = 10.0F;
+    /** 须小于低头判定位移 lenPassY，否则抬头回正会被当成低头 */
+    private static final float FRONT_AXIS_Y = 5.0F;
     private int mLevel = FaceSdkHostParamBuilder.DEFAULT_ALIVE_LEVEL;
     private double[] poseValue = new double[]{1.0D};
     private double[] poseThreshold = null;
@@ -126,6 +134,8 @@ public class AEFaceAlive {
         this.poseThreshold = null;
         this.mPoseNum = poseNum;
         this.mPoseCount = 0;
+        this.mWaitFront = false;
+        this.mSkipAfterPose = 0;
     }
 
     public void AEYE_Alive_setAliveParamVIS(int poseNum, int aliveLevel) {
@@ -134,6 +144,8 @@ public class AEFaceAlive {
         this.poseThreshold = null;
         this.mPoseNum = poseNum;
         this.mPoseCount = 0;
+        this.mWaitFront = false;
+        this.mSkipAfterPose = 0;
         if (aliveLevel >= 1 && aliveLevel <= this.poseThresholdLevel.length) {
             this.mLevel = aliveLevel;
         }
@@ -147,6 +159,8 @@ public class AEFaceAlive {
         this.poseThreshold = null;
         this.mPoseNum = poseNum;
         this.mPoseCount = 0;
+        this.mWaitFront = false;
+        this.mSkipAfterPose = 0;
         if (paras != null && paras.containsKey("threshold")) {
             double[] threshold = paras.getDoubleArray("threshold");
             if (threshold.length == 7) {
@@ -323,6 +337,9 @@ public class AEFaceAlive {
             ++this.mPoseCount;
             if (this.mPoseCount >= this.mPoseNum) {
                 ret = 0;
+            } else {
+                this.mWaitFront = true;
+                this.mSkipAfterPose = POSE_CHANGE_SKIP_FRAMES;
             }
         }
 
@@ -383,6 +400,9 @@ public class AEFaceAlive {
             } else {
                 if (FILTER_FRAME && !this.frameFilter()) {
 //                    LogFileUtil.saveLog("!frameFilter()");
+                    return ret;
+                }
+                if (waitFrontBeforeNextPose(this.axis[0], this.axisX[0], this.axisY[0])) {
                     return ret;
                 }
                 // modify from 50 to 55, 降低抬头和低头的难度
@@ -447,6 +467,9 @@ public class AEFaceAlive {
 //                    LogFileUtil.saveLog("!frameFilter()");
                     return ret;
                 }
+                if (waitFrontBeforeNextPose(axi, axisX, axisY)) {
+                    return ret;
+                }
                 // modify from 50 to 55, 降低抬头和低头的难度
                 if (blur < 5.0F && (double)this.mask[0] < 0.7D &&checkJingMoAlive && checkPose ) {
                     int status = this.judgePose(this.mCurPose, this.poseValue, axisX, axisY, this.mouth[0], this.eye[0]);
@@ -476,6 +499,33 @@ public class AEFaceAlive {
 
     }
 
+
+    /** 正视摄像头：动完一个动作后必须回到这个姿态，再开始判下一个。 */
+    private boolean isFaceFrontal(float z, float x, float y) {
+        return z < FRONT_AXIS_Z && Math.abs(x) < FRONT_AXIS_X && Math.abs(y) < FRONT_AXIS_Y;
+    }
+
+    /**
+     * 动作切换后先丢掉若干帧，再等到正视，才允许判定新动作。
+     * @return true 表示本帧仍在等待，调用方不要 judgePose
+     */
+    private boolean waitFrontBeforeNextPose(float z, float x, float y) {
+        if (this.mSkipAfterPose > 0) {
+            this.mSkipAfterPose--;
+            return true;
+        }
+        if (!this.mWaitFront) {
+            return false;
+        }
+        if (!isFaceFrontal(z, x, y)) {
+            return true;
+        }
+        this.mWaitFront = false;
+        this.faceDC = false;
+        this.full = false;
+        this.mBuff.clear();
+        return false;
+    }
 
     private boolean checkPose(float z, float x, float y){
         if(this.mCurPose == AEFaceAlive.POSE_FACE_SHAKE || this.mCurPose == AEFaceAlive.POSE_FACE_DOWN || this.mCurPose== AEFaceAlive.POSE_FACE_UP){

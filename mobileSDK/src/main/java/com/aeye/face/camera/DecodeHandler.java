@@ -90,8 +90,12 @@ public class DecodeHandler extends Handler {
     //	int[] envCount = new int[]{0,0,0,0,0};
     private int envPreFrm;
     private int envCount;
-    int ENV_COUNT_MAX = 3;
+    int ENV_COUNT_MAX = 4;
     private int envLast = AEFaceQuality.QUALITY_OK;
+    private boolean mFaceFarSticky = false;
+    private int mFarFlipCount = 0;
+    private static final int FAR_ENTER_FRAMES = 4;
+    private static final int FAR_LEAVE_FRAMES = 3;
 
     /**
      * 构造
@@ -119,6 +123,8 @@ public class DecodeHandler extends Handler {
 
         envLast = AEFaceQuality.QUALITY_OK;
         envCount = 0;
+        mFaceFarSticky = false;
+        mFarFlipCount = 0;
         skipFrame = 5;
 
         CfgLoseFace = AEFacePack.getInstance().getLoseFaceNum();
@@ -246,6 +252,14 @@ public class DecodeHandler extends Handler {
                                 }
                             } else {
                                 Log.e(TAG, "facePosition quality=" + quality);
+                            }
+                        } else if (quality == AEFaceQuality.QUALITY_DARK
+                                || quality == AEFaceQuality.QUALITY_BRIGHT) {
+                            // 出框/过远时人脸偏暗是常态，不当成环境光问题
+                            int pos = facePosition(rect[0], faceInfo.width, faceInfo.height);
+                            if (pos == RecognizeActivity.QUALITY_OUT
+                                    || pos == AEFaceQuality.QUALITY_FAR) {
+                                quality = pos;
                             }
                         }
                         Log.i("TIME", "Quality cost " + (System.currentTimeMillis() - time)+" quality result : "+quality);
@@ -418,19 +432,18 @@ public class DecodeHandler extends Handler {
         if (haveFace) {
             if(quality == AEFaceQuality.QUALITY_FAR){
                 activity.notifyMultiFace(false);
-                activity.showHint("face_far", RecognizeActivity.HINT_COLOR_THEME);
-                activity.showFaceOut(false);
+                activity.showFaceTooFar();
             }else if(quality ==-2){
                 activity.notifyMultiFace(true);
             }else {
                 activity.notifyMultiFace(false);
-                activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
+                activity.notifyOutOfFrameHint("aeye_quality_out");
                 activity.showFaceOut(false);
             }
         } else if ((loseCount++) == CfgLoseFace && activity.getDecodeStatus()
                 && (!AEFacePack.getInstance().isAliveOff() || activity.isSilentAliveMode())) {
             activity.notifyMultiFace(false);
-            activity.showHint("aeye_quality_out", RecognizeActivity.HINT_COLOR_THEME);
+            activity.notifyOutOfFrameHint("aeye_quality_out");
             activity.showNoFace();
         }
     }
@@ -499,7 +512,7 @@ public class DecodeHandler extends Handler {
                 + ",rectH=" + rect.height()
                 + ",width=" + width
                 + ",height=" + height);
-        ENV_COUNT_MAX = 3;
+        ENV_COUNT_MAX = 4;
         int result = envLast;
         Rect face = new Rect(rect);
         float minX = width / xChushu;
@@ -554,10 +567,10 @@ public class DecodeHandler extends Handler {
             );
             if (activity.getHandler().getCurPos() == AEFaceAlive.POSE_MOUTH_OPEN ||
                     face.top < (minY / 2) || face.bottom > maxY + (minY / 2) || rate < 1.1) {
-                ENV_COUNT_MAX = 1;
+                ENV_COUNT_MAX = 2;
                 Log.e(TAG, "mouth ");
             } else {
-                ENV_COUNT_MAX = 5;
+                ENV_COUNT_MAX = 6;
             }
             if (envDelay(RecognizeActivity.QUALITY_OUT)) {
                 result = RecognizeActivity.QUALITY_OUT;
@@ -576,11 +589,40 @@ public class DecodeHandler extends Handler {
                 }
             }
         }
-        if(result == AEFaceQuality.QUALITY_OK){
-            if(rect.width()< nearFaceWidth){
-                result = AEFaceQuality.QUALITY_FAR;
-                envLast = AEFaceQuality.QUALITY_FAR;
+        // 框内过小才「请靠近一点」。出框立刻清过远，靠近后较快退出过远，避免文案钉死。
+        boolean wasFar = mFaceFarSticky;
+        int farEnter = nearFaceWidth;
+        int farLeave = nearFaceWidth + 25;
+        boolean tooSmall = rect.width() < (wasFar ? farLeave : farEnter);
+        boolean outNow = leftLimit < limitXDiff || rightLimit >= limitXrigntdiff
+                || topLimit < limitXDiff || bottomLimit >= limitXrigntdiff || rate < 1.1;
+        if (outNow || result == RecognizeActivity.QUALITY_OUT) {
+            mFaceFarSticky = false;
+            mFarFlipCount = 0;
+        } else {
+            boolean wantFar = tooSmall && result != RecognizeActivity.QUALITY_OUT;
+            if (wantFar == mFaceFarSticky) {
+                mFarFlipCount = 0;
+            } else {
+                mFarFlipCount++;
+                int need = wantFar ? FAR_ENTER_FRAMES : FAR_LEAVE_FRAMES;
+                if (mFarFlipCount >= need) {
+                    mFaceFarSticky = wantFar;
+                    mFarFlipCount = 0;
+                }
             }
+        }
+        if (mFaceFarSticky && !outNow && result != RecognizeActivity.QUALITY_OUT) {
+            result = AEFaceQuality.QUALITY_FAR;
+            envLast = AEFaceQuality.QUALITY_FAR;
+        } else if (outNow && result == AEFaceQuality.QUALITY_FAR) {
+            // 已出框时不要继续报过远，否则「请靠近一点」会钉死
+            result = RecognizeActivity.QUALITY_OUT;
+            envLast = RecognizeActivity.QUALITY_OUT;
+        } else if (!tooSmall && result == AEFaceQuality.QUALITY_FAR) {
+            // 已靠近时立刻退出过远，不要等 envLast 从 FAR 刷到 OK
+            result = AEFaceQuality.QUALITY_OK;
+            envLast = AEFaceQuality.QUALITY_OK;
         }
         return result;
     }

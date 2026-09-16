@@ -29,6 +29,12 @@ public final class FaceActionConfig {
     public static final String DETECT_LIGHT = "3";
     /** 检测类型：动作+炫彩活体 */
     public static final String DETECT_MOTION_LIGHT = "4";
+    /** 查询核验结果总次数；缺省与旧逻辑一致为 5 */
+    public static final int DEFAULT_POLLING_COUNT = 5;
+    /** 查询核验结果间隔（秒）；缺省 1 秒 */
+    public static final int DEFAULT_POLLING_TIME_SEC = 1;
+    private static final int MAX_POLLING_COUNT = 30;
+    private static final int MAX_POLLING_TIME_SEC = 60;
 
     private long actionConfigId;
     private String businessCode;
@@ -44,6 +50,10 @@ public final class FaceActionConfig {
     private String memo;
     /** 配置接口返回的 userInfo；确认页仅在业务 App 未传入对应字段时使用 */
     private FaceUserInfo userInfo;
+    /** 与 userInfo 同级：queryVerifyResult 总轮询次数 */
+    private int pollingCount = DEFAULT_POLLING_COUNT;
+    /** 与 userInfo 同级：两次查询间隔（秒） */
+    private int pollingTimeSec = DEFAULT_POLLING_TIME_SEC;
 
     public long getActionConfigId() {
         return actionConfigId;
@@ -149,6 +159,48 @@ public final class FaceActionConfig {
         this.userInfo = userInfo;
     }
 
+    public int getPollingCount() {
+        return pollingCount;
+    }
+
+    public void setPollingCount(int pollingCount) {
+        this.pollingCount = pollingCount;
+    }
+
+    public int getPollingTimeSec() {
+        return pollingTimeSec;
+    }
+
+    public void setPollingTimeSec(int pollingTimeSec) {
+        this.pollingTimeSec = pollingTimeSec;
+    }
+
+    /** 实际轮询次数：至少 1，缺省 {@link #DEFAULT_POLLING_COUNT} */
+    public int resolvedPollingCount() {
+        if (pollingCount <= 0) {
+            return DEFAULT_POLLING_COUNT;
+        }
+        return Math.min(MAX_POLLING_COUNT, pollingCount);
+    }
+
+    /** 实际轮询间隔（秒）：允许 0（连续查），缺省 {@link #DEFAULT_POLLING_TIME_SEC} */
+    public int resolvedPollingTimeSec() {
+        if (pollingTimeSec < 0) {
+            return DEFAULT_POLLING_TIME_SEC;
+        }
+        return Math.min(MAX_POLLING_TIME_SEC, pollingTimeSec);
+    }
+
+    /** 第一次在 0s，之后每隔 {@link #resolvedPollingTimeSec()} 秒一次，共 {@link #resolvedPollingCount()} 次。 */
+    public long pollingSpanMs() {
+        int n = resolvedPollingCount();
+        int t = resolvedPollingTimeSec();
+        if (n <= 1 || t <= 0) {
+            return 0L;
+        }
+        return (long) (n - 1) * t * 1000L;
+    }
+
     /** 1=固定顺序；其余（含 2 / 空）视为随机 */
     public boolean isSequenceActionType() {
         return ACTION_SEQUENCE.equals(actionType);
@@ -156,6 +208,17 @@ public final class FaceActionConfig {
 
     public boolean isRandomActionType() {
         return !isSequenceActionType();
+    }
+
+    /** 当前打开的动作开关数量（抬头/低头/摇头/张嘴/眨眼）。 */
+    public int countEnabled() {
+        int n = 0;
+        if (enableLookUp) n++;
+        if (enableLookDown) n++;
+        if (enableShakeHead) n++;
+        if (enableOpenMouth) n++;
+        if (enableBlink) n++;
+        return n;
     }
 
     public String toSummaryText() {
@@ -176,6 +239,8 @@ public final class FaceActionConfig {
         } else {
             sb.append("，模式=随机");
         }
+        sb.append("，轮询=").append(resolvedPollingCount())
+                .append("次/").append(resolvedPollingTimeSec()).append("s");
         return sb.toString();
     }
 }

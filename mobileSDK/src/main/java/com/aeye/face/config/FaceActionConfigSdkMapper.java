@@ -42,17 +42,19 @@ public final class FaceActionConfigSdkMapper {
         }
         boolean fixedPool = config.isSequenceActionType();
         paras.putInt(AEFaceParam.AliveFixMotionSwitch, fixedPool ? 1 : 0);
+        int[] motions = buildFixedPoolMotionIds(config);
         int motionNum = Math.max(0, Math.min(5, config.getActionCount()));
+        if (motionNum <= 0 && motions.length > 0) {
+            motionNum = Math.min(5, motions.length);
+        }
         // 动作+炫彩与纯动作共用 actionCount（最多 5）；至少 1 个，避免 0 导致无法进入炫彩
         if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
             motionNum = Math.max(1, motionNum);
         }
         paras.putInt(AEFaceParam.AliveMotionNum, motionNum);
-        if (fixedPool) {
-            int[] motions = buildFixedPoolMotionIds(config);
-            if (motions.length > 0) {
-                paras.putIntArray(AEFaceParam.AliveMotion, motions);
-            }
+        // 顺序 / 随机都写入动作池：随机时由 CaptureActivityHandler 在池内抽取 actionCount 个
+        if (motions.length > 0) {
+            paras.putIntArray(AEFaceParam.AliveMotion, motions);
         }
     }
 

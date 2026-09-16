@@ -91,7 +91,7 @@ public final class FaceVerifyLogManager {
     }
 
     /**
-     * 文档公共可选字段：userId / businessCode / businessName / busId / source / requestIp。
+     * 文档公共可选字段：userId / authRecordId / businessCode / businessName / busId / source / requestIp。
      * 不传 brand、证件号等文档未列出的字段。
      */
     private static JSONObject buildCommonBody(Context context) {
@@ -99,6 +99,7 @@ public final class FaceVerifyLogManager {
         try {
             FaceActionConfig config = FaceActionConfigManager.getCached();
             putIfNotEmpty(body, "userId", FaceVerifySession.getUserId());
+            putIfNotEmpty(body, "authRecordId", FaceVerifySession.getAuthRecordId());
             if (config != null) {
                 putIfNotEmpty(body, "businessCode", config.getBusinessCode());
                 putIfNotEmpty(body, "businessName", config.getBusinessName());

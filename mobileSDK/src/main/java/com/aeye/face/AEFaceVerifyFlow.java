@@ -248,7 +248,7 @@ public final class AEFaceVerifyFlow {
                 FaceVerifySession.setUserInfo(FaceUserInfo.mergePreferHost(
                         FaceVerifySession.getUserInfo(),
                         config != null ? config.getUserInfo() : null));
-                if (!prepareSdk(activity, hostHomeActivityClass, listener, callback)) {
+                if (!prepareSdk(activity, hostHomeActivityClass, listener, callback, config)) {
                     return;
                 }
                 InfoConfirmPayload payload = buildConfirmPayload(FaceVerifySession.getUserInfo());
@@ -357,7 +357,8 @@ public final class AEFaceVerifyFlow {
     }
 
     private static boolean prepareSdk(Activity activity, String hostHomeActivityClass,
-                                      AEFaceInterface listener, Callback callback) {
+                                      AEFaceInterface listener, Callback callback,
+                                      FaceActionConfig config) {
         // 环境检查已在 start()/startLocal() 入口完成，这里做一次内存兜底
         int env = AEFacePack.getInstance().AEYE_EnvCheckSilent(activity, 200 * 1024 * 1024);
         if (env == AEFacePack.ENV_CHECK_LOW_MEMORY) {
@@ -368,16 +369,14 @@ public final class AEFaceVerifyFlow {
         AEFacePack.getInstance().AEYE_Init(activity);
 
         Bundle paras = FaceSdkHostParamBuilder.buildBase(hostHomeActivityClass, true);
-        FaceActionConfigManager.applyCachedToSdkBundle(paras);
-        // Demo/联调可覆盖 detectType；正式环境通常已由缓存配置写入
+        FaceActionConfig effective = config != null ? config : FaceActionConfigManager.getCached();
+        // Demo/联调可覆盖 detectType；不要 new 一份默认 actionCount=3 的配置把后台动作数冲掉
         String override = FaceVerifySession.getDetectTypeOverride();
-        if (!TextUtils.isEmpty(override)) {
-            FaceActionConfig cfg = FaceActionConfigManager.getCached();
-            if (cfg == null) {
-                cfg = new FaceActionConfig();
-            }
-            cfg.setDetectType(override);
-            FaceActionConfigSdkMapper.applyToBundle(paras, cfg);
+        if (effective != null && !TextUtils.isEmpty(override)) {
+            effective.setDetectType(override);
+        }
+        if (effective != null) {
+            FaceActionConfigSdkMapper.applyToBundle(paras, effective);
         }
 
         AEFacePack.getInstance().AEYE_SetListener(listener);

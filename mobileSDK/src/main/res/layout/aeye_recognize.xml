@@ -278,7 +278,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="center"
-                android:text="10s"
+                android:text=""
                 android:textColor="@color/face_hint_sub"
                 android:textSize="16sp"
                 android:visibility="invisible" />
