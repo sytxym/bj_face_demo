@@ -5,7 +5,8 @@ import android.text.TextUtils;
 import org.json.JSONObject;
 
 /**
- * 用户基本信息：优先由外部业务 App 传入；未传时可用活体配置接口返回的 {@code userInfo} 兜底。
+ * 用户基本信息：确认页四项（姓名/证件类型/证件号码/国家）优先用活体配置接口 {@code userInfo}；
+ * 空缺再用外部业务 App 传入。userId / busId / openId 仍优先业务 App。
  * <p>与「SDK 配置信息」（活体检测方式、动作配置等，见
  * {@link com.aeye.face.config.FaceActionOptions}）分开管理：本类只承载身份字段。</p>
  */
@@ -82,23 +83,24 @@ public final class FaceUserInfo {
     }
 
     /**
-     * 确认页/会话用：业务 App 传入的字段优先，空缺再用配置接口 {@code userInfo}。
+     * 确认页/会话用：姓名、证件类型、证件号码、国家优先接口 {@code userInfo}，空缺再用业务 App；
+     * userId / busId / openId 仍优先业务 App。
      */
-    public static FaceUserInfo mergePreferHost(FaceUserInfo host, FaceUserInfo fallback) {
-        if (host == null) {
-            return fallback;
-        }
-        if (fallback == null) {
+    public static FaceUserInfo mergePreferHost(FaceUserInfo host, FaceUserInfo api) {
+        if (api == null) {
             return host;
         }
+        if (host == null) {
+            return api;
+        }
         return new Builder()
-                .certName(firstNonEmpty(host.certName, fallback.certName))
-                .certType(firstNonEmpty(host.certType, fallback.certType))
-                .certNo(firstNonEmpty(host.certNo, fallback.certNo))
-                .country(firstNonEmpty(host.country, fallback.country))
-                .userId(firstNonEmpty(host.userId, fallback.userId))
-                .busId(firstNonEmpty(host.busId, fallback.busId))
-                .openId(firstNonEmpty(host.openId, fallback.openId))
+                .certName(firstNonEmpty(api.certName, host.certName))
+                .certType(firstNonEmpty(api.certType, host.certType))
+                .certNo(firstNonEmpty(api.certNo, host.certNo))
+                .country(firstNonEmpty(api.country, host.country))
+                .userId(firstNonEmpty(host.userId, api.userId))
+                .busId(firstNonEmpty(host.busId, api.busId))
+                .openId(firstNonEmpty(host.openId, api.openId))
                 .build();
     }
 

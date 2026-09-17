@@ -27,7 +27,7 @@ public final class FaceVerifySession {
      */
     private static String detectTypeOverride;
     /**
-     * 用户基本信息：优先外部业务 App 传入；未传字段可用活体配置接口 {@code userInfo} 兜底。
+     * 用户基本信息：确认页四项优先配置接口 {@code userInfo}；userId/busId/openId 优先业务 App。
      */
     private static FaceUserInfo userInfo;
 

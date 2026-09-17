@@ -48,7 +48,7 @@ public final class FaceActionConfig {
     private boolean enableOpenMouth;
     private boolean enableBlink = true;
     private String memo;
-    /** 配置接口返回的 userInfo；确认页仅在业务 App 未传入对应字段时使用 */
+    /** 配置接口返回的 userInfo；确认页四项优先用此，空缺再用业务 App */
     private FaceUserInfo userInfo;
     /** 与 userInfo 同级：queryVerifyResult 总轮询次数 */
     private int pollingCount = DEFAULT_POLLING_COUNT;

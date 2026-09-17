@@ -28,8 +28,8 @@ import org.json.JSONObject;
 /**
  * 人脸核验统一入口。传入参数分两类分别管理：
  * <ul>
- *   <li><b>用户基本信息</b>（{@link FaceUserInfo}：certName/certType/certNo/country/userId/busId）：
- *       优先由外部业务 App 传入；未传时用活体配置接口返回的 {@code userInfo} 填确认页；</li>
+     *   <li><b>用户基本信息</b>（{@link FaceUserInfo}：certName/certType/certNo/country/userId/busId）：
+     *       确认页四项优先用活体配置接口返回的 {@code userInfo}；空缺再用外部业务 App 传入；</li>
  *   <li><b>SDK 配置信息</b>（活体检测方式、动作配置等）：
  *       在线核验（{@link #start}）使用配置接口返回的字段；
  *       本地核验（{@link #startLocal}）由外部业务 App 通过 {@link FaceActionOptions} 传入，
@@ -106,7 +106,7 @@ public final class AEFaceVerifyFlow {
 
     /**
      * 在线核验推荐入口：外部业务 App 传入用户基本信息。
-     * <p>确认页四项身份字段优先用 {@code userInfo}；缺省再用活体配置接口返回的 {@code userInfo}。
+     * <p>确认页四项身份字段优先用活体配置接口返回的 {@code userInfo}；缺省再用业务 App 传入。
      * SDK 配置（活体方式、动作等）使用配置接口 {@code actionConfig}。</p>
      *
      * @param userInfo           外部业务 App 传入的用户基本信息（userId 可选）
@@ -183,7 +183,7 @@ public final class AEFaceVerifyFlow {
                     FaceUniResultCodes.MSG_MISSING_PARAMS);
             return;
         }
-        // userId 非必传：确认页身份优先业务 App，缺省用活体配置接口 userInfo
+        // userId 非必传：确认页身份优先配置接口 userInfo，缺省用业务 App
 
         // 环境预检：授权后自动继续，无需宿主再次点击按钮
         if (!ensureEnvironmentReady(activity, listener, callback, new Runnable() {
@@ -339,7 +339,7 @@ public final class AEFaceVerifyFlow {
 
     /**
      * 确认页四项：国家地区、姓名、证件类型、证件号码。
-     * 优先业务 App 传入，缺省字段已在 {@link FaceUserInfo#mergePreferHost} 用配置接口补齐。
+     * 优先配置接口返回，缺省字段已在 {@link FaceUserInfo#mergePreferHost} 用业务 App 补齐。
      */
     private static InfoConfirmPayload buildConfirmPayload(FaceUserInfo info) {
         JSONObject data = new JSONObject();
