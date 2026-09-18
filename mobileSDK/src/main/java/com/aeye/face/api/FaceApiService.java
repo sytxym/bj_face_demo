@@ -294,12 +294,12 @@ public final class FaceApiService {
         }
 //        putIfNotEmpty(req, "businessCode", FaceVerifySession.getBusinessCode());
 //        appendUserIdentityFields(req);
-        req.put("facePic1", toJpegFacePic(images.getString(0), live));
+        req.put("facePic1", images.getString(0));
         for (int picIndex = 2; picIndex <= 6; picIndex++) {
             int imageIndex = picIndex - 1;
             String key = "facePic" + picIndex;
             if (images.length() > imageIndex) {
-                req.put(key, toJpegFacePic(images.getString(imageIndex), live));
+                req.put(key, images.getString(imageIndex));
             } else {
                 req.put(key, JSONObject.NULL);
             }
@@ -470,7 +470,7 @@ public final class FaceApiService {
 
     /**
      * 查询核验结果。请求 {@code authRecordId} 必填，{@code openId} 可选。
-     * 错误码/文案取业务信封 {@code errorCode}/{@code messageList}，不用网关最外层字段。
+     * 错误码/文案取业务信封 {@code code}/{@code message}，不用网关最外层 {@code code}/{@code msg}。
      */
     public static AuthStatusResult queryVerifyResult(String baseUrl, String authRecordId) throws Exception {
         if (TextUtils.isEmpty(authRecordId)) {
@@ -488,86 +488,44 @@ public final class FaceApiService {
     }
 
     public static AuthStatusResult parseQueryVerifyResultResponse(String json) {
-        if (TextUtils.isEmpty(json)) {
-            throw new IllegalArgumentException("queryVerifyResult 响应为空");
+        ApiResult result = ApiResponseParser.parseUnchecked(json);
+        String message = queryFailMessage(result.getMessage());
+        if (!result.isOk()) {
+            return AuthStatusResult.apiError(result.getErrorCode(), message);
         }
-        JSONObject root;
-        try {
-            root = new JSONObject(json);
-        } catch (JSONException e) {
-            throw new IllegalArgumentException("queryVerifyResult JSON 解析失败: " + e.getMessage());
-        }
-        JSONObject business = unwrapQueryVerifyBusinessEnvelope(root);
-        boolean ok = business.optBoolean("ok", false);
-        String errorCode = readBusinessErrorCode(business);
-        String message = ApiResponseParser.firstMessage(business);
-        if (!ok) {
-            return AuthStatusResult.apiError(errorCode, message);
-        }
-        JSONObject data = readQueryVerifyData(business);
+        JSONObject data = result.getBusinessData();
         String status = data != null ? readStatus(data) : null;
         if (TextUtils.isEmpty(status)) {
             return AuthStatusResult.of(QrRecordStatus.VERIFYING, null);
         }
-        String verifyTerminal = null;
-        if (data != null && data.has("verifyTerminal") && !data.isNull("verifyTerminal")) {
-            String raw = data.optString("verifyTerminal", null);
-            if (!TextUtils.isEmpty(raw) && !"null".equalsIgnoreCase(raw.trim())) {
-                verifyTerminal = raw.trim();
-            }
+        String verifyTerminal = readVerifyTerminal(data);
+        if (QrRecordStatus.PASSED.equals(status)) {
+            message = null;
         }
-        return AuthStatusResult.of(status, message, errorCode, verifyTerminal);
+        return AuthStatusResult.of(status, message, result.getErrorCode(), verifyTerminal);
     }
 
-    /**
-     * 只要业务信封：网关解包后应已是 {@code {ok,errorCode,messageList,data}}；
-     * 若仍带着网关外层 {@code success/code}，则从 {@code data} 再取出业务 JSON。
-     */
-    private static JSONObject unwrapQueryVerifyBusinessEnvelope(JSONObject root) {
-        if (root == null) {
-            return new JSONObject();
+    /** 业务 {@code message}；通用「成功」文案不当成失败原因。 */
+    private static String queryFailMessage(String message) {
+        if (TextUtils.isEmpty(message)) {
+            return null;
         }
-        if (root.has("ok")) {
-            return root;
+        String trimmed = message.trim();
+        if ("成功".equals(trimmed) || trimmed.startsWith("请求成功")) {
+            return null;
         }
-        JSONObject nested = root.optJSONObject("data");
-        if (nested != null && nested.has("ok")) {
-            return nested;
-        }
-        String dataStr = root.optString("data", null);
-        if (!TextUtils.isEmpty(dataStr) && dataStr.trim().startsWith("{")) {
-            try {
-                JSONObject parsed = new JSONObject(dataStr.trim());
-                if (parsed.has("ok")) {
-                    return parsed;
-                }
-            } catch (JSONException ignored) {
-            }
-        }
-        return root;
+        return trimmed;
     }
 
-    /** 业务 {@code data}：{@code status}/{@code verifyTerminal}；兼容旧的 {@code data.data}。 */
-    private static JSONObject readQueryVerifyData(JSONObject business) {
-        JSONObject data = business.optJSONObject("data");
-        if (data == null) {
+    private static String readVerifyTerminal(JSONObject data) {
+        if (data == null || !data.has("verifyTerminal") || data.isNull("verifyTerminal")) {
             return null;
         }
-        if (!data.has("status") && data.optJSONObject("data") != null) {
-            return data.optJSONObject("data");
-        }
-        return data;
-    }
-
-    private static String readBusinessErrorCode(JSONObject business) {
-        if (business == null || !business.has("errorCode") || business.isNull("errorCode")) {
+        String raw = data.optString("verifyTerminal", null);
+        if (TextUtils.isEmpty(raw) || "null".equalsIgnoreCase(raw.trim())) {
             return null;
         }
-        String errorCode = business.optString("errorCode", null);
-        if (TextUtils.isEmpty(errorCode) || "null".equalsIgnoreCase(errorCode.trim())) {
-            return null;
-        }
-        return errorCode.trim();
+        return raw.trim();
     }
 
     private static String readStatus(JSONObject data) {
@@ -588,7 +546,7 @@ public final class FaceApiService {
     // ---------- 核验日志 ----------
 
     /**
-     * 上报核验日志；成功仅看外层 {@code ok}，{@code data} 可为 null。
+     * 上报核验日志；成功仅看业务 {@code code=200}，{@code data} 可为 null。
      */
     public static void saveFaceVerifyLog(String baseUrl, String jsonBody) throws Exception {
         String response = SdkHttpClient.postJson(baseUrl, FaceApiPaths.SAVE_FACE_VERIFY_LOG, jsonBody);
@@ -596,7 +554,7 @@ public final class FaceApiService {
     }
 
     /**
-     * 更新二维码认证记录状态；成功仅看外层 {@code ok}，{@code data} 可为 null。
+     * 更新二维码认证记录状态；成功仅看业务 {@code code=200}，{@code data} 可为 null。
      */
     public static void updateQrCodeRecord(String baseUrl, String jsonBody) throws Exception {
         String response = SdkHttpClient.postJson(baseUrl, FaceApiPaths.QR_CODE_UPDATE_RECORD, jsonBody);
@@ -614,7 +572,7 @@ public final class FaceApiService {
     /**
      * 炫彩活体获取颜色。
      * <p>POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，无请求参数；
-     * 响应外层为统一 {@code {ok, data:{data:{...}}}} 结构，
+     * 响应为统一 {@code {code, message, data:{...}}} 结构，
      * 业务节点含 {@code color1/color2/color3/sequnce}。</p>
      */
     public static ColorResponseBean.ColorsBean fetchAssistantThunderColor(String baseUrl) throws Exception {

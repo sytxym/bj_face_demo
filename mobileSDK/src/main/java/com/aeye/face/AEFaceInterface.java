@@ -29,7 +29,7 @@ public interface AEFaceInterface {
 	 *                   无人脸超时 {@code "0412002"}；多人脸 {@code "0414003"}；过暗 {@code "0414004"}；
 	 *                   过亮 {@code "0414005"}；单动作超时 {@code "0414008"}；出框超时 {@code "0414009"}；
 	 *                   活体算法失败 {@code "04014010"}；网络超时 {@code "0114011"}；服务异常 {@code "0419001"}。
-	 *                   查询核验 {@code /faceRecord/queryVerifyResult} 业务信封 {@code errorCode}/{@code messageList}
+	 *                   查询核验 {@code /faceRecord/queryVerifyResult} 业务信封 {@code code}/{@code message}
 	 *                   （如 {@code 0415001}～{@code 0415004}、{@code 0412006}），不用网关最外层字段、不覆盖。
 	 *                   用户取消 {@code "0414011"}（用户已取消，请稍后重试）、
 	 *                   相机设备异常 {@code "0414012"}（相机暂时无法使用，请稍后重试）、

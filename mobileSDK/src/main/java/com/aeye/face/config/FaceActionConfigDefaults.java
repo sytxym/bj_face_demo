@@ -84,13 +84,11 @@ public final class FaceActionConfigDefaults {
     }
 
     /**
-     * 接口不可用时的内置 Mock（统一外层 {@code ok/data/data} 结构）。
+     * 接口不可用时的内置 Mock（统一信封 {@code code/message/data}）。
      */
     public static final String FALLBACK_JSON = "{"
-            + "\"ok\":true,"
-            + "\"errorCode\":null,"
-            + "\"mygType\":null,"
-            + "\"data\":{"
+            + "\"code\":\"200\","
+            + "\"message\":\"成功\","
             + "\"data\":{"
             + "\"userInfo\":{"
             + "\"certName\":\"模拟用户\","
@@ -115,18 +113,12 @@ public final class FaceActionConfigDefaults {
             + "\"memo\":\"Demo 模拟动作配置\""
             + "}"
             + "}"
-            + "},"
-            + "\"errors\":null,"
-            + "\"messageList\":[],"
-            + "\"messageType\":null"
             + "}";
 
     /** 联调样例：纯炫彩 detectType=3 */
     public static final String FALLBACK_JSON_LIGHT = "{"
-            + "\"ok\":true,"
-            + "\"errorCode\":null,"
-            + "\"mygType\":null,"
-            + "\"data\":{"
+            + "\"code\":\"200\","
+            + "\"message\":\"成功\","
             + "\"data\":{"
             + "\"pollingCount\":\"5\","
             + "\"pollingTime\":\"1\","
@@ -145,18 +137,12 @@ public final class FaceActionConfigDefaults {
             + "\"memo\":\"Demo 模拟纯炫彩配置\""
             + "}"
             + "}"
-            + "},"
-            + "\"errors\":null,"
-            + "\"messageList\":[],"
-            + "\"messageType\":null"
             + "}";
 
     /** 联调样例：动作+炫彩 detectType=4 */
     public static final String FALLBACK_JSON_MOTION_LIGHT = "{"
-            + "\"ok\":true,"
-            + "\"errorCode\":null,"
-            + "\"mygType\":null,"
-            + "\"data\":{"
+            + "\"code\":\"200\","
+            + "\"message\":\"成功\","
             + "\"data\":{"
             + "\"pollingCount\":\"5\","
             + "\"pollingTime\":\"1\","
@@ -175,10 +161,6 @@ public final class FaceActionConfigDefaults {
             + "\"memo\":\"Demo 模拟动作+炫彩配置\""
             + "}"
             + "}"
-            + "},"
-            + "\"errors\":null,"
-            + "\"messageList\":[],"
-            + "\"messageType\":null"
             + "}";
 
     /**

@@ -7,7 +7,7 @@ import com.aeye.face.api.ApiResponseParser;
 import org.json.JSONObject;
 
 /**
- * 解析用户信息预览业务 JSON（{@code data.data} 节点）。
+ * 解析用户信息预览业务 JSON（信封 {@code data} 节点）。
  */
 public final class InfoConfirmParser {
 

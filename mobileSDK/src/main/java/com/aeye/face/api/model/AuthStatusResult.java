@@ -6,7 +6,7 @@ import com.aeye.face.verify.QrRecordStatus;
 
 /**
  * 查询核验结果 {@code /faceRecord/queryVerifyResult}。
- * <p>{@code errorCode}/{@code messageList} 取业务信封，不用网关最外层字段。</p>
+ * <p>错误码/文案取业务信封 {@code code}/{@code message}，不用网关最外层字段。</p>
  */
 public final class AuthStatusResult {
 
@@ -15,7 +15,7 @@ public final class AuthStatusResult {
     private final String status;
     private final String failType;
     private final boolean busy;
-    /** 业务信封 {@code errorCode}，如 0415001 / 0412006 */
+    /** 业务信封 {@code code}（非 200），如 0415001 / 0412006；成功为 null */
     private final String backendErrorCode;
     private final boolean apiError;
     private final String verifyTerminal;
@@ -53,10 +53,10 @@ public final class AuthStatusResult {
     }
 
     /**
-     * 查询核验 {@code ok=false}（第 21 项比对异常、第 22 项二次核验异常）。
+     * 查询核验 {@code code!=200}（第 21 项比对异常、第 22 项二次核验异常）。
      *
-     * @param errorCode 业务信封 {@code errorCode}
-     * @param message   业务信封 {@code messageList[0]}
+     * @param errorCode 业务信封 {@code code}
+     * @param message   业务信封 {@code message}
      */
     public static AuthStatusResult apiError(String errorCode, String message) {
         return new AuthStatusResult(null, message, false, true, errorCode, null);
@@ -100,17 +100,17 @@ public final class AuthStatusResult {
         return new AuthStatusResult(QrRecordStatus.ABNORMAL_EXIT, null, false);
     }
 
-    /** 查询接口 {@code ok=false}，应立即失败、不再轮询 */
+    /** 查询接口 {@code code!=200}，应立即失败、不再轮询 */
     public boolean isApiError() {
         return apiError;
     }
 
-    /** 业务信封 {@code errorCode}，无则 null */
+    /** 业务信封非 200 的 {@code code}，无则 null */
     public String getBackendErrorCode() {
         return backendErrorCode;
     }
 
-    /** 未通过时的详情 / 回调 msg；优先业务 {@code messageList[0]} */
+    /** 未通过时的详情 / 回调 msg；优先业务 {@code message} */
     public String displayFailMessage() {
         if (busy) {
             return BUSY_MESSAGE;

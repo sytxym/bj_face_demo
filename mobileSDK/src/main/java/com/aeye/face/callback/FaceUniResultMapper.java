@@ -10,7 +10,7 @@ import org.json.JSONObject;
 /**
  * 结果码映射：把 SDK 内部结果码映射为三端统一的 {@code resultCode}/{@code resultMsg}，
  * 并注入到 {@code onFinish} 的 {@code data} JSON 顶层（同时写入 {@code code}/{@code msg}）。
- * 查询核验未通过时 {@code resultMsg}/{@code msg} 使用业务信封 {@code messageList[0]}；
+ * 查询核验未通过时 {@code resultMsg}/{@code msg} 使用业务信封 {@code message}；
  * 本地失败页则使用表格倒数第二栏提示文案。
  */
 public final class FaceUniResultMapper {
@@ -27,7 +27,7 @@ public final class FaceUniResultMapper {
     }
 
     /**
-     * @param backendErrorCode 场景异常编码或查询接口业务信封 {@code errorCode}
+     * @param backendErrorCode 场景异常编码或查询接口业务信封 {@code code}
      */
     public static String unifiedResultCode(int sdkValue, String backendErrorCode) {
         if (!TextUtils.isEmpty(backendErrorCode)) {

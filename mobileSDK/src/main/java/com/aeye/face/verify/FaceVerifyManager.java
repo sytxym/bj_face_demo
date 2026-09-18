@@ -48,7 +48,7 @@ public final class FaceVerifyManager {
 
         void onFailed(String message);
 
-        /** @param backendErrorCode 查询接口 {@code ok=false} 时的 {@code errorCode}，其它失败为 null */
+        /** @param backendErrorCode 查询接口 {@code code!=200} 时的业务 {@code code}，其它失败为 null */
         default void onFailed(String message, String backendErrorCode) {
             onFailed(message);
         }

@@ -79,7 +79,7 @@ public final class FaceUniResultCodes {
     public static final String MSG_PARSE_FAILED = "返回数据解析失败";
 
     /**
-     * 提交阶段失败且无后台 errorCode 时：网络超时走第 19 项，其余走第 20 项。
+     * 提交阶段失败且无后台 {@code code} 时：网络超时走第 19 项，其余走第 20 项。
      * 第 21/22 项已有后台码，不要调用本方法覆盖。
      */
     public static String submitSceneCode(String message) {

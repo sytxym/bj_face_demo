@@ -55,7 +55,7 @@ public final class FaceActionConfigParser {
     }
 
     /**
-     * 网关可能再包多层 {@code {ok,data:{data:{userInfo,actionConfig}}}}。
+     * 网关/直启可能再套一层 {@code {code,message,data:{userInfo,actionConfig}}}。
      * 只剥信封、不改业务字段；剥不到则沿用当前节点（兼容平铺 / Mock）。
      */
     private static JSONObject unwrapToActionPayload(JSONObject data) {

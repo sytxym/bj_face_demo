@@ -28,7 +28,7 @@ public final class AEFaceCallbackHelper {
     }
 
     /**
-     * @param backendErrorCode 场景异常编码或查询接口 {@code errorCode}；为 null 则用 SDK 内部码映射
+     * @param backendErrorCode 场景异常编码或查询接口 {@code code}；为 null 则用 SDK 内部码映射
      */
     public static void dispatchFinish(AEFaceInterface listener, int sdkValue,
                                       String data, String detailMessage, boolean submitFailure,

@@ -100,6 +100,9 @@ public final class SdkHttpClient {
     private static final String JSON_CONTENT_TYPE = "application/json;charset=utf-8";
     private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded;charset=utf-8";
 
+    /** 超过该大小才用定长流式写出，避免小请求触发 Expect: 100-continue */
+    private static final int STREAMING_BODY_THRESHOLD = 256 * 1024;
+
     /** 复用到失效 keep-alive 连接（Broken pipe / connection reset 等）时的自动重试次数 */
     private static final int STALE_CONN_RETRY_MAX = 1;
 
@@ -121,30 +124,40 @@ public final class SdkHttpClient {
                     lastError = e;
                     continue;
                 }
+                if (isStaleConnectionError(e)) {
+                    ConnectException mapped = new ConnectException("网络异常，请稍后重试");
+                    mapped.initCause(e);
+                    throw mapped;
+                }
                 throw e;
             }
         }
         throw lastError;
     }
 
-    /** 是否为「复用了已被服务端关闭的连接」导致的可安全重试错误 */
-    private static boolean isStaleConnectionError(Exception e) {
-        if (e instanceof java.io.EOFException) {
-            return true;
+    /**
+     * 是否为连接被对端提前关闭：keep-alive 失效、或 Expect: 100-continue 被网关直接掐掉。
+     * 需沿 cause 链判断，Android OkHttp 常包成 {@code IOException: unexpected end of stream}。
+     */
+    private static boolean isStaleConnectionError(Throwable error) {
+        for (Throwable t = error; t != null; t = t.getCause()) {
+            if (t instanceof java.io.EOFException) {
+                return true;
+            }
+            String msg = t.getMessage();
+            if (msg == null) {
+                continue;
+            }
+            String lower = msg.toLowerCase();
+            if (lower.contains("unexpected end of stream")
+                    || lower.contains("broken pipe")
+                    || lower.contains("connection reset")
+                    || lower.contains("software caused connection abort")
+                    || lower.contains("\\n not found")) {
+                return true;
+            }
         }
-        if (!(e instanceof java.net.SocketException)
-                && !(e instanceof javax.net.ssl.SSLException)) {
-            return false;
-        }
-        String msg = e.getMessage();
-        if (msg == null) {
-            return false;
-        }
-        String lower = msg.toLowerCase();
-        return lower.contains("broken pipe")
-                || lower.contains("connection reset")
-                || lower.contains("unexpected end of stream")
-                || lower.contains("software caused connection abort");
+        return false;
     }
 
     private static String executeOnce(String method, String requestUrl, String body, String contentType,
@@ -173,7 +186,11 @@ public final class SdkHttpClient {
                 conn.setDoOutput(true);
                 conn.setRequestProperty("Content-Type", contentType);
                 byte[] payload = body != null ? body.getBytes(StandardCharsets.UTF_8) : new byte[0];
-                conn.setFixedLengthStreamingMode(payload.length);
+                // 小请求体走缓冲写出，由系统带 Content-Length，避免 100-continue；
+                // 大图才定长流式，防止整包进内存
+                if (payload.length >= STREAMING_BODY_THRESHOLD) {
+                    conn.setFixedLengthStreamingMode(payload.length);
+                }
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(payload);
                     os.flush();

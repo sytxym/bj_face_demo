@@ -1,15 +1,13 @@
 package com.aeye.face.confirm;
 
 /**
- * 用户信息预览 Mock 数据（统一外层结构）。
+ * 用户信息预览 Mock 数据（统一信封 {@code code/message/data}）。
  */
 public final class InfoConfirmDefaults {
 
     public static final String FALLBACK_JSON = "{"
-            + "\"ok\":true,"
-            + "\"errorCode\":null,"
-            + "\"mygType\":null,"
-            + "\"data\":{"
+            + "\"code\":\"200\","
+            + "\"message\":\"成功\","
             + "\"data\":{"
             + "\"userId\":\"2\","
             + "\"certType\":\"身份证\","
@@ -19,10 +17,6 @@ public final class InfoConfirmDefaults {
             + "\"birthDay\":\"1988-05-05\","
             + "\"nation\":\"中国\""
             + "}"
-            + "},"
-            + "\"errors\":null,"
-            + "\"messageList\":[],"
-            + "\"messageType\":null"
             + "}";
 
     private InfoConfirmDefaults() {

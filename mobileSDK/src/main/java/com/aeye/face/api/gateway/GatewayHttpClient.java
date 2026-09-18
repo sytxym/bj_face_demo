@@ -3,6 +3,7 @@ package com.aeye.face.api.gateway;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.aeye.face.api.ApiResponseParser;
 import com.aeye.face.api.SdkHttpClient;
 
 import org.json.JSONArray;
@@ -15,7 +16,7 @@ import java.net.URLEncoder;
  * 网关请求统一入口。
  * <p>把 SDK 现有的 {@code (path, jsonBody)} 请求，按 {@link GatewayEndpoint} 配置包装成网关信封格式
  * （{@code app_id/interface_id/version/biz_content/header/charset/timestamp/origin/sign}）发送，
- * 再把网关响应解包、SM2 解密回 SDK 自身的 {@code {"ok":true,"data":{"data":...}}} 结构，
+ * 再把网关响应解包、SM2 解密回统一业务信封 {@code {"code":"200","message":"...","data":{...}}}，
  * 使 {@code FaceApiService}/{@code ApiResponseParser} 等既有业务解析代码完全不用感知网关的存在
  * ——调用层封装思路参考内部网关 SDK 的 {@code JAGSRepository.requestJAGS()}。</p>
  * <p>签名/加密算法源码内嵌本包（不依赖对方私有 Maven 仓库），底层 SM2/SM3 原语使用
@@ -35,7 +36,7 @@ public final class GatewayHttpClient {
      * @param gatewayUrl  网关地址，见 {@code AEFaceSdk.setGatewayUrl}
      * @param endpoint    接口配置（interfaceId 等）
      * @param bizJsonBody 业务参数 JSON（明文，加密前）
-     * @return 适配后的响应 JSON（{@code {"ok":true,"data":{"data":...}}} 结构）
+     * @return 适配后的响应 JSON（统一业务信封 {@code {"code","message","data"}}）
      */
     public static String postJson(String gatewayUrl, GatewayEndpoint endpoint, String bizJsonBody,
                                   int connectTimeoutMs, int readTimeoutMs) throws Exception {
@@ -136,10 +137,10 @@ public final class GatewayHttpClient {
     }
 
     /**
-     * 把网关信封解包为 SDK 自身的 {@code {"ok":true,"data":{"data":...}}} 结构。
-     * <p>网关外层字段目前按 {@code success/code/msg/data} 假设（与内部网关 SDK 的
-     * {@code GatewayResponse} 一致）。{@code data} 可能是 SM2 hex 密文（生产），
-     * 也可能是明文 JSON 字符串（联调）；已是 {@code ok/data} 业务信封时直接透传。</p>
+     * 把网关信封解包为统一业务信封 {@code {"code":"200","message":"...","data":{...}}}。
+     * <p>网关外层按 {@code success/code/msg/data}。外层 {@code code=300} 且 {@code success=true}
+     * 仍表示网关通道成功，业务成败看内层 {@code code}。{@code data} 可能是 SM2 hex 密文（生产），
+     * 也可能是明文 JSON 字符串（联调）。已是 {@code {code,message,data}} 时直接透传。</p>
      */
     private static String adaptResponse(GatewayEndpoint endpoint, String rawResponse) throws Exception {
         if (TextUtils.isEmpty(rawResponse)) {
@@ -158,7 +159,7 @@ public final class GatewayHttpClient {
             throw new IllegalStateException("网关调用失败[" + endpoint.getInterfaceId() + "]: " + msg);
         }
 
-        String dataField = resp.optString("data", "");
+        String dataField = readGatewayDataField(resp);
         String plainJson = unwrapGatewayData(dataField, endpoint.getInterfaceId());
         Log.d(TAG, "postJson response -> interfaceId=" + endpoint.getInterfaceId()
                 + ", data_raw(len=" + dataField.length() + ")=" + summarize(dataField)
@@ -166,19 +167,29 @@ public final class GatewayHttpClient {
 
         if (!TextUtils.isEmpty(plainJson)) {
             JSONObject businessEnvelope = tryParseObject(plainJson);
-            if (businessEnvelope != null && businessEnvelope.has("ok")) {
+            if (businessEnvelope != null && ApiResponseParser.isBusinessEnvelope(businessEnvelope)) {
                 return businessEnvelope.toString();
             }
         }
 
-        Object businessNode = TextUtils.isEmpty(plainJson) ? new JSONObject() : parseLoosely(plainJson);
-
-        JSONObject inner = new JSONObject();
-        inner.put("data", businessNode);
+        Object businessNode = TextUtils.isEmpty(plainJson) ? JSONObject.NULL : parseLoosely(plainJson);
         JSONObject envelope = new JSONObject();
-        envelope.put("ok", true);
-        envelope.put("data", inner);
+        envelope.put("code", ApiResponseParser.SUCCESS_CODE);
+        envelope.put("message", "成功");
+        envelope.put("data", businessNode == null ? JSONObject.NULL : businessNode);
         return envelope.toString();
+    }
+
+    /** 网关 {@code data} 可能是 JSON 字符串，也可能已是对象。 */
+    private static String readGatewayDataField(JSONObject resp) {
+        if (resp == null || !resp.has("data") || resp.isNull("data")) {
+            return "";
+        }
+        Object raw = resp.opt("data");
+        if (raw instanceof JSONObject || raw instanceof JSONArray) {
+            return raw.toString();
+        }
+        return raw != null ? String.valueOf(raw) : "";
     }
 
     /**
