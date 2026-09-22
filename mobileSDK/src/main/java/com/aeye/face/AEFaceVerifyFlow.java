@@ -15,6 +15,7 @@ import com.aeye.face.config.FaceSdkHostParamBuilder;
 import com.aeye.face.confirm.InfoConfirmManager;
 import com.aeye.face.confirm.InfoConfirmPayload;
 import com.aeye.face.callback.AEFaceCallbackHelper;
+import com.aeye.face.uitls.DeviceRiskGuard;
 import com.aeye.face.uitls.DeviceRootGuard;
 import com.aeye.face.uitls.FacePermissionRequester;
 import com.aeye.face.uitls.UsbDeveloperModeGuard;
@@ -437,7 +438,7 @@ public final class AEFaceVerifyFlow {
     }
 
     /**
-     * USB 调试或 Root/越狱时弹框并结束流程。
+     * USB 调试、Root/越狱或其它设备风险时弹框并结束流程。
      *
      * @return true 表示已拦截，调用方应停止后续流程
      */
@@ -446,15 +447,22 @@ public final class AEFaceVerifyFlow {
                                                final Callback callback) {
         final boolean usb = UsbDeveloperModeGuard.shouldBlock(activity);
         final boolean root = !usb && DeviceRootGuard.shouldBlock(activity);
-        if (!usb && !root) {
+        final String riskReason = (!usb && !root) ? DeviceRiskGuard.findBlockReason(activity) : null;
+        final boolean risk = !TextUtils.isEmpty(riskReason);
+        if (!usb && !root && !risk) {
             return false;
         }
         if (callback != null) {
             callback.onPermissionRequesting();
         }
-        final String detail = activity.getString(usb
-                ? com.sdk.core.R.string.aeye_usb_debug_block_message
-                : com.sdk.core.R.string.face_fail_device_unsafe_detail);
+        final String detail;
+        if (usb) {
+            detail = activity.getString(com.sdk.core.R.string.aeye_usb_debug_block_message);
+        } else if (root) {
+            detail = activity.getString(com.sdk.core.R.string.face_fail_device_unsafe_detail);
+        } else {
+            detail = activity.getString(com.sdk.core.R.string.aeye_risk_block_message, riskReason);
+        }
         Runnable exit = () -> {
             AEFacePack.getInstance().finishAllFaceFlowActivities();
             if (listener != null) {
@@ -465,8 +473,10 @@ public final class AEFaceVerifyFlow {
         };
         if (usb) {
             UsbDeveloperModeGuard.showBlockDialogAndExit(activity, exit::run);
-        } else {
+        } else if (root) {
             DeviceRootGuard.showBlockDialogAndExit(activity, exit::run);
+        } else {
+            DeviceRiskGuard.showBlockDialogAndExit(activity, riskReason, exit::run);
         }
         return true;
     }

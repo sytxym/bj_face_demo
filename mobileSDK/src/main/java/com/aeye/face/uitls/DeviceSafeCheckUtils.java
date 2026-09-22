@@ -325,9 +325,25 @@ public class DeviceSafeCheckUtils {
 
     }
 
+    /** USB 调试开关（adb_enabled），与「开发者选项」是否打开无关。 */
     public  static boolean isUsbAdbOpen(Context mContext){
-        boolean enableAdb = (Settings.Secure.getInt(mContext.getContentResolver(), Settings.Global.ADB_ENABLED, 0) > 0);
-        return  enableAdb;
+        if (mContext == null) {
+            return false;
+        }
+        android.content.ContentResolver cr = mContext.getContentResolver();
+        try {
+            if (Settings.Global.getInt(cr, Settings.Global.ADB_ENABLED, 0) > 0) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            if (Settings.Secure.getInt(cr, Settings.Secure.ADB_ENABLED, 0) > 0) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     /**

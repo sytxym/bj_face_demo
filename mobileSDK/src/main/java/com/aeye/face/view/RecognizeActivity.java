@@ -80,6 +80,7 @@ import com.aeye.face.lightView.CheckFaceView;
 import com.aeye.face.uitls.AudioUtils;
 import com.aeye.face.uitls.ColorInfo;
 import com.aeye.face.uitls.DataUtil;
+import com.aeye.face.uitls.DeviceRiskGuard;
 import com.aeye.face.uitls.DeviceRootGuard;
 import com.aeye.face.uitls.DeviceSafeCheckUtils;
 import com.aeye.face.uitls.FaceNoticeDialog;
@@ -466,6 +467,15 @@ public class RecognizeActivity extends Activity implements
             DeviceRootGuard.showBlockDialogAndExit(this, () ->
                     finishActivityByOther(AEFacePack.ERROR_DANGER_DEVICE,
                             getString(R.string.face_fail_device_unsafe_detail)));
+            return;
+        }
+        String riskReason = DeviceRiskGuard.findBlockReason(this);
+        if (!TextUtils.isEmpty(riskReason)) {
+            mUsbDebugBlocked = true;
+            mFinish = true;
+            DeviceRiskGuard.showBlockDialogAndExit(this, riskReason, () ->
+                    finishActivityByOther(AEFacePack.ERROR_DANGER_DEVICE,
+                            getString(R.string.aeye_risk_block_message, riskReason)));
             return;
         }
 

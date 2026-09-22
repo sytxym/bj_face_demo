@@ -89,3 +89,7 @@
 }
 
 -dontwarn com.aeye.**
+
+# EasyProtector 本地 AAR
+-keep class com.lahm.library.** { *; }
+-dontwarn com.lahm.library.**

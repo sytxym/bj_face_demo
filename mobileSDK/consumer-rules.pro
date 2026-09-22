@@ -58,3 +58,6 @@
 
 -dontwarn com.aeye.**
 -dontwarn org.bouncycastle.**
+
+-keep class com.lahm.library.** { *; }
+-dontwarn com.lahm.library.**

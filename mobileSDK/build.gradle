@@ -121,4 +121,6 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.83'
     // 已改为 libs/bcprov-jdk18on-1.78.jar
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78'
+    // EasyProtector：AAR 不能嵌套进 SDK AAR，用抽出的 classes.jar（会打进输出 AAR 的 libs/）
+    implementation files('libs/easy-protector-release-1.1.2.jar')
 }

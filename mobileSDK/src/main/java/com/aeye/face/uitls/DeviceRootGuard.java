@@ -3,6 +3,7 @@ package com.aeye.face.uitls;
 import android.app.Activity;
 import android.content.Context;
 
+import com.lahm.library.EasyProtectorLib;
 import com.sdk.core.R;
 
 /**
@@ -18,7 +19,14 @@ public final class DeviceRootGuard {
     }
 
     public static boolean shouldBlock(Context context) {
-        return DeviceSafeCheckUtils.isRootedOrJailbroken(context);
+        if (DeviceSafeCheckUtils.isRootedOrJailbroken(context)) {
+            return true;
+        }
+        try {
+            return EasyProtectorLib.checkIsRoot();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     /**

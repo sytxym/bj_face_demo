@@ -25,6 +25,12 @@ public final class FaceNoticeDialog {
 
     public static void show(Activity activity, int titleRes, int messageRes, int confirmRes,
                             OnAcknowledged handler) {
+        CharSequence message = activity != null ? activity.getText(messageRes) : "";
+        show(activity, titleRes, message, confirmRes, handler);
+    }
+
+    public static void show(Activity activity, int titleRes, CharSequence message, int confirmRes,
+                            OnAcknowledged handler) {
         if (activity == null || activity.isFinishing()) {
             if (handler != null) {
                 handler.onAcknowledged();
@@ -46,9 +52,9 @@ public final class FaceNoticeDialog {
         if (title != null) {
             title.setText(titleRes);
         }
-        TextView message = dialog.findViewById(R.id.tv_usb_debug_message);
-        if (message != null) {
-            message.setText(messageRes);
+        TextView messageView = dialog.findViewById(R.id.tv_usb_debug_message);
+        if (messageView != null) {
+            messageView.setText(message);
         }
         Button confirm = dialog.findViewById(R.id.btn_usb_debug_confirm);
         if (confirm != null) {
