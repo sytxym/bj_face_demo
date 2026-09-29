@@ -106,7 +106,7 @@ public final class FaceApiService {
 
     /**
      * 组装 {@code /fivweb/qrCode/insertRecord} 请求体。
-     * <p>{@code businessCode} 来自 {@link FaceVerifySession}；{@code uid} 非必填，非空才传入。
+     * <p>{@code businessCode} 来自 {@link FaceVerifySession}；{@code accountUid} 非必填，非空才传入。
      * {@code busId} 以及基本信息由外部业务 App 经 {@link FaceUserInfo} 传入。</p>
      */
     public static String buildInsertRecordRequestJson() throws JSONException {
@@ -124,7 +124,7 @@ public final class FaceApiService {
             throw new IllegalArgumentException("busId 为空");
         }
         JSONObject req = new JSONObject();
-        putIfNotEmpty(req, "uid", uid);
+        putIfNotEmpty(req, "accountUid", uid);
         req.put("businessCode", businessCode.trim());
         req.put("busId", busId.trim());
         req.put("source", AEFaceSdk.getLogSource());
@@ -165,9 +165,9 @@ public final class FaceApiService {
                 authRecordId = null;
             }
         }
-        String status = data.optString("status", null);
-        if (TextUtils.isEmpty(status) && data.has("status")) {
-            status = String.valueOf(data.optInt("status", -1));
+        String status = data.optString("fivVerifyStatus", null);
+        if (TextUtils.isEmpty(status) && data.has("fivVerifyStatus")) {
+            status = String.valueOf(data.optInt("fivVerifyStatus", -1));
             if ("-1".equals(status)) {
                 status = null;
             }
@@ -490,19 +490,25 @@ public final class FaceApiService {
     public static AuthStatusResult parseQueryVerifyResultResponse(String json) {
         ApiResult result = ApiResponseParser.parseUnchecked(json);
         String message = queryFailMessage(result.getMessage());
-        if (!result.isOk()) {
-            return AuthStatusResult.apiError(result.getErrorCode(), message);
-        }
         JSONObject data = result.getBusinessData();
+        String fivVerifyStatusValue = readOptionalText(data, "fivVerifyStatusValue");
+        String failedType = readOptionalText(data, "failedType");
+        String failedTypeValue = readOptionalText(data, "failedTypeValue");
+        if (!result.isOk()) {
+            return AuthStatusResult.apiError(result.getErrorCode(), message,
+                    fivVerifyStatusValue, failedType, failedTypeValue);
+        }
         String status = data != null ? readStatus(data) : null;
         if (TextUtils.isEmpty(status)) {
-            return AuthStatusResult.of(QrRecordStatus.VERIFYING, null);
+            return AuthStatusResult.of(QrRecordStatus.VERIFYING, null, null, null,
+                    fivVerifyStatusValue, failedType, failedTypeValue);
         }
         String verifyTerminal = readVerifyTerminal(data);
         if (QrRecordStatus.PASSED.equals(status)) {
             message = null;
         }
-        return AuthStatusResult.of(status, message, result.getErrorCode(), verifyTerminal);
+        return AuthStatusResult.of(status, message, result.getErrorCode(), verifyTerminal,
+                fivVerifyStatusValue, failedType, failedTypeValue);
     }
 
     /** 业务 {@code message}；通用「成功」文案不当成失败原因。 */
@@ -517,6 +523,17 @@ public final class FaceApiService {
         return trimmed;
     }
 
+    private static String readOptionalText(JSONObject data, String key) {
+        if (data == null || TextUtils.isEmpty(key) || !data.has(key) || data.isNull(key)) {
+            return null;
+        }
+        String raw = data.optString(key, null);
+        if (TextUtils.isEmpty(raw) || "null".equalsIgnoreCase(raw.trim())) {
+            return null;
+        }
+        return raw.trim();
+    }
+
     private static String readVerifyTerminal(JSONObject data) {
         if (data == null || !data.has("verifyTerminal") || data.isNull("verifyTerminal")) {
             return null;
@@ -529,10 +546,10 @@ public final class FaceApiService {
     }
 
     private static String readStatus(JSONObject data) {
-        if (!data.has("status") || data.isNull("status")) {
+        if (!data.has("fivVerifyStatus") || data.isNull("fivVerifyStatus")) {
             return null;
         }
-        Object raw = data.opt("status");
+        Object raw = data.opt("fivVerifyStatus");
         if (raw == null) {
             return null;
         }

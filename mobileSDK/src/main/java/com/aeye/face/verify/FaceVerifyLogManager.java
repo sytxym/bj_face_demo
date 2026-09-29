@@ -91,8 +91,8 @@ public final class FaceVerifyLogManager {
     }
 
     /**
-     * 文档公共可选字段：uid / authRecordId / businessCode / businessName / busId / source / requestIp。
-     * {@code uid} 非空才传入。
+     * 文档公共可选字段：accountUid / authRecordId / businessCode / businessName / busId / source / requestIp。
+     * {@code accountUid} 非空才传入。
      * 不传 brand、证件号等文档未列出的字段。
      */
     private static JSONObject buildCommonBody(Context context) {
@@ -103,7 +103,7 @@ public final class FaceVerifyLogManager {
             if (TextUtils.isEmpty(uid) && FaceVerifySession.getUserInfo() != null) {
                 uid = FaceVerifySession.getUserInfo().getUserId();
             }
-            putIfNotEmpty(body, "uid", uid);
+            putIfNotEmpty(body, "accountUid", uid);
             putIfNotEmpty(body, "authRecordId", FaceVerifySession.getAuthRecordId());
             if (config != null) {
                 putIfNotEmpty(body, "businessCode", config.getBusinessCode());

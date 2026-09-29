@@ -12,13 +12,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * 更新后台认证记录（任务）状态（{@code /qrCode/updateRecord}），异步上报，不处理返回业务。
  * <p>扫码或直启（宿主已传入 {@code authRecordId}）均上报；
- * {@code status=0}（待扫码）客户端不上报。本地核验不上报。</p>
+ * {@code fivVerifyStatus=0}（待扫码）客户端不上报。本地核验不上报。</p>
  * <p>{@code failedType} 仅在以下场景传入，其它场景不传该字段：</p>
  * <ul>
  *   <li>用户返回取消 {@link QrRecordStatus#TASK_CANCELLED} → {@link QrRecordStatus.FailedType#CANCELLED}</li>
  *   <li>动作活体检测未通过 3 次 → {@link QrRecordStatus#NOT_PASS} + {@link QrRecordStatus.FailedType#LIVENESS_ACTION}</li>
  * </ul>
- * <p>{@code status=2}（异常退出）在 queryVerifyResult 按配置轮询仍未得到 4/5 时上报，不传 failedType。</p>
+ * <p>{@code fivVerifyStatus=2}（异常退出）在 queryVerifyResult 按配置轮询仍未得到 4/5 时上报，不传 failedType。</p>
  */
 public final class QrRecordStatusManager {
 
@@ -50,7 +50,7 @@ public final class QrRecordStatusManager {
         if (!shouldReport()) {
             return;
         }
-        // status=0 待扫码：扫码、直启均不上报
+        // fivVerifyStatus=0 待扫码：扫码、直启均不上报
         if (QrRecordStatus.WAIT_SCAN.equals(status)) {
             return;
         }
@@ -63,14 +63,14 @@ public final class QrRecordStatusManager {
         } else if (isTerminalStatus(status)) {
             sTerminalReported.set(true);
         }
-        final String statusValue = status;
+        final String fivVerifyStatusValue = status;
         final String failType = TextUtils.isEmpty(failedType) ? null : failedType;
         new Thread(() -> {
             try {
                 AEFaceSdk.ensureInitialized();
                 JSONObject body = new JSONObject();
                 body.put("authRecordId", authRecordId);
-                body.put("status", statusValue);
+                body.put("fivVerifyStatus", fivVerifyStatusValue);
                 if (failType != null) {
                     body.put("failedType", failType);
                 }

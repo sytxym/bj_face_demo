@@ -11,7 +11,7 @@ final class QrInsertRecordDefaults {
             + "\"data\":{"
             + "\"userId\":\"2\","
             + "\"authRecordId\":\"12345\","
-            + "\"status\":\"0\""
+            + "\"fivVerifyStatus\":\"0\""
             + "}"
             + "}";
 

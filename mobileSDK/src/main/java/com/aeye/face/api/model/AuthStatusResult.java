@@ -19,24 +19,39 @@ public final class AuthStatusResult {
     private final String backendErrorCode;
     private final boolean apiError;
     private final String verifyTerminal;
+    /** 查询响应 {@code data.fivVerifyStatusValue}，状态中文，暂不参与展示 */
+    private final String fivVerifyStatusValue;
+    /** 查询响应 {@code data.failedType}，失败原因码，暂不参与展示 */
+    private final String failedType;
+    /** 查询响应 {@code data.failedTypeValue}，失败原因中文，暂不参与展示 */
+    private final String failedTypeValue;
 
     private AuthStatusResult(String status, String failType, boolean busy) {
-        this(status, failType, busy, false, null, null);
+        this(status, failType, busy, false, null, null, null, null, null);
     }
 
     private AuthStatusResult(String status, String failType, boolean busy,
                              boolean apiError, String backendErrorCode) {
-        this(status, failType, busy, apiError, backendErrorCode, null);
+        this(status, failType, busy, apiError, backendErrorCode, null, null, null, null);
     }
 
     private AuthStatusResult(String status, String failType, boolean busy,
                              boolean apiError, String backendErrorCode, String verifyTerminal) {
+        this(status, failType, busy, apiError, backendErrorCode, verifyTerminal, null, null, null);
+    }
+
+    private AuthStatusResult(String status, String failType, boolean busy,
+                             boolean apiError, String backendErrorCode, String verifyTerminal,
+                             String fivVerifyStatusValue, String failedType, String failedTypeValue) {
         this.status = status;
         this.failType = failType;
         this.busy = busy;
         this.apiError = apiError;
         this.backendErrorCode = backendErrorCode;
         this.verifyTerminal = verifyTerminal;
+        this.fivVerifyStatusValue = fivVerifyStatusValue;
+        this.failedType = failedType;
+        this.failedTypeValue = failedTypeValue;
     }
 
     public static AuthStatusResult of(String status, String failType) {
@@ -45,7 +60,14 @@ public final class AuthStatusResult {
 
     public static AuthStatusResult of(String status, String message, String errorCode,
                                       String verifyTerminal) {
-        return new AuthStatusResult(status, message, false, false, errorCode, verifyTerminal);
+        return of(status, message, errorCode, verifyTerminal, null, null, null);
+    }
+
+    public static AuthStatusResult of(String status, String message, String errorCode,
+                                      String verifyTerminal, String fivVerifyStatusValue,
+                                      String failedType, String failedTypeValue) {
+        return new AuthStatusResult(status, message, false, false, errorCode, verifyTerminal,
+                fivVerifyStatusValue, failedType, failedTypeValue);
     }
 
     public static AuthStatusResult busy() {
@@ -59,7 +81,14 @@ public final class AuthStatusResult {
      * @param message   业务信封 {@code message}
      */
     public static AuthStatusResult apiError(String errorCode, String message) {
-        return new AuthStatusResult(null, message, false, true, errorCode, null);
+        return apiError(errorCode, message, null, null, null);
+    }
+
+    public static AuthStatusResult apiError(String errorCode, String message,
+                                            String fivVerifyStatusValue, String failedType,
+                                            String failedTypeValue) {
+        return new AuthStatusResult(null, message, false, true, errorCode, null,
+                fivVerifyStatusValue, failedType, failedTypeValue);
     }
 
     public String getStatus() {
@@ -72,6 +101,21 @@ public final class AuthStatusResult {
 
     public String getVerifyTerminal() {
         return verifyTerminal;
+    }
+
+    /** {@code data.fivVerifyStatusValue}，暂未用于展示或回调 */
+    public String getFivVerifyStatusValue() {
+        return fivVerifyStatusValue;
+    }
+
+    /** {@code data.failedType}，暂未用于展示或回调 */
+    public String getFailedType() {
+        return failedType;
+    }
+
+    /** {@code data.failedTypeValue}，暂未用于展示或回调 */
+    public String getFailedTypeValue() {
+        return failedTypeValue;
     }
 
     public boolean isBusy() {
