@@ -135,7 +135,8 @@ public final class FaceActionConfigDefaults {
             + "\"enableOpenMouth\":\"0\","
             + "\"enableBlink\":\"0\","
             + "\"memo\":\"Demo 模拟纯炫彩配置\""
-            + "}"
+            + "},"
+            + colorConfigJson()
             + "}"
             + "}";
 
@@ -159,7 +160,8 @@ public final class FaceActionConfigDefaults {
             + "\"enableOpenMouth\":\"1\","
             + "\"enableBlink\":\"1\","
             + "\"memo\":\"Demo 模拟动作+炫彩配置\""
-            + "}"
+            + "},"
+            + colorConfigJson()
             + "}"
             + "}";
 
@@ -179,6 +181,15 @@ public final class FaceActionConfigDefaults {
             default:
                 return FALLBACK_JSON;
         }
+    }
+
+    private static String colorConfigJson() {
+        return "\"colorConfig\":{"
+                + "\"color1\":{\"c1\":255,\"c2\":20,\"c3\":255},"
+                + "\"color2\":{\"c1\":255,\"c2\":20,\"c3\":255},"
+                + "\"color3\":{\"c1\":255,\"c2\":20,\"c3\":255},"
+                + "\"sequnce\":741357110"
+                + "}";
     }
 
     private FaceActionConfigDefaults() {

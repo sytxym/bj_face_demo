@@ -3,12 +3,14 @@ package com.aeye.face.config;
 import android.text.TextUtils;
 
 import com.aeye.face.api.ApiResponseParser;
+import com.aeye.face.api.FaceApiService;
 import com.aeye.face.verify.FaceUserInfo;
 
 import org.json.JSONObject;
 
 /**
- * 解析动作活体配置业务 JSON（{@code userInfo} + {@code actionConfig} + 同级 {@code pollingCount}/{@code pollingTime}）。
+ * 解析动作活体配置业务 JSON（{@code userInfo} + {@code actionConfig} + {@code colorConfig}
+ * + 同级 {@code pollingCount}/{@code pollingTime}）。
  * 兼容网关多层 {@code data} 信封，避免剥不干净时回退成默认 3 个动作。
  */
 public final class FaceActionConfigParser {
@@ -51,6 +53,7 @@ public final class FaceActionConfigParser {
                 FaceActionConfig.DEFAULT_POLLING_COUNT, 1, 30));
         config.setPollingTimeSec(firstPresentInt(payload, configSrc, "pollingTime",
                 FaceActionConfig.DEFAULT_POLLING_TIME_SEC, 0, 60));
+        config.setColorConfig(FaceApiService.parseColorConfig(payload.optJSONObject("colorConfig")));
         return config;
     }
 
@@ -75,6 +78,7 @@ public final class FaceActionConfigParser {
 
     private static boolean looksLikeActionPayload(JSONObject obj) {
         return obj.has("actionConfig")
+                || obj.has("colorConfig")
                 || obj.has("userInfo")
                 || obj.has("pollingCount")
                 || obj.has("pollingTime")

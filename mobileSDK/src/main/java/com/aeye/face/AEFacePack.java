@@ -23,8 +23,9 @@ import com.aeye.aeyelib.AEyeLightAlive;
 import com.aeye.android.config.AEModelMgr;
 import com.aeye.android.config.ConfigData;
 import com.aeye.face.callback.AEFaceCallbackHelper;
+import com.aeye.face.config.FaceActionConfig;
+import com.aeye.face.config.FaceActionConfigManager;
 import com.aeye.face.config.FaceSdkHostParamBuilder;
-import com.aeye.face.api.FaceApiService;
 import com.aeye.face.api.model.ColorResponseBean;
 import com.aeye.face.uitls.ColorInfo;
 import com.aeye.face.uitls.DataUtil;
@@ -794,18 +795,13 @@ public class AEFacePack {
         final int cameraId = defaultId;
         final int mode = aliveMode;
 
-        // 炫彩 / 动作+炫彩：无色序时先拉色，再统一进入 RecognizeActivity
+        // 炫彩 / 动作+炫彩：优先用活体配置 colorConfig，不再请求 thunderAliveColor
         if (mode == AEFaceParam.ALIVEMODE_LIGHT || mode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
-            boolean hasColorsFromClient = mParas != null && (
-                    mParas.containsKey(AEFaceParam.ColorInfo1)
-                            || mParas.containsKey(AEFaceParam.ColorInfo2)
-                            || mParas.containsKey(AEFaceParam.ColorInfo3));
-            if (hasColorsFromClient) {
-                launchRecognizeActivity(context, cameraId, mode);
-                return 0;
+            if (!applyCachedColorConfig() && !hasHostColors()) {
+                applyDefaultLocalColors();
             }
-            // 无客户端色序：拉 {apiBaseUrl}/assistant/thunderAliveColor，失败回退本地默认色
-            return beginRecogWithAssistantColor(context, cameraId, mode);
+            launchRecognizeActivity(context, cameraId, mode);
+            return 0;
         }
 
         // 动作 / 静默：直接进入同一页
@@ -813,39 +809,33 @@ public class AEFacePack {
         return 0;
     }
 
+    /** 宿主启动参数里是否已经带了炫彩色序。 */
+    private boolean hasHostColors() {
+        return mParas != null && (
+                mParas.containsKey(AEFaceParam.ColorInfo1)
+                        || mParas.containsKey(AEFaceParam.ColorInfo2)
+                        || mParas.containsKey(AEFaceParam.ColorInfo3));
+    }
+
     /**
-     * 拉色：POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，无请求参数；
-     * 成功后注入颜色与序列号再进取景页，失败回退本地默认色。
+     * 使用活体配置缓存里的 {@code colorConfig}。三色和序列号齐全才写入。
+     *
+     * @return true 已写入色序
      */
-    private int beginRecogWithAssistantColor(Context context, final int cameraId, final int mode) {
-        if (mIsThunderProcessing) {
-            Log.w(TAG, "BeginRecog: assistant color already processing, skip duplicate call");
-            return 1;
+    private boolean applyCachedColorConfig() {
+        FaceActionConfig config = FaceActionConfigManager.getCached();
+        ColorResponseBean.ColorsBean colors = config != null ? config.getColorConfig() : null;
+        if (colors == null
+                || colors.getColor1() == null
+                || colors.getColor2() == null
+                || colors.getColor3() == null
+                || TextUtils.isEmpty(colors.getSequnce())) {
+            Log.w(TAG, "colorConfig 缺失，炫彩将使用本地默认色");
+            return false;
         }
-        mIsThunderProcessing = true;
-        final WeakReference<Context> callerRef = new WeakReference<>(context);
-        new Thread(() -> {
-            ColorResponseBean.ColorsBean colors = null;
-            try {
-                AEFaceSdk.ensureInitialized();
-                colors = FaceApiService.fetchAssistantThunderColor(AEFaceSdk.getApiBaseUrl());
-            } catch (Exception e) {
-                Log.e(TAG, "BeginRecog: assistant thunderAliveColor failed: " + e.getMessage());
-            }
-            final ColorResponseBean.ColorsBean result = colors;
-            new Handler(Looper.getMainLooper()).post(() -> {
-                mIsThunderProcessing = false;
-                if (result != null) {
-                    applyColorsToParams(result, result.getSequnce());
-                    Log.d(TAG, "BeginRecog: assistant colors fetched, seq=" + result.getSequnce());
-                } else {
-                    // 拉色失败时回退本地默认色，避免流程卡死
-                    applyDefaultLocalColors();
-                }
-                launchRecognizeActivity(resolveLaunchContext(callerRef.get()), cameraId, mode);
-            });
-        }, "AEFace-AssistantColor").start();
-        return 0;
+        applyColorsToParams(colors, colors.getSequnce());
+        Log.d(TAG, "applyCachedColorConfig: seq=" + colors.getSequnce());
+        return true;
     }
 
     /** 炫彩色序刷新结果回调，固定在主线程触发 */
@@ -855,28 +845,13 @@ public class AEFacePack {
     }
 
     /**
-     * 重新拉取炫彩色序。色序流水号（{@code sequnce}）是一次性的：重新核验若沿用上一轮的
-     * 流水号，服务端会判为「颜色序列不对」，因此每次重来都必须换新的。
+     * 失败重试时重新套用活体配置里的 {@code colorConfig}，不再请求拉色接口。
      */
     public void refreshLightColors(Context context, final ColorRefreshCallback callback) {
-        final Handler main = new Handler(Looper.getMainLooper());
-        new Thread(() -> {
-            ColorResponseBean.ColorsBean colors = null;
-            try {
-                AEFaceSdk.ensureInitialized();
-                colors = FaceApiService.fetchAssistantThunderColor(AEFaceSdk.getApiBaseUrl());
-            } catch (Exception e) {
-                Log.e(TAG, "refreshLightColors: assistant thunderAliveColor failed: "
-                        + e.getMessage());
-            }
-            final ColorResponseBean.ColorsBean result = colors;
-            main.post(() -> {
-                if (result != null) {
-                    applyColorsToParams(result, result.getSequnce());
-                }
-                notifyColorsRefreshed(callback, result != null);
-            });
-        }, "AEFace-ColorRefresh").start();
+        new Handler(Looper.getMainLooper()).post(() -> {
+            boolean refreshed = applyCachedColorConfig();
+            notifyColorsRefreshed(callback, refreshed);
+        });
     }
 
     private void notifyColorsRefreshed(ColorRefreshCallback callback, boolean refreshed) {

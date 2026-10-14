@@ -587,7 +587,48 @@ public final class FaceApiService {
     private static final int THUNDER_TIMEOUT_MS = 60_000;
 
     /**
-     * 炫彩活体获取颜色。
+     * 解析活体配置里的 {@code colorConfig}（{@code color1/color2/color3/sequnce}）。
+     * 缺色或缺序列号时返回 null，由调用方回退本地默认色。
+     */
+    public static ColorResponseBean.ColorsBean parseColorConfig(JSONObject colorConfig) {
+        if (colorConfig == null) {
+            return null;
+        }
+        ColorResponseBean.ColorsBean colors = new ColorResponseBean.ColorsBean();
+        colors.setColor1(parseColorBean(colorConfig.optJSONObject("color1")));
+        colors.setColor2(parseColorBean(colorConfig.optJSONObject("color2")));
+        colors.setColor3(parseColorBean(colorConfig.optJSONObject("color3")));
+        if (colors.getColor1() == null || colors.getColor2() == null || colors.getColor3() == null) {
+            return null;
+        }
+        String seq = readColorSeq(colorConfig);
+        if (TextUtils.isEmpty(seq)) {
+            return null;
+        }
+        colors.setSequnce(seq);
+        return colors;
+    }
+
+    private static String readColorSeq(JSONObject colorConfig) {
+        if (colorConfig == null || !colorConfig.has("sequnce") || colorConfig.isNull("sequnce")) {
+            return null;
+        }
+        Object raw = colorConfig.opt("sequnce");
+        if (raw == null) {
+            return null;
+        }
+        String seq = String.valueOf(raw).trim();
+        if (seq.endsWith(".0")) {
+            seq = seq.substring(0, seq.length() - 2);
+        }
+        if (TextUtils.isEmpty(seq) || "null".equalsIgnoreCase(seq)) {
+            return null;
+        }
+        return seq;
+    }
+
+    /**
+     * 炫彩活体获取颜色。已改为读活体配置 {@code colorConfig}，本接口暂不调用。
      * <p>POST {@code {apiBaseUrl}/assistant/thunderAliveColor}，无请求参数；
      * 响应为统一 {@code {code, message, data:{...}}} 结构，
      * 业务节点含 {@code color1/color2/color3/sequnce}。</p>

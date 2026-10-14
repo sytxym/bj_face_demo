@@ -1,5 +1,6 @@
 package com.aeye.face.config;
 
+import com.aeye.face.api.model.ColorResponseBean;
 import com.aeye.face.verify.FaceUserInfo;
 
 /**
@@ -54,6 +55,8 @@ public final class FaceActionConfig {
     private int pollingCount = DEFAULT_POLLING_COUNT;
     /** 与 userInfo 同级：两次查询间隔（秒） */
     private int pollingTimeSec = DEFAULT_POLLING_TIME_SEC;
+    /** 与 actionConfig 同级的炫彩色序；纯炫彩 / 动作+炫彩直接用，不再单独拉色 */
+    private ColorResponseBean.ColorsBean colorConfig;
 
     public long getActionConfigId() {
         return actionConfigId;
@@ -173,6 +176,14 @@ public final class FaceActionConfig {
 
     public void setPollingTimeSec(int pollingTimeSec) {
         this.pollingTimeSec = pollingTimeSec;
+    }
+
+    public ColorResponseBean.ColorsBean getColorConfig() {
+        return colorConfig;
+    }
+
+    public void setColorConfig(ColorResponseBean.ColorsBean colorConfig) {
+        this.colorConfig = colorConfig;
     }
 
     /** 实际轮询次数：至少 1，缺省 {@link #DEFAULT_POLLING_COUNT} */
