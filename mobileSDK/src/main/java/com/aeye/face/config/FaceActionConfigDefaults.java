@@ -93,6 +93,7 @@ public final class FaceActionConfigDefaults {
             + "\"userInfo\":{"
             + "\"certName\":\"模拟用户\","
             + "\"certType\":\"01\","
+            + "\"certTypeName\":\"身份证\","
             + "\"certNo\":\"110101199001011234\","
             + "\"country\":\"中国\""
             + "},"

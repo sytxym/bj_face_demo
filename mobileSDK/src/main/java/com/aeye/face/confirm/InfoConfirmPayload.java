@@ -34,7 +34,10 @@ public final class InfoConfirmPayload {
         if (TextUtils.isEmpty(p.region)) {
             p.region = data.optString("country", null);
         }
-        p.idType = InfoConfirmParser.firstNonEmpty(data, "certType", "idType");
+        p.idType = InfoConfirmParser.firstNonEmpty(data, "certTypeName", "certType");
+        if (TextUtils.isEmpty(p.idType)) {
+            p.idType = data.optString("idType", null);
+        }
         p.idNumber = InfoConfirmParser.firstNonEmpty(data, "certNo", "idNumber");
         p.userType = data.optString("userType", null);
         p.birthDay = data.optString("birthDay", null);

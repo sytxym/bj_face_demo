@@ -14,8 +14,10 @@ public final class FaceUserInfo {
 
     /** 姓名 */
     private final String certName;
-    /** 证件类型 */
+    /** 证件类型编码，提交核验仍用这个字段 */
     private final String certType;
+    /** 证件类型中文名，仅确认页展示 */
+    private final String certTypeName;
     /** 证件号码 */
     private final String certNo;
     /** 国家（地区） */
@@ -30,6 +32,7 @@ public final class FaceUserInfo {
     private FaceUserInfo(Builder b) {
         this.certName = b.certName;
         this.certType = b.certType;
+        this.certTypeName = b.certTypeName;
         this.certNo = b.certNo;
         this.country = b.country;
         this.userId = b.userId;
@@ -43,6 +46,10 @@ public final class FaceUserInfo {
 
     public String getCertType() {
         return certType;
+    }
+
+    public String getCertTypeName() {
+        return certTypeName;
     }
 
     public String getCertNo() {
@@ -73,6 +80,7 @@ public final class FaceUserInfo {
         FaceUserInfo info = new Builder()
                 .certName(optTrim(json, "certName"))
                 .certType(optTrim(json, "certType"))
+                .certTypeName(optTrim(json, "certTypeName"))
                 .certNo(optTrim(json, "certNo"))
                 .country(optTrim(json, "country"))
                 .userId(optTrim(json, "userId"))
@@ -96,6 +104,7 @@ public final class FaceUserInfo {
         return new Builder()
                 .certName(firstNonEmpty(api.certName, host.certName))
                 .certType(firstNonEmpty(api.certType, host.certType))
+                .certTypeName(firstNonEmpty(api.certTypeName, host.certTypeName))
                 .certNo(firstNonEmpty(api.certNo, host.certNo))
                 .country(firstNonEmpty(api.country, host.country))
                 .userId(firstNonEmpty(host.userId, api.userId))
@@ -107,6 +116,7 @@ public final class FaceUserInfo {
     private boolean hasIdentityOrAccount() {
         return !TextUtils.isEmpty(certName)
                 || !TextUtils.isEmpty(certType)
+                || !TextUtils.isEmpty(certTypeName)
                 || !TextUtils.isEmpty(certNo)
                 || !TextUtils.isEmpty(country)
                 || !TextUtils.isEmpty(userId)
@@ -132,6 +142,7 @@ public final class FaceUserInfo {
     public static final class Builder {
         private String certName;
         private String certType;
+        private String certTypeName;
         private String certNo;
         private String country;
         private String userId;
@@ -145,6 +156,11 @@ public final class FaceUserInfo {
 
         public Builder certType(String certType) {
             this.certType = certType;
+            return this;
+        }
+
+        public Builder certTypeName(String certTypeName) {
+            this.certTypeName = certTypeName;
             return this;
         }
 

@@ -349,6 +349,7 @@ public final class AEFaceVerifyFlow {
                 data.putOpt("name", info.getCertName());
                 data.putOpt("nation", info.getCountry());
                 data.putOpt("certType", info.getCertType());
+                data.putOpt("certTypeName", info.getCertTypeName());
                 data.putOpt("certNo", info.getCertNo());
                 data.putOpt("userId", info.getUserId());
             }
