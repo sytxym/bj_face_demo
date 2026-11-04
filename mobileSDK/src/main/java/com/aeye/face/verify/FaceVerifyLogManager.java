@@ -123,7 +123,7 @@ public final class FaceVerifyLogManager {
      * 取本机有效 IPv4。不使用 {@code WifiInfo.getIpAddress()}：Android 10+ 常返回 0，
      * 且依赖 ACCESS_WIFI_STATE，移动数据场景也拿不到地址。
      */
-    private static String resolveRequestIp() {
+    public static String resolveRequestIp() {
         try {
             for (NetworkInterface nif : Collections.list(NetworkInterface.getNetworkInterfaces())) {
                 if (!nif.isUp() || nif.isLoopback()) {

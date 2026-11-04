@@ -46,7 +46,7 @@ public final class DefaultFaceActionConfigLoader implements FaceActionConfigLoad
             boolean fromRemote = false;
             try {
                 config = FaceApiService.parseActionConfig(
-                        FaceApiService.fetchActionConfigJson(baseUrl, code));
+                        FaceApiService.fetchActionConfigJson(baseUrl));
                 fromRemote = true;
             } catch (Exception e) {
                 if (AEFaceSdk.isHttpLogEnabled()) {

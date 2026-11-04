@@ -179,11 +179,7 @@ public final class AEFaceVerifyFlow {
                     FaceUniResultCodes.MSG_NO_ACTIVITY);
             return;
         }
-        if (TextUtils.isEmpty(businessCode)) {
-            notifyFlowError(listener, callback, FaceUniResultCodes.MISSING_PARAMS,
-                    FaceUniResultCodes.MSG_MISSING_PARAMS);
-            return;
-        }
+        // businessCode 非必传：后续以活体配置接口返回的 businessCode 为准
         // userId 非必传：确认页身份优先配置接口 userInfo，缺省用业务 App
 
         // 环境预检：授权后自动继续，无需宿主再次点击按钮
@@ -245,6 +241,9 @@ public final class AEFaceVerifyFlow {
                 }
                 if (!TextUtils.isEmpty(detectTypeOverride) && config != null) {
                     config.setDetectType(detectTypeOverride);
+                }
+                if (config != null && !TextUtils.isEmpty(config.getBusinessCode())) {
+                    FaceVerifySession.setBusinessCode(config.getBusinessCode());
                 }
                 FaceVerifySession.setUserInfo(FaceUserInfo.mergePreferHost(
                         FaceVerifySession.getUserInfo(),

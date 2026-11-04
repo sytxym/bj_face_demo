@@ -9,7 +9,7 @@ public final class FaceApiPaths {
     /** 新接口统一上下文前缀 */
     public static final String API_CONTEXT = "/fiv";
 
-    /** POST {@code {businessCode, authRecordId, verifyTerminal}} 动作活体配置 */
+    /** POST {@code {authRecordId, verifyTerminal}} 动作活体配置（businessCode 由接口返回） */
     public static final String ACTION_CONFIG_LIST = API_CONTEXT + "/faceActionConfig/listActionConfigByBusinessType";
 
     /** GET {@code /fivweb/faceUser/selectById/{userId}} 用户信息预览 */

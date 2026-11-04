@@ -1,5 +1,7 @@
 package com.aeye.face.api;
 
+import static com.aeye.face.verify.FaceVerifyLogManager.resolveRequestIp;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
@@ -41,20 +43,16 @@ public final class FaceApiService {
     // ---------- 动作活体配置 ----------
 
     /**
-     * 按业务类型拉取活体配置。
-     * 请求 {@code businessCode}/{@code authRecordId}/{@code verifyTerminal} 均为必填；
+     * 拉取活体配置。
+     * 请求不再传 {@code businessCode}（由后台按 {@code authRecordId} 返回）；
      * {@code authRecordId} 取自会话（宿主传入或调试态 insertRecord 返回）。
      */
-    public static String fetchActionConfigJson(String baseUrl, String businessCode) throws Exception {
-        String code = TextUtils.isEmpty(businessCode)
-                ? FaceActionConfigDefaults.DEFAULT_BUSINESS_CODE
-                : businessCode;
+    public static String fetchActionConfigJson(String baseUrl) throws Exception {
         String authRecordId = FaceVerifySession.getAuthRecordId();
         if (TextUtils.isEmpty(authRecordId)) {
             throw new IllegalArgumentException("authRecordId 为空");
         }
         JSONObject body = new JSONObject();
-        body.put("businessCode", code);
         body.put("authRecordId", authRecordId.trim());
         body.put("verifyTerminal", AEFaceSdk.getLogSource());
         return SdkHttpClient.postJson(
@@ -132,6 +130,7 @@ public final class FaceApiService {
         putIfNotEmpty(req, "certType", userInfo.getCertType());
         putIfNotEmpty(req, "certNo", userInfo.getCertNo());
         putIfNotEmpty(req, "country", userInfo.getCountry());
+        putIfNotEmpty(req,"request",resolveRequestIp());
         return req.toString();
     }
 

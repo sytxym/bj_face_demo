@@ -111,6 +111,10 @@ public final class FaceVerifySession {
         userId = verifyUserId;
     }
 
+    public static void setBusinessCode(String verifyBusinessCode) {
+        businessCode = verifyBusinessCode;
+    }
+
     public static void resetEndLogSent() {
         endLogSent = false;
     }

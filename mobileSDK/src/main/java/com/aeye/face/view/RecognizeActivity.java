@@ -3390,14 +3390,14 @@ public class RecognizeActivity extends Activity implements
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null || m_hasFinishReturn) {
             m_hasFinishReturn = true;
-            finish();
+            finishFlowActivities();
             return;
         }
         m_hasFinishReturn = true;
         PictureManagerUtils.getPictureManager().setCode(code);
         buildLivenessJsonAsync(json -> {
             AEFaceCallbackHelper.dispatchFinish(listener, code, json, reason);
-            finish();
+            finishFlowActivities();
         });
     }
 
@@ -3415,14 +3415,14 @@ public class RecognizeActivity extends Activity implements
                 getString(R.string.aeye_user_cancel));
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null || m_hasFinishReturn) {
-            finish();
+            finishFlowActivities();
             return;
         }
         m_hasFinishReturn = true;
         PictureManagerUtils.getPictureManager().setCode(AEFaceParam.CODE_ERROR_CANCEL);
         buildLivenessJsonAsync(json -> {
             AEFaceCallbackHelper.dispatchFinish(listener, AEFacePack.ERROR_CANCEL, json);
-            finish();
+            finishFlowActivities();
         });
     }
 
@@ -3962,18 +3962,25 @@ public class RecognizeActivity extends Activity implements
         }
     }
 
+    /**
+     * 结束人脸核验流程：连同确认页等 SDK 页面一起销毁，避免确认页残留导致取景页结束后回不到发起页。
+     */
+    private void finishFlowActivities() {
+        AEFacePack.getInstance().finishAllFaceFlowActivities();
+    }
+
     private void deliverSuccessCallbackAndFinish() {
         if (isFinishing()) {
             return;
         }
         if (m_hasFinishReturn) {
-            finish();
+            finishFlowActivities();
             return;
         }
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null) {
             m_hasFinishReturn = true;
-            finish();
+            finishFlowActivities();
             return;
         }
         m_hasFinishReturn = true;
@@ -3982,12 +3989,12 @@ public class RecognizeActivity extends Activity implements
             final String json = mPendingLightJson;
             AEFaceCallbackHelper.dispatchFinish(
                     AEFacePack.getInstance().getInterface(), AEFacePack.SUCCESS, json);
-            finish();
+            finishFlowActivities();
             return;
         }
         buildLivenessJsonAsync(json -> {
             AEFaceCallbackHelper.dispatchFinish(listener, AEFacePack.SUCCESS, json);
-            finish();
+            finishFlowActivities();
         });
     }
 
@@ -4354,7 +4361,7 @@ public class RecognizeActivity extends Activity implements
      */
     private void exitAfterInPlaceFail() {
         if (m_hasFinishReturn) {
-            finish();
+            finishFlowActivities();
             return;
         }
         stopRingProgress();
@@ -4373,7 +4380,7 @@ public class RecognizeActivity extends Activity implements
         final AEFaceInterface listener = AEFacePack.getInstance().getInterface();
         if (listener == null) {
             m_hasFinishReturn = true;
-            finish();
+            finishFlowActivities();
             return;
         }
         m_hasFinishReturn = true;
@@ -4384,14 +4391,14 @@ public class RecognizeActivity extends Activity implements
             PictureManagerUtils.getPictureManager().setCode(AEFaceParam.CODE_ERROR_TIME_OUT);
             buildLivenessJsonAsync(json -> {
                 AEFaceCallbackHelper.dispatchFinish(listener, AEFacePack.ERROR_TIMEOUT, json);
-                finish();
+                finishFlowActivities();
             });
         } else {
             PictureManagerUtils.getPictureManager().setCode(AEFaceParam.CODE_ERROR_ALIVE_FAILED);
             buildLivenessJsonAsync(json -> {
                 AEFaceCallbackHelper.dispatchFinish(listener, AEFacePack.ERROR_FAIL, json, failDetail, submitFail,
                         AEFacePack.getInstance().getPendingBackendErrorCode());
-                finish();
+                finishFlowActivities();
             });
         }
     }
