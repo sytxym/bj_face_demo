@@ -75,7 +75,8 @@ tasks.configureEach { task ->
         task.enabled = false
     }
 }
-def offlineTypedefs = file("$buildDir/intermediates/annotations_typedef_file/release/typedefs.txt")
+//def offlineTypedefs = file("$buildDir/intermediates/annotations_typedef_file/release/typedefs.txt")
+def offlineTypedefs = file("$buildDir/intermediates/annotations_typedef_file/release/extractReleaseAnnotations/typedefs.txt")
 offlineTypedefs.parentFile.mkdirs()
 if (!offlineTypedefs.exists()) {
     offlineTypedefs.text = ""

@@ -39,7 +39,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AEFaceInterface {
 
     /** 动作活体业务码，与后台 business_config.business_code 一致（Demo：自然人实名认证）；JSON 未传 businessCode 时的默认值 */
-    private static final String DEMO_BUSINESS_CODE = "12";
+    private static final String DEMO_BUSINESS_CODE = "01";
 
     /**
      * 模拟业务 App（H5/RN）传入的启动参数 JSON——在线核验（useType=true）。
