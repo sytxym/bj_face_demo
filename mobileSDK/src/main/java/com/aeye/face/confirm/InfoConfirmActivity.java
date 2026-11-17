@@ -82,10 +82,7 @@ public class InfoConfirmActivity extends Activity {
         ivAgree = findViewById(R.id.iv_agree);
         ivAgree.setOnClickListener(v -> onAgreeCircleClicked());
         bindAgreeText(findViewById(R.id.tv_agree));
-        if (AgreementConfig.hasAgreed(this)) {
-            agreementRead = true;
-            agreementChecked = true;
-        }
+        // 每次进入都需重新阅读并勾选，不恢复历史同意状态
         refreshAgreeUi();
 
         startButton = findViewById(R.id.btn_start);
