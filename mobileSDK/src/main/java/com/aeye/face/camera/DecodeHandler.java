@@ -96,6 +96,14 @@ public class DecodeHandler extends Handler {
     private int mFarFlipCount = 0;
     private static final int FAR_ENTER_FRAMES = 4;
     private static final int FAR_LEAVE_FRAMES = 3;
+    private static final int FRONT_HINT_LEAVE_FRAMES = 2;
+    private static final int HEAD_HINT_ENTER_FRAMES = 3;
+    private static final float FRONT_AXIS_LIMIT = 12.0f;
+    private static final float HEAD_OTHER_AXIS_LIMIT = 25.0f;
+    private int mFrontFrames = 0;
+    private int mHeadNotFrontFrames = 0;
+    private boolean mFrontHintRequested = false;
+    private int mLastAliveActionIndex = -1;
 
     /**
      * 构造
@@ -125,6 +133,8 @@ public class DecodeHandler extends Handler {
         envCount = 0;
         mFaceFarSticky = false;
         mFarFlipCount = 0;
+        mLastAliveActionIndex = -1;
+        clearFrontFaceHint();
         skipFrame = 5;
 
         CfgLoseFace = AEFacePack.getInstance().getLoseFaceNum();
@@ -264,6 +274,18 @@ public class DecodeHandler extends Handler {
                         }
                         Log.i("TIME", "Quality cost " + (System.currentTimeMillis() - time)+" quality result : "+quality);
                     }
+                    if (quality == RecognizeActivity.QUALITY_OUT
+                            || quality == AEFaceQuality.QUALITY_FAR
+                            || quality == AEFaceQuality.QUALITY_NEAR) {
+                        clearFrontFaceHint();
+                    } else if (!checkFrontFace(rect[0])) {
+                        // 转头可能造成光线不均等质量结果，仍需优先提示回正
+                        activity.notifyLightNormal();
+                        activity.showFaceOut(true);
+                        faceCount = 0;
+                        checkAgain();
+                        return;
+                    }
                     if (!activity.getHandler().isInPoseChange()
                             && quality != AEFaceQuality.QUALITY_DARK
                             && quality != AEFaceQuality.QUALITY_BRIGHT) {
@@ -277,8 +299,8 @@ public class DecodeHandler extends Handler {
                         activity.notifyLightNormal();
                     if (quality == AEFaceQuality.QUALITY_OK || quality == RecognizeActivity.QUALITY_SIDE) {
                         loseCount = 0;
-                        faceCount++;
                         activity.showFaceOut(true);
+                        faceCount++;
                         if (!AEFacePack.getInstance().isAliveOff()) { // 活体优先
                             {
                                 if (!activity.getHandler().isInPoseChange() && !shakeStatus) {
@@ -373,6 +395,7 @@ public class DecodeHandler extends Handler {
                             }
                         }
                     } else {
+                        clearFrontFaceHint();
                         if (faceFar && quality == AEFaceQuality.QUALITY_OK) {
                             quality = AEFaceQuality.QUALITY_FAR;
                         }
@@ -385,10 +408,12 @@ public class DecodeHandler extends Handler {
                     }
                 }else {
                     //有多个人脸：连续 20s 仍多人再失败，期间提示调整
+                    clearFrontFaceHint();
                     activity.notifyLightNormal();
                     activity.notifyMultiFace(true);
                 }
             } else { // 如果没找到 人脸 的 具体位置 就继续寻找
+                clearFrontFaceHint();
                 activity.notifyLightNormal();
                 activity.notifyMultiFace(false);
                 elseProcess(faceInfo, false,-1);
@@ -399,6 +424,72 @@ public class DecodeHandler extends Handler {
     }
 
     volatile int count;
+
+    /** 动作过程中检查：放行当前头部动作方向，仅对无关方向的持续明显偏转提示。 */
+    private boolean checkFrontFace(Rect rect) {
+        int curPose = activity.getHandler().getCurPos();
+        int actionIndex = activity.getHandler().getCurSide();
+        if (actionIndex != mLastAliveActionIndex) {
+            mLastAliveActionIndex = actionIndex;
+            clearFrontFaceHint();
+        }
+        boolean headPose = curPose == AEFaceAlive.POSE_FACE_SHAKE
+                || curPose == AEFaceAlive.POSE_FACE_UP
+                || curPose == AEFaceAlive.POSE_FACE_DOWN;
+        float[] pose = AEFaceAlive.getInstance().AEYE_Alive_GetFacePose(
+                faceInfo.faceArr, faceInfo.width, faceInfo.height, rect);
+        if (pose == null) {
+            clearFrontFaceHint();
+            return true;
+        }
+        boolean frontal;
+        if (curPose == AEFaceAlive.POSE_FACE_SHAKE) {
+            frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
+                    && Math.abs(pose[2]) < HEAD_OTHER_AXIS_LIMIT;
+        } else if (curPose == AEFaceAlive.POSE_FACE_UP
+                || curPose == AEFaceAlive.POSE_FACE_DOWN) {
+            frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
+                    && Math.abs(pose[1]) < HEAD_OTHER_AXIS_LIMIT;
+        } else {
+            frontal = Math.abs(pose[0]) < FRONT_AXIS_LIMIT
+                    && Math.abs(pose[1]) < FRONT_AXIS_LIMIT
+                    && Math.abs(pose[2]) < FRONT_AXIS_LIMIT;
+        }
+        boolean showHint;
+        if (!frontal) {
+            mFrontFrames = 0;
+            if (headPose) {
+                mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, HEAD_HINT_ENTER_FRAMES);
+                showHint = mHeadNotFrontFrames >= HEAD_HINT_ENTER_FRAMES;
+            } else {
+                mHeadNotFrontFrames = 0;
+                showHint = true;
+            }
+        } else if (mFrontHintRequested && ++mFrontFrames < FRONT_HINT_LEAVE_FRAMES) {
+            mHeadNotFrontFrames = 0;
+            showHint = true;
+        } else {
+            mFrontFrames = 0;
+            mHeadNotFrontFrames = 0;
+            showHint = false;
+        }
+        if (showHint && !mFrontHintRequested) {
+            Log.e(TAG, "checkFrontFace roll=" + pose[0] + ", yaw=" + pose[1]
+                    + ", pitch=" + pose[2] + ", frontal=false");
+        }
+        mFrontHintRequested = showHint;
+        activity.showFrontFaceHint(showHint);
+        return !showHint;
+    }
+
+    private void clearFrontFaceHint() {
+        mFrontFrames = 0;
+        mHeadNotFrontFrames = 0;
+        if (mFrontHintRequested) {
+            mFrontHintRequested = false;
+            activity.showFrontFaceHint(false);
+        }
+    }
 
     private boolean checkFace(Bitmap bitmap, Rect rect, Bitmap src) {
         Log.e(TAG, "checkFace count=" + count);

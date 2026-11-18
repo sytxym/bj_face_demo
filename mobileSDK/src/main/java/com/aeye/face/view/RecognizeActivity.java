@@ -190,6 +190,8 @@ public class RecognizeActivity extends Activity implements
     private int mDisplayedCheckHintResId = 0;
     /** {@link #showHint(String, int)} 当前展示的文案 key，无人脸/太远是逐帧触发的，需要去重 */
     private String mDisplayedCheckHintKey = null;
+    /** 非正脸提示展示期间，屏蔽出框和动作文案，避免互相覆盖 */
+    private volatile boolean mFrontFaceHintShowing = false;
     /** 当前语音ID **/
     int curVoice = 0;
 
@@ -736,6 +738,10 @@ public class RecognizeActivity extends Activity implements
                     }
                     String text = (String) msg.obj;
                     int hintColorKind = msg.arg1;
+                    if ((mFrontFaceHintShowing && !"face_front".equals(text))
+                            || (!mFrontFaceHintShowing && "face_front".equals(text))) {
+                        break;
+                    }
                     if ("aeye_camera_notice".equals(text)) {
                         break;
                     }
@@ -783,6 +789,10 @@ public class RecognizeActivity extends Activity implements
                             tvCheckHint.setText(shownResId);
                             mOutHintAppliedAt = SystemClock.elapsedRealtime();
                             break;
+                        case "face_front":
+                            shownResId = R.string.aeye_face_front;
+                            tvCheckHint.setText(shownResId);
+                            break;
                         case "aeye_eye_blink":
                             shownResId = R.string.aeye_face_blick;
                             tvCheckHint.setText(shownResId);
@@ -820,6 +830,9 @@ public class RecognizeActivity extends Activity implements
                     }
                     break;
                 case UI_MSG_HINT_HIDE:
+                    if (mFrontFaceHintShowing) {
+                        break;
+                    }
                     tvCheckHint.setVisibility(View.GONE);
                     mDisplayedCheckHintResId = 0;
                     mDisplayedCheckHintKey = null;
@@ -1332,6 +1345,10 @@ public class RecognizeActivity extends Activity implements
             if (isFlashing()) {
                 showHint("keep_face", HINT_COLOR_THEME);
             }
+            return;
+        }
+        if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT && isLightFlashStarted()) {
+            showHint("keep", HINT_COLOR_THEME);
             return;
         }
         int curPose = lightHandler != null ? lightHandler.getCurPos()
@@ -2328,6 +2345,29 @@ public class RecognizeActivity extends Activity implements
         message.arg1 = hintColorKind;
         mUIHandler.sendMessage(message);
     }
+
+    public void showFrontFaceHint(boolean show) {
+        if (mFrontFaceHintShowing == show) {
+            return;
+        }
+        mFrontFaceHintShowing = show;
+        if (show) {
+            mPendingOutHintKey = null;
+            if (mQualityVoiceRunnable != null) {
+                mUIHandler.removeCallbacks(mQualityVoiceRunnable);
+                mQualityVoiceRunnable = null;
+            }
+            showHint("face_front", HINT_COLOR_THEME);
+        } else {
+            mDisplayedCheckHintKey = null;
+            mDisplayedCheckHintResId = 0;
+            textId = 0;
+            if (mGuideOvalState == 1) {
+                restoreInFrameHint();
+            }
+        }
+    }
+
     int mId = 0;
     public void showQualityHint(final int quality, final boolean voice) {
         mId =0;
@@ -2522,7 +2562,8 @@ public class RecognizeActivity extends Activity implements
     }
 
     private void applyCheckHintText(int textResId, int hintColorKind) {
-        if (tvCheckHint == null || mInPlaceFailUi || mInPlaceSuccessUi || textResId == 0) {
+        if (tvCheckHint == null || mInPlaceFailUi || mInPlaceSuccessUi || textResId == 0
+                || mFrontFaceHintShowing) {
             return;
         }
         if (mWaitingMultiFace
@@ -3371,6 +3412,7 @@ public class RecognizeActivity extends Activity implements
         mLightAbnormalSinceElapsedMs = -1L;
         textId = -1;
         mPlayedPoseVoiceId = Integer.MIN_VALUE;
+        mFrontFaceHintShowing = false;
 
         mFinish = false;
     }

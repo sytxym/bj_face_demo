@@ -33,6 +33,7 @@
     <string name="aeye_quality_failed">Failure of quality assessment</string>
     <string name="aeye_quality_out">keep you face in detect range</string>
     <string name="aeye_quality_side">keep facing the camera</string>
+    <string name="aeye_face_front">Please face the screen</string>
     
     <string name="aeye_pose_success">Good！please look at camera</string>
     <string name="face_pose_fail_hint">Please follow the on-screen instructions</string>

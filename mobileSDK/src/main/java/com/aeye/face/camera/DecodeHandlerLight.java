@@ -93,6 +93,14 @@ public class DecodeHandlerLight extends Handler {
 	private int mFarFlipCount = 0;
 	private static final int FAR_ENTER_FRAMES = 4;
 	private static final int FAR_LEAVE_FRAMES = 3;
+	private static final int FRONT_HINT_LEAVE_FRAMES = 2;
+	private static final int HEAD_HINT_ENTER_FRAMES = 3;
+	private static final float FRONT_AXIS_LIMIT = 12.0f;
+	private static final float HEAD_OTHER_AXIS_LIMIT = 25.0f;
+	private int mFrontFrames = 0;
+	private int mHeadNotFrontFrames = 0;
+	private boolean mFrontHintRequested = false;
+	private int mLastAliveActionIndex = -1;
 	private int CfgLoseFace = 2;
 	private int CfgPicNum = 1;
 	private int CfgCapFace = 2;
@@ -151,6 +159,8 @@ public class DecodeHandlerLight extends Handler {
 		mLastInGuideOval = false;
 		mLastFaceFar = false;
 		mFarFlipCount = 0;
+		mLastAliveActionIndex = -1;
+		clearFrontFaceHint();
 
 		envLast = AEFaceQuality.QUALITY_OK;
 		envCount = 0;
@@ -363,6 +373,79 @@ public class DecodeHandlerLight extends Handler {
 	}
 	//	static int captured = 0;
 //	static int captured1 = 0;
+	/** 动作过程中按动作方向容错检查；进入闪光后要求完整正脸。 */
+	private boolean checkFrontFace(Rect rect) {
+		CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
+		if (lightHandler == null || !isFaceInGuideOval(rect, faceInfo.width, faceInfo.height)) {
+			clearFrontFaceHint();
+			return true;
+		}
+		boolean motionStage = activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT
+				&& !isMotionAliveSuc;
+		int curPose = motionStage ? lightHandler.getCurPos() : 0;
+		int actionIndex = motionStage ? lightHandler.getCurSide() : 0;
+		if (actionIndex != mLastAliveActionIndex) {
+			mLastAliveActionIndex = actionIndex;
+			clearFrontFaceHint();
+		}
+		boolean headPose = motionStage && (curPose == AEFaceAlive.POSE_FACE_SHAKE
+				|| curPose == AEFaceAlive.POSE_FACE_UP
+				|| curPose == AEFaceAlive.POSE_FACE_DOWN);
+		float[] pose = AEFaceAlive.getInstance().AEYE_Alive_GetFacePose(
+				faceInfo.faceArr, faceInfo.width, faceInfo.height, rect);
+		if (pose == null) {
+			clearFrontFaceHint();
+			return true;
+		}
+		boolean frontal;
+		if (motionStage && curPose == AEFaceAlive.POSE_FACE_SHAKE) {
+			frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
+					&& Math.abs(pose[2]) < HEAD_OTHER_AXIS_LIMIT;
+		} else if (motionStage && (curPose == AEFaceAlive.POSE_FACE_UP
+				|| curPose == AEFaceAlive.POSE_FACE_DOWN)) {
+			frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
+					&& Math.abs(pose[1]) < HEAD_OTHER_AXIS_LIMIT;
+		} else {
+			frontal = Math.abs(pose[0]) < FRONT_AXIS_LIMIT
+					&& Math.abs(pose[1]) < FRONT_AXIS_LIMIT
+					&& Math.abs(pose[2]) < FRONT_AXIS_LIMIT;
+		}
+		boolean showHint;
+		if (!frontal) {
+			mFrontFrames = 0;
+			if (headPose) {
+				mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, HEAD_HINT_ENTER_FRAMES);
+				showHint = mHeadNotFrontFrames >= HEAD_HINT_ENTER_FRAMES;
+			} else {
+				mHeadNotFrontFrames = 0;
+				showHint = true;
+			}
+		} else if (mFrontHintRequested && ++mFrontFrames < FRONT_HINT_LEAVE_FRAMES) {
+			mHeadNotFrontFrames = 0;
+			showHint = true;
+		} else {
+			mFrontFrames = 0;
+			mHeadNotFrontFrames = 0;
+			showHint = false;
+		}
+		if (showHint && !mFrontHintRequested) {
+			Log.e(TAG, "checkFrontFace roll=" + pose[0] + ", yaw=" + pose[1]
+					+ ", pitch=" + pose[2] + ", frontal=false");
+		}
+		mFrontHintRequested = showHint;
+		activity.showFrontFaceHint(showHint);
+		return !showHint;
+	}
+
+	private void clearFrontFaceHint() {
+		mFrontFrames = 0;
+		mHeadNotFrontFrames = 0;
+		if (mFrontHintRequested) {
+			mFrontHintRequested = false;
+			activity.showFrontFaceHint(false);
+		}
+	}
+
 	private void decode(DecodeData decodeData, int width, int height) {
 		byte[] data = decodeData.getData();
 		if (faceInfo.isAlive || !activity.getDecodeStatus() || data==null) {
@@ -402,12 +485,15 @@ public class DecodeHandlerLight extends Handler {
 			} else if(rect !=null && rect.length>0) {
 				faceInfo.imgRect = rect[0];
 				AEFaceAlive.getInstance().AEYE_Alive_SetPose(activity.getPose());
-				long ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS_Single(
-						faceInfo.faceArr,
-						faceInfo.width,
-						faceInfo.height,
-						faceInfo.imgRect,
-						faceInfo);
+				long ret = -1;
+				if (checkFrontFace(rect[0])) {
+					ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS_Single(
+							faceInfo.faceArr,
+							faceInfo.width,
+							faceInfo.height,
+							faceInfo.imgRect,
+							faceInfo);
+				}
 				Log.e(TAG, "AEYE_AliveDetect : " + ret);
 				if (ret == 0) {
 					isMotionAliveSuc = true;
@@ -445,6 +531,7 @@ public class DecodeHandlerLight extends Handler {
 			rect = takeRect;
 		}
 			if (rect != null && rect.length > 1) {
+				clearFrontFaceHint();
 				activity.notifyLightNormal();
 				activity.notifyMultiFace(true);
 				aliveCount = 1;
@@ -459,6 +546,7 @@ public class DecodeHandlerLight extends Handler {
 				faceInfo.faceNumber = rect.length;
 				boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
 				if (!inOval) {
+					clearFrontFaceHint();
 					mLastFaceFar = false;
 					mFarFlipCount = 0;
 				}
@@ -467,9 +555,11 @@ public class DecodeHandlerLight extends Handler {
 					activity.notifyLightNormal();
 				}
 				if (inOval && !faceFar && blockIfLightAbnormal(faceInfo, rect[0])) {
+					clearFrontFaceHint();
 					mLastInGuideOval = false;
 				} else if (inOval && faceFar) {
 					// 仅脸还在圆框内但过小时「请靠近一点」；出框走移入框内
+					clearFrontFaceHint();
 					activity.showFaceTooFar();
 					aliveCount = 1;
 					currentColorIndex = -1;
@@ -489,6 +579,12 @@ public class DecodeHandlerLight extends Handler {
 						// 动作刚通过时 isMotionAliveSuc 已为 true，若这里不拦截会把未闪光的预览帧
 						// 送给炫彩算法，随即失败并跳到结果页（闪光还没开始）。
 						if (!activity.isLightFlashStarted()) {
+							activity.getLightHandler().restartDecode();
+							checkAgain();
+							return;
+						}
+						if (!checkFrontFace(rect[0])) {
+							currentColorCount = 0;
 							activity.getLightHandler().restartDecode();
 							checkAgain();
 							return;
@@ -606,6 +702,7 @@ public class DecodeHandlerLight extends Handler {
 					activity.setLightScanArcEnabled(inOval);
 				}
 			} else { // 如果没找到 人脸 的 具体位置 就继续寻找
+				clearFrontFaceHint();
 				activity.notifyLightNormal();
 				activity.notifyMultiFace(false);
 				if (RecognizeActivity.getmFaceOK() == 0
@@ -618,6 +715,7 @@ public class DecodeHandlerLight extends Handler {
 					if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT
 							&& isMotionAliveSuc) {
 						isMotionAliveSuc = false;
+						mLastAliveActionIndex = -1;
 						CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
 						if (lightHandler != null) {
 							lightHandler.resetMotionLightProgress();

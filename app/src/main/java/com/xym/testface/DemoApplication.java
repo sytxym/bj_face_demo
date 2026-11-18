@@ -37,8 +37,8 @@ public class DemoApplication extends Application {
         AEFaceSdk.init(serverAddr,true);
         AEFaceSdk.setLogSource("3002"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
-//        AEFaceSdk.setGatewayUrl(gateWayUrl);
-//        AEFaceSdk.setUseGateway(true);
+        AEFaceSdk.setGatewayUrl(gateWayUrl);
+        AEFaceSdk.setUseGateway(true);
         // USB 调试拦截：true=系统「USB 调试」打开就弹窗；本地联调可改为 false
         AEFaceSdk.setUsbDebugBlockEnabled(false);
         mHttpClient = OkHttpClientFactory.createOkHttpClient();

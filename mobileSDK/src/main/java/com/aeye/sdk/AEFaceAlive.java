@@ -545,6 +545,17 @@ public class AEFaceAlive {
         this.mCurPose = pose;
     }
 
+    /** 获取当前帧姿态角：0=roll，1=yaw，2=pitch；算法未就绪时返回 null。 */
+    public float[] AEYE_Alive_GetFacePose(int[] image, int width, int height, Rect faceRect) {
+        if (!this.inited || this.mEnd) {
+            return null;
+        }
+        UtilFacePre.getInstance().FacePreTransform(this.hFaceRec, image, width, height, faceRect,
+                this.mLandmark, this.axis, this.quality, this.axisX, this.axisY,
+                this.mouth, this.eye, this.mask);
+        return new float[]{this.axis[0], this.axisX[0], this.axisY[0]};
+    }
+
     public float[] AEYE_Alive_Quality(Bitmap image, Rect faceRect) {
         int width = image.getWidth();
         int height = image.getHeight();

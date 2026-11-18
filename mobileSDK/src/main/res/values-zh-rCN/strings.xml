@@ -33,6 +33,7 @@
     <string name="aeye_quality_failed">质量评估失败</string>
     <string name="aeye_quality_out">请将脸移入框内</string>
     <string name="aeye_quality_side">请移动手机平视镜头</string>
+    <string name="aeye_face_front">请正视屏幕</string>
     
     <string name="aeye_pose_success">很好！请再次正视摄像头</string>
     
