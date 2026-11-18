@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "com.xym.testface"
-        minSdk 29
+        minSdk 21
         targetSdk 34
         versionCode 1
         versionName "1.0"
