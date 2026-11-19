@@ -11,7 +11,7 @@ public final class AgreementConfig {
 
     /** 测试用长页面（百度百科·人脸识别）；正式协议下发后改这里或 {@link com.aeye.face.AEFaceSdk#setAgreementUrl(String)} */
     public static final String DEFAULT_AGREEMENT_URL =
-            "http://update.singlewindow.cn/appDownload/zsdyck-userProtocol-2.html";
+            "https://test.singlewindow.cn/consent/face-verification-consent.html";
 
     public static final int READ_COUNTDOWN_SEC = 5;
 
