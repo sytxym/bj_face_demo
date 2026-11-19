@@ -93,7 +93,11 @@ public final class FaceImmersiveStatusBar {
             int nav = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
             ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
             if (mlp != null) {
-                mlp.bottomMargin = extraPx + nav;
+                // Android 6.x 小屏设备不再叠加“导航栏高度 + 设计间距”，避免底部留白过大；
+                // 仍保留足够的导航栏安全距离，Android 7.0+ 的现有效果不变。
+                mlp.bottomMargin = Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+                        ? Math.max(nav, extraPx)
+                        : extraPx + nav;
                 v.setLayoutParams(mlp);
             }
             return windowInsets;

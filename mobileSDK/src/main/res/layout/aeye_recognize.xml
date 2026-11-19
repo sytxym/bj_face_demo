@@ -157,12 +157,21 @@
             android:layout_width="match_parent"
             android:layout_height="76dp" />
 
-        <FrameLayout
+        <!-- 取景时 fillViewport 保持原有铺满效果；结果内容超出小屏时允许滚动 -->
+        <ScrollView
+            android:id="@+id/face_chrome_scroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clickable="false"
-            android:focusable="false">
+            android:focusable="false"
+            android:fillViewport="true">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -334,7 +343,8 @@
                 android:focusable="true"
                 android:padding="8dp"
                 android:src="@drawable/aeye_selector_voice" />
-        </FrameLayout>
+            </FrameLayout>
+        </ScrollView>
     </LinearLayout>
 
     <FrameLayout

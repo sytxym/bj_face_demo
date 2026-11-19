@@ -3984,6 +3984,10 @@ public class RecognizeActivity extends Activity implements
     }
 
     private void showPreviewAfterFailRetry() {
+        View chromeScroll = findViewById(R.id.face_chrome_scroll);
+        if (chromeScroll != null) {
+            chromeScroll.scrollTo(0, 0);
+        }
         View panel = findViewById(R.id.face_preview_panel);
         if (panel != null) {
             panel.setVisibility(View.VISIBLE);
@@ -4195,6 +4199,8 @@ public class RecognizeActivity extends Activity implements
     private void showFailActions() {
         if (faceFailActions != null) {
             faceFailActions.setVisibility(View.VISIBLE);
+            // 按钮区初始为 GONE，显示后再请求一次 Insets，确保旧机型也能应用导航栏间距。
+            FaceImmersiveStatusBar.bindBottomMargin(this, faceFailActions, 0);
         }
         if (btnFailRetry != null) {
             btnFailRetry.setVisibility(View.VISIBLE);
