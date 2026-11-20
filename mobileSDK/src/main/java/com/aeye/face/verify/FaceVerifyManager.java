@@ -37,7 +37,7 @@ public final class FaceVerifyManager {
      * 含建连、上传大图（炫彩多图）、读响应、以及提交成功后的 queryVerifyResult 轮询。
      * 略大于 {@link FaceApiService} faceIdent 的 HTTP 超时，避免过早 cancel 打断上传。
      */
-    private static final long VERIFY_TIMEOUT_MS = 45_000L;
+    private static final long VERIFY_TIMEOUT_MS = 125_000L;
     /** 「人脸核验中」UI 最短兜底，需盖住 faceIdent 超时 */
     private static final long VERIFY_UI_TIMEOUT_FLOOR_MS = 70_000L;
     /** 每次 queryVerifyResult 预留的网络耗时 */

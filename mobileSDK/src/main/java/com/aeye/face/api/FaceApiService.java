@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 
 import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.face.AEFaceParam;
@@ -130,7 +131,7 @@ public final class FaceApiService {
         putIfNotEmpty(req, "certType", userInfo.getCertType());
         putIfNotEmpty(req, "certNo", userInfo.getCertNo());
         putIfNotEmpty(req, "country", userInfo.getCountry());
-        putIfNotEmpty(req,"request",resolveRequestIp());
+        putIfNotEmpty(req,"requestIp",resolveRequestIp());
         return req.toString();
     }
 
@@ -184,8 +185,9 @@ public final class FaceApiService {
      *
      * @param livenessJson {@code onFinish} 中返回的采集 JSON（含 images 数组）
      */
-    /** faceIdent 含多张人脸图，上传超时需长于普通 8s 接口 */
-    private static final int FACE_IDENT_TIMEOUT_MS = 40_000;
+    /** faceIdent 保留原始大图：建连仍快速失败，上传及响应最长等待 120 秒。 */
+    private static final int FACE_IDENT_CONNECT_TIMEOUT_MS = 8_000;
+    private static final int FACE_IDENT_READ_TIMEOUT_MS = 120_000;
 
     public static FaceIdentResult submitFaceIdent(String baseUrl,
                                                   String livenessJson,
@@ -194,7 +196,7 @@ public final class FaceApiService {
         String body = buildFaceIdentRequestJson(livenessJson, userId, authRecordId);
         String response = SdkHttpClient.postJson(
                 baseUrl, FaceApiPaths.FACE_IDENT, body,
-                FACE_IDENT_TIMEOUT_MS, FACE_IDENT_TIMEOUT_MS);
+                FACE_IDENT_CONNECT_TIMEOUT_MS, FACE_IDENT_READ_TIMEOUT_MS);
         return parseFaceIdentResponse(response);
     }
 
@@ -217,7 +219,7 @@ public final class FaceApiService {
         String body = buildFaceIdentColorRequestJson(userId, authRecordId, businessCode, seq, facePics, colorPics);
         String response = SdkHttpClient.postJson(
                 baseUrl, FaceApiPaths.FACE_IDENT, body,
-                FACE_IDENT_TIMEOUT_MS, FACE_IDENT_TIMEOUT_MS);
+                FACE_IDENT_CONNECT_TIMEOUT_MS, FACE_IDENT_READ_TIMEOUT_MS);
         return parseFaceIdentResponse(response);
     }
 
@@ -264,6 +266,7 @@ public final class FaceApiService {
         }
         req.put("colorPics", colorPics != null ? colorPics : new JSONArray());
         req.put("verifyTerminal", AEFaceSdk.getLogSource());
+        logFaceImageSizes("color", req);
         applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
@@ -275,7 +278,7 @@ public final class FaceApiService {
     /**
      * 从活体 JSON 组装核验请求体。
      * facePic1=正脸(images[0])，facePic2~facePic6=抓拍图(images[1]~[5])。
-     * 动作活体采集图为 PNG，提交前转为 JPEG 以降低网关 form 体积（与炫彩人脸图质量一致）。
+     * 动作活体人脸图在提交前统一转为 JPEG 90，活体算法 images[] 保持原样。
      */
     public static String buildFaceIdentRequestJson(String livenessJson,
                                                    String userId,
@@ -293,12 +296,12 @@ public final class FaceApiService {
         }
 //        putIfNotEmpty(req, "businessCode", FaceVerifySession.getBusinessCode());
 //        appendUserIdentityFields(req);
-        req.put("facePic1", images.getString(0));
+        req.put("facePic1", toJpegFacePic(images.getString(0), live));
         for (int picIndex = 2; picIndex <= 6; picIndex++) {
             int imageIndex = picIndex - 1;
             String key = "facePic" + picIndex;
             if (images.length() > imageIndex) {
-                req.put(key, images.getString(imageIndex));
+                req.put(key, toJpegFacePic(images.getString(imageIndex), live));
             } else {
                 req.put(key, JSONObject.NULL);
             }
@@ -314,6 +317,7 @@ public final class FaceApiService {
             req.put("alignData", live.optString("alignData"));
         }
         req.put("verifyTerminal", AEFaceSdk.getLogSource());
+        logFaceImageSizes("motion", req);
         applyFaceIdentFieldEncryption(req);
         return req.toString();
     }
@@ -390,6 +394,73 @@ public final class FaceApiService {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private static final String IMAGE_SIZE_LOG_TAG = "FaceImageSize";
+
+    /** 提交前逐张输出图片体积；只记录长度，不打印 Base64 内容。 */
+    private static void logFaceImageSizes(String mode, JSONObject req) {
+        long totalBase64Chars = 0L;
+        long totalDecodedBytes = 0L;
+        int imageCount = 0;
+        for (int i = 1; i <= 6; i++) {
+            String key = "facePic" + i;
+            String value = req.optString(key, null);
+            if (TextUtils.isEmpty(value)) {
+                continue;
+            }
+            long decodedBytes = estimateBase64DecodedBytes(value);
+            totalBase64Chars += value.length();
+            totalDecodedBytes += decodedBytes;
+            imageCount++;
+            logImageSize(mode, key, value.length(), decodedBytes);
+        }
+        JSONArray colors = req.optJSONArray("colorPics");
+        if (colors != null) {
+            for (int i = 0; i < colors.length(); i++) {
+                Object item = colors.opt(i);
+                if (item == null || item == JSONObject.NULL) {
+                    continue;
+                }
+                String value = String.valueOf(item);
+                if (TextUtils.isEmpty(value)) {
+                    continue;
+                }
+                long decodedBytes = estimateBase64DecodedBytes(value);
+                totalBase64Chars += value.length();
+                totalDecodedBytes += decodedBytes;
+                imageCount++;
+                logImageSize(mode, "colorPics[" + i + "]", value.length(), decodedBytes);
+            }
+        }
+        Log.i(IMAGE_SIZE_LOG_TAG, "mode=" + mode + ", total images=" + imageCount
+                + ", totalBase64KB=" + formatKb(totalBase64Chars)
+                + ", totalDecodedKB=" + formatKb(totalDecodedBytes));
+    }
+
+    private static void logImageSize(String mode, String field, long base64Chars, long decodedBytes) {
+        Log.i(IMAGE_SIZE_LOG_TAG, "mode=" + mode + ", field=" + field
+                + ", base64Chars=" + base64Chars
+                + ", base64KB=" + formatKb(base64Chars)
+                + ", decodedBytes=" + decodedBytes
+                + ", decodedKB=" + formatKb(decodedBytes));
+    }
+
+    /** Base64 为 ASCII 字符；按长度及末尾 padding 估算解码后的文件字节数，避免额外解码大图。 */
+    private static long estimateBase64DecodedBytes(String value) {
+        int padding = 0;
+        int length = value.length();
+        if (length > 0 && value.charAt(length - 1) == '=') {
+            padding++;
+        }
+        if (length > 1 && value.charAt(length - 2) == '=') {
+            padding++;
+        }
+        return Math.max(0L, (length * 3L) / 4L - padding);
+    }
+
+    private static String formatKb(long bytes) {
+        return String.format(java.util.Locale.ROOT, "%.1f", bytes / 1024.0d);
     }
 
     /**

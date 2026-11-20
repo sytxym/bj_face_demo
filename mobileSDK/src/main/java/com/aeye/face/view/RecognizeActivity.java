@@ -192,6 +192,10 @@ public class RecognizeActivity extends Activity implements
     private String mDisplayedCheckHintKey = null;
     /** 非正脸提示展示期间，屏蔽出框和动作文案，避免互相覆盖 */
     private volatile boolean mFrontFaceHintShowing = false;
+    /** 面部遮挡提示优先于其他检测提示 */
+    private volatile boolean mFaceMaskHintShowing = false;
+    /** 当前已播报的特殊提示文字，避免多人脸/遮挡提示逐帧重复播音 */
+    private int mSpecialVoiceHintResId = 0;
     /** 当前语音ID **/
     int curVoice = 0;
 
@@ -738,6 +742,10 @@ public class RecognizeActivity extends Activity implements
                     }
                     String text = (String) msg.obj;
                     int hintColorKind = msg.arg1;
+                    if ((mFaceMaskHintShowing && !"face_mask".equals(text))
+                            || (!mFaceMaskHintShowing && "face_mask".equals(text))) {
+                        break;
+                    }
                     if ((mFrontFaceHintShowing && !"face_front".equals(text))
                             || (!mFrontFaceHintShowing && "face_front".equals(text))) {
                         break;
@@ -789,6 +797,11 @@ public class RecognizeActivity extends Activity implements
                             tvCheckHint.setText(shownResId);
                             mOutHintAppliedAt = SystemClock.elapsedRealtime();
                             break;
+                        case "face_mask":
+                            shownResId = R.string.aeye_face_mask;
+                            tvCheckHint.setText(shownResId);
+                            textId = 0;
+                            break;
                         case "face_front":
                             shownResId = R.string.aeye_face_front;
                             tvCheckHint.setText(shownResId);
@@ -824,15 +837,36 @@ public class RecognizeActivity extends Activity implements
                             tvCheckHint.setText(shownResId);
                             break;
                     }
+                    if (shownResId == R.string.aeye_notice_morepeople
+                            || shownResId == R.string.aeye_face_mask
+                            || shownResId == R.string.aeye_face_front) {
+                        if (mSpecialVoiceHintResId != shownResId) {
+                            mSpecialVoiceHintResId = shownResId;
+                            if (voiceTriggle) {
+                                int voiceResId;
+                                if (shownResId == R.string.aeye_notice_morepeople) {
+                                    voiceResId = R.raw.aeye_multi;
+                                } else if (shownResId == R.string.aeye_face_mask) {
+                                    voiceResId = R.raw.aeye_occlusion;
+                                } else {
+                                    voiceResId = R.raw.aeye_face;
+                                }
+                                AudioUtils.playVoice(getApplication(), voiceResId);
+                            }
+                        }
+                    } else {
+                        mSpecialVoiceHintResId = 0;
+                    }
                     mDisplayedCheckHintResId = shownResId;
                     if (shownResId != 0) {
                         textId = shownResId;
                     }
                     break;
                 case UI_MSG_HINT_HIDE:
-                    if (mFrontFaceHintShowing) {
+                    if (mFaceMaskHintShowing || mFrontFaceHintShowing) {
                         break;
                     }
+                    mSpecialVoiceHintResId = 0;
                     tvCheckHint.setVisibility(View.GONE);
                     mDisplayedCheckHintResId = 0;
                     mDisplayedCheckHintKey = null;
@@ -2346,8 +2380,31 @@ public class RecognizeActivity extends Activity implements
         mUIHandler.sendMessage(message);
     }
 
+    public void showFaceMaskHint(boolean show) {
+        if (mFaceMaskHintShowing == show) {
+            return;
+        }
+        mFaceMaskHintShowing = show;
+        if (show) {
+            mFrontFaceHintShowing = false;
+            mPendingOutHintKey = null;
+            if (mQualityVoiceRunnable != null) {
+                mUIHandler.removeCallbacks(mQualityVoiceRunnable);
+                mQualityVoiceRunnable = null;
+            }
+            showHint("face_mask", HINT_COLOR_THEME);
+        } else {
+            mDisplayedCheckHintKey = null;
+            mDisplayedCheckHintResId = 0;
+            textId = 0;
+            if (mGuideOvalState == 1) {
+                restoreInFrameHint();
+            }
+        }
+    }
+
     public void showFrontFaceHint(boolean show) {
-        if (mFrontFaceHintShowing == show) {
+        if ((show && mFaceMaskHintShowing) || mFrontFaceHintShowing == show) {
             return;
         }
         mFrontFaceHintShowing = show;
@@ -2563,7 +2620,7 @@ public class RecognizeActivity extends Activity implements
 
     private void applyCheckHintText(int textResId, int hintColorKind) {
         if (tvCheckHint == null || mInPlaceFailUi || mInPlaceSuccessUi || textResId == 0
-                || mFrontFaceHintShowing) {
+                || mFaceMaskHintShowing || mFrontFaceHintShowing) {
             return;
         }
         if (mWaitingMultiFace
@@ -2606,6 +2663,7 @@ public class RecognizeActivity extends Activity implements
             if (tvCheckHint.getCurrentTextColor() != color) {
                 tvCheckHint.setTextColor(color);
             }
+            mSpecialVoiceHintResId = 0;
             tvCheckHint.setText(textResId);
             mDisplayedCheckHintResId = textResId;
             if (textResId == R.string.aeye_quality_out) {
@@ -3004,6 +3062,10 @@ public class RecognizeActivity extends Activity implements
         sFaceOK = -1;
         updateScanRingForFace(false);
         cancelGuideUiCommit();
+        if (mQualityVoiceRunnable != null) {
+            mUIHandler.removeCallbacks(mQualityVoiceRunnable);
+            mQualityVoiceRunnable = null;
+        }
         mGuideOvalState = -1;
         mDisplayedGuideState = -1;
         mCountdown.setFrozen(false);
@@ -3413,6 +3475,8 @@ public class RecognizeActivity extends Activity implements
         textId = -1;
         mPlayedPoseVoiceId = Integer.MIN_VALUE;
         mFrontFaceHintShowing = false;
+        mFaceMaskHintShowing = false;
+        mSpecialVoiceHintResId = 0;
 
         mFinish = false;
     }
@@ -3617,19 +3681,23 @@ public class RecognizeActivity extends Activity implements
 
     private void submitColorVerify(final String lightJson, final Bitmap cuesBitmap) {
         final String seq = AEFacePack.getInstance().getColorSeq();
-        // images[] 存的是 SM4 密文；facePics 解密后用 JPEG 上传以减小体积。
-        final JSONArray facePics = buildColorPlainFacePics(lightJson);
-        if (facePics == null || facePics.length() == 0) {
+        // 动作+炫彩提交 PNG；纯炫彩完整预览帧使用 JPEG 90 降低上传体积。
+        final JSONArray facePics = buildColorFacePics();
+        final int expectedFacePicCount = aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT
+                ? Math.max(0, Math.min(5, AEFacePack.getInstance().getAliveMotions())) + 1
+                : 1;
+        if (facePics == null || facePics.length() != expectedFacePicCount) {
+            final String error = "人脸图数量异常，期望 " + expectedFacePicCount + " 张，实际 "
+                    + (facePics == null ? 0 : facePics.length()) + " 张";
             runOnUiThread(() -> {
                 cancelVerifyTimeout();
                 setFaceVerifying(false);
-                showInPlaceFailUi(false, "炫彩人脸图组装失败", true,
+                showInPlaceFailUi(false, error, true,
                         FaceUniResultCodes.RESULT_SERVICE_ERROR);
             });
             return;
         }
-        // alivePics 必须用 PNG：cues 图含算法色序编码，JPEG 有损会破坏数据 → 服务端报「颜色序列不对」。
-        // facePics 仍用 JPEG 降低体积。
+        // cues 算法图始终保留 PNG，避免 JPEG 破坏颜色序列编码。
         final String alivePic = BitmapUtils.convertIconToString(cuesBitmap);
         final JSONArray colorPics = new JSONArray();
         colorPics.put(alivePic);
@@ -3638,37 +3706,13 @@ public class RecognizeActivity extends Activity implements
     }
 
     /**
-     * 将炫彩采集 JSON 中的 SM4 加密 images 解密为 JPEG base64 数组，供 faceIdent 的 facePics 上传。
+     * 动作+炫彩返回正脸及动作 PNG；纯炫彩只返回首张正脸完整帧 JPEG。
      */
-    private JSONArray buildColorPlainFacePics(String lightJson) {
-        JSONArray out = new JSONArray();
-        if (TextUtils.isEmpty(lightJson)) {
-            return out;
+    private JSONArray buildColorFacePics() {
+        if (aliveMode == AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+            return PictureManagerUtilsLight.getPictureManager().getMotionPicturesJson();
         }
-        try {
-            JSONObject obj = new JSONObject(lightJson);
-            JSONArray images = obj.optJSONArray("images");
-            if (images == null || images.length() == 0) {
-                return out;
-            }
-            int picnum = obj.optInt("picnum", 0);
-            int n = picnum > 0 ? Math.min(picnum, images.length()) : images.length();
-            final String key = "E3A03D4A1586F6952F0E699344D0F4E2";
-            for (int i = 0; i < n; i++) {
-                String enc = images.optString(i, null);
-                if (TextUtils.isEmpty(enc)) {
-                    continue;
-                }
-                Bitmap bmp = SMUtil.DataSM4Decode(key, enc);
-                if (bmp == null || bmp.isRecycled()) {
-                    continue;
-                }
-                out.put(BitmapUtils.convertJpegToString(bmp, 90));
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "buildColorPlainFacePics: " + e.getMessage());
-        }
-        return out;
+        return PictureManagerUtilsLight.getPictureManager().getColorFullPicturesJson();
     }
 
     private void submitFaceVerifyWithJson(final String livenessJson) {

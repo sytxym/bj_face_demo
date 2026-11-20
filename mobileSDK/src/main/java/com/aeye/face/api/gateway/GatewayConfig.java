@@ -9,7 +9,7 @@ package com.aeye.face.api.gateway;
 final class GatewayConfig {
 
     /** 网关分配的 app_id */
-    static final String APP_ID = "zshgapp1";
+    static final String APP_ID = "zshgapp";
     /** 网关接口版本号，固定 1.0 */
     static final String VERSION = "1.0";
     /** 请求编码 */

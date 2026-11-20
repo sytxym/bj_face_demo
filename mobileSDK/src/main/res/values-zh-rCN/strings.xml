@@ -33,7 +33,8 @@
     <string name="aeye_quality_failed">质量评估失败</string>
     <string name="aeye_quality_out">请将脸移入框内</string>
     <string name="aeye_quality_side">请移动手机平视镜头</string>
-    <string name="aeye_face_front">请正视屏幕</string>
+    <string name="aeye_face_front">请正对屏幕</string>
+    <string name="aeye_face_mask">请勿遮挡面部</string>
     
     <string name="aeye_pose_success">很好！请再次正视摄像头</string>
     
@@ -73,8 +74,8 @@
     <string name="info_agree_link">《扫脸认证服务协议》</string>
     <string name="info_agree_full">已阅读并同意《扫脸认证服务协议》</string>
     <string name="info_agree_title">扫脸认证服务协议</string>
-    <string name="info_agree_read">已阅读</string>
-    <string name="info_agree_read_countdown">已阅读 %1$dS</string>
+    <string name="info_agree_read">已阅读并同意</string>
+    <string name="info_agree_read_countdown">已阅读并同意 %1$dS</string>
     <string name="info_agree_scroll_to_bottom">请滑动至底部</string>
     <string name="info_agree_scroll_hint">请滑动至页面底部，完整阅读后再确认</string>
     <string name="info_agree_need_check">请先阅读并同意《扫脸认证服务协议》</string>

@@ -188,13 +188,10 @@ public final class CaptureActivityHandler extends Handler implements AEFaceAlive
 
                 boolean hasMask = (boolean) message.obj;
                 Log.e(TAG, "id_mask " + hasMask);
-                activity.showMessage(hasMask ? "面部遮挡" : "");
-                if (hasMask) {
-
-                }
+                activity.showFaceMaskHint(hasMask);
                 break;
             case IDConstants.id_no_mask:
-                activity.showMessage("");
+                activity.showFaceMaskHint(false);
                 break;
             case IDConstants.id_single_alive:
                 MLog.d(TAG, "id_single_alive");

@@ -27,14 +27,15 @@ public class DemoApplication extends Application {
     private OkHttpClient mHttpClient;
     public static  String  serverAddr="https://ai-human.a-eye.cn"; // 模拟器访问电脑 localhost 用 10.0.2.2；真机调试改为电脑局域网 IP
 
-    public static  String  gateWayUrl= "https://zshgapp.customs.gov.cn/empgatewayserver/interface/gateway.do";
+        public static  String  gateWayUrl="https://apptest.singlewindow.cn/fivpublicwebserver/interface/gateway.do";  //联调网关
+//    public static  String  gateWayUrl="https://zshgtest.chinaport.gov.cn/empgatewayserver/interface/gateway.do";  //移动网关
     public static ArrayList<String> riskType = new ArrayList<>();
     private String snapData;
     @Override
     public void onCreate() {
         super.onCreate();
 
-        AEFaceSdk.init(serverAddr,true);
+        AEFaceSdk.init(serverAddr,false);
         AEFaceSdk.setLogSource("3002"); // 掌上海关 APP
         AEFaceSdk.setHttpLogEnabled(true);
         AEFaceSdk.setGatewayUrl(gateWayUrl);

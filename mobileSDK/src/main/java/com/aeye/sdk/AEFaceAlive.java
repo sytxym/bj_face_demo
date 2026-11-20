@@ -21,6 +21,10 @@ import java.util.Arrays;
 
 public class AEFaceAlive {
     public static final String TAG = "AliveTAG";
+    /** 遮挡置信度大于该值时判定为面部遮挡，后续可按真机结果调整。 */
+    public static final float FACE_MASK_THRESHOLD = 0.4F;
+    /** 动作形变容易抬高遮挡分数，动作活体内部使用更严格阈值。 */
+    public static final float ACTION_FACE_MASK_THRESHOLD = 0.7F;
     public static boolean USE_NOD = false;
     public static boolean MOHU_FILTER = true;
     public static boolean ZHENGLIAN_FILTER = true;
@@ -107,7 +111,9 @@ public class AEFaceAlive {
 
         this.hFaceRec = UtilFacePre.getInstance().FacePreCreate();
         if (this.hFaceRec != 0L) {
-            UtilFacePre.getInstance().FacePreUnserialize(this.hFaceRec, AEModelMgr.getModelFilePath(context, "facepre.param"), AEModelMgr.getModelFilePath(context, "facepre_model.bin"));
+            UtilFacePre.getInstance().FacePreUnserialize(this.hFaceRec,
+                    AEModelMgr.getModelFilePath(context, "facepre_v8_3_v8_5.param"),
+                    AEModelMgr.getModelFilePath(context, "facepre_v8_3_v8_5_model.bin"));
             this.inited = true;
             return true;
         } else {
@@ -118,8 +124,8 @@ public class AEFaceAlive {
     }
 
     public long AEYE_Alive_InitVIS(Context context, Bundle paras) {
-        AEModelMgr.loadModelData(context, "facepre_model", "bin");
-        AEModelMgr.loadModelData(context, "facepre", "param");
+        AEModelMgr.loadModelData(context, "facepre_v8_3_v8_5_model", "bin");
+        AEModelMgr.loadModelData(context, "facepre_v8_3_v8_5", "param");
         this.mEnd = false;
         return this.init(context) ? 0L : -1L;
     }
@@ -366,7 +372,7 @@ public class AEFaceAlive {
     private boolean frameFilter() {
         printLog("frameFilter --poseThreshold[0]： "+poseThreshold[0]);
         printLog("frameFilter -- this.mask[0]： "+ (double)this.mask[0]);
-        boolean farameFilter = (double) this.quality[0] < this.poseThreshold[0] - 1.5D && this.axisY[0] > this.faceThresholdLevel[3] && this.axisY[0] < this.faceThresholdLevel[4] + 4.0F && this.axisX[0] > this.faceThresholdLevel[1] - 2.0F && this.axisX[0] < this.faceThresholdLevel[2] + 2.0F && (double) this.mask[0] < 0.7D;
+        boolean farameFilter = (double) this.quality[0] < this.poseThreshold[0] - 1.5D && this.axisY[0] > this.faceThresholdLevel[3] && this.axisY[0] < this.faceThresholdLevel[4] + 4.0F && this.axisX[0] > this.faceThresholdLevel[1] - 2.0F && this.axisX[0] < this.faceThresholdLevel[2] + 2.0F && (double) this.mask[0] < ACTION_FACE_MASK_THRESHOLD;
         printLog("frameFilter : "+farameFilter);
         return farameFilter;
     }
@@ -406,7 +412,7 @@ public class AEFaceAlive {
                     return ret;
                 }
                 // modify from 50 to 55, 降低抬头和低头的难度
-                if (this.quality[0] < 55.0F && (double)this.mask[0] < 0.7D) {
+                if (this.quality[0] < 55.0F && (double)this.mask[0] < ACTION_FACE_MASK_THRESHOLD) {
                     int status = this.judgePose(this.mCurPose, this.poseValue, this.axisX[0], this.axisY[0], this.mouth[0], this.eye[0]);
                     printLog("status : "+status+" , mCurPose : "+this.mCurPose);
                     if (status == -1) {
@@ -471,7 +477,7 @@ public class AEFaceAlive {
                     return ret;
                 }
                 // modify from 50 to 55, 降低抬头和低头的难度
-                if (blur < 5.0F && (double)this.mask[0] < 0.7D &&checkJingMoAlive && checkPose ) {
+                if (blur < 5.0F && (double)this.mask[0] < ACTION_FACE_MASK_THRESHOLD &&checkJingMoAlive && checkPose ) {
                     int status = this.judgePose(this.mCurPose, this.poseValue, axisX, axisY, this.mouth[0], this.eye[0]);
                     if (status == -1) {
                         if (this.mListener != null) {

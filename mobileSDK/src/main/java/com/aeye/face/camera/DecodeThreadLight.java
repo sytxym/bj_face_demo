@@ -65,6 +65,9 @@ final class DecodeThreadLight extends Thread {
     }
 
     public void end() {
+        if (handler instanceof DecodeHandlerLight) {
+            ((DecodeHandlerLight) handler).destroy();
+        }
         try {
             join(QUIT_JOIN_TIMEOUT_MS);
             if (isAlive()) {

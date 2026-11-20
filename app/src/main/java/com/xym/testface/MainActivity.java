@@ -39,18 +39,18 @@ import com.journeyapps.barcodescanner.ScanOptions;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AEFaceInterface {
 
     /** 动作活体业务码，与后台 business_config.business_code 一致（Demo：自然人实名认证）；JSON 未传 businessCode 时的默认值 */
-    private static final String DEMO_BUSINESS_CODE = "01";
+    private static final String DEMO_BUSINESS_CODE = "12";
 
     /**
      * 模拟业务 App（H5/RN）传入的启动参数 JSON——在线核验（useType=true）。
      * 正式接入时由业务侧传入该 JSON，未传字段使用默认值；目前联调阶段写死。
      */
     private static final String DEMO_ONLINE_LAUNCH_JSON = "{"
-            + "\"certName\":\"张三\","
+            + "\"certName\":\"谢勇明\","
             + "\"certType\":\"01\","
-            + "\"certNo\":\"430622199001011234\","
+            + "\"certNo\":\"432503199504186515\","
             + "\"country\":\"中国\","
-            + "\"userId\":\"demoUser001\","
+//            + "\"userId\":\"demoUser001\","
             + "\"busId\":\"demoBus001\","
             + "\"businessCode\":\"" + DEMO_BUSINESS_CODE + "\","
 //            + "\"authRecordId\":\"" + 22222 + "\","

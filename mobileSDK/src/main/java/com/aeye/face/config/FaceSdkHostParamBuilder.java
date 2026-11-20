@@ -43,7 +43,7 @@ public final class FaceSdkHostParamBuilder {
         paras.putInt(AEFaceParam.ShowPrepare, 0);
         paras.putInt(AEFaceParam.ShowBackButton, 1);
         paras.putString(AEFaceParam.TitleTopBar, "");
-        paras.putInt(AEFaceParam.AliveMask, 0);
+        paras.putInt(AEFaceParam.AliveMask, 1);
         paras.putInt(AEFaceParam.EnCryptType, 0);
         paras.putInt(AEFaceParam.ALIVEMODE, AEFaceParam.ALIVEMODE_MOTION);
         paras.putBoolean(AEFaceParam.ROI_CenterSwitch, false);

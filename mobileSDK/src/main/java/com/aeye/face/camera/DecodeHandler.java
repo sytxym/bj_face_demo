@@ -18,7 +18,6 @@ package com.aeye.face.camera;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -96,14 +95,27 @@ public class DecodeHandler extends Handler {
     private int mFarFlipCount = 0;
     private static final int FAR_ENTER_FRAMES = 4;
     private static final int FAR_LEAVE_FRAMES = 3;
-    private static final int FRONT_HINT_LEAVE_FRAMES = 2;
+    private static final int FRONT_HINT_ENTER_FRAMES = 3;
+    private static final int FRONT_HINT_LEAVE_FRAMES = 5;
     private static final int HEAD_HINT_ENTER_FRAMES = 3;
-    private static final float FRONT_AXIS_LIMIT = 12.0f;
-    private static final float HEAD_OTHER_AXIS_LIMIT = 25.0f;
+    private static final int SHAKE_HINT_ENTER_FRAMES = 3;
+    private static final float FRONT_AXIS_LIMIT = 15.0f;
+    private static final float HEAD_OTHER_AXIS_LIMIT = 15.0f;
     private int mFrontFrames = 0;
     private int mHeadNotFrontFrames = 0;
     private boolean mFrontHintRequested = false;
     private int mLastAliveActionIndex = -1;
+    private static final long ACTION_FRONT_CHECK_DELAY_MS = 500L;
+    private long mFrontCheckDelayUntil = 0L;
+    /** 每个动作先执行一次算法，后续帧才进行正脸检查。 */
+    private int mDetectActionIndex = -1;
+    private boolean mActionDetectStarted = false;
+    private static final int MASK_ENTER_FRAMES = 5;
+    private static final int MASK_LEAVE_FRAMES = 5;
+    /** -1 未上报，0 无遮挡，1 有遮挡 */
+    private int lastMaskState = -1;
+    private int maskHitFrames = 0;
+    private int maskClearFrames = 0;
 
     /**
      * 构造
@@ -134,6 +146,12 @@ public class DecodeHandler extends Handler {
         mFaceFarSticky = false;
         mFarFlipCount = 0;
         mLastAliveActionIndex = -1;
+        mDetectActionIndex = -1;
+        mActionDetectStarted = false;
+        lastMaskState = -1;
+        maskHitFrames = 0;
+        maskClearFrames = 0;
+        activity.showFaceMaskHint(false);
         clearFrontFaceHint();
         skipFrame = 5;
 
@@ -238,6 +256,16 @@ public class DecodeHandler extends Handler {
 //                    boolean faceFar = (faceWidth < 340);
                     boolean faceFar = false;
                     faceInfo.imgRect = rect[0];
+                    // 遮挡检测先于质量和动作判断，遮挡帧不得继续活体或采集
+                    if (AEFacePack.getInstance().isAliveMask()) {
+                        boolean hasFaceMask = updateMaskState(checkFace(rect[0]));
+                        if (hasFaceMask) {
+                            faceCount = 0;
+                            aliveCount = 1;
+                            checkAgain();
+                            return;
+                        }
+                    }
                     if (cfgShowRect) {
                         activity.getHandler().sendMessage(activity.getHandler().
                                 obtainMessage(IDConstants.id_draw_faceRect, faceInfo.width, faceInfo.height, rect[0]));
@@ -278,13 +306,6 @@ public class DecodeHandler extends Handler {
                             || quality == AEFaceQuality.QUALITY_FAR
                             || quality == AEFaceQuality.QUALITY_NEAR) {
                         clearFrontFaceHint();
-                    } else if (!checkFrontFace(rect[0])) {
-                        // 转头可能造成光线不均等质量结果，仍需优先提示回正
-                        activity.notifyLightNormal();
-                        activity.showFaceOut(true);
-                        faceCount = 0;
-                        checkAgain();
-                        return;
                     }
                     if (!activity.getHandler().isInPoseChange()
                             && quality != AEFaceQuality.QUALITY_DARK
@@ -308,51 +329,36 @@ public class DecodeHandler extends Handler {
                                         activity.getHandler().addAliveImage(faceInfo);
                                         aliveCount++;
                                     } else {
-                                        if (AEFacePack.getInstance().isAliveMask()) {
-                                            Bitmap vis1 = MBitmapUtil.cutFaceImageWithAlive(faceInfo);
-                                            Bitmap vis = MBitmapUtil.cutFaceImage(faceInfo);
-//                                    Bitmap vis = BitmapFactory.decodeFile("/sdcard/aeye/test_3.png");
-                                            boolean hasFaceMask = checkFace(vis, faceInfo.imgRect, vis1);
-                                            Log.e(TAG, "是否有遮挡:" + (hasFaceMask ? "是" : "否"));
-                                            Message message = Message.obtain(activity.getHandler(),
-                                                    IDConstants.id_mask, hasFaceMask);
-                                            message.sendToTarget();
-                                            if (!hasFaceMask) {
-                                                if (AEFacePack.getInstance().isAlivePose()) {
-                                                    long ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS(
-                                                            faceInfo.faceArr,
-                                                            faceInfo.width,
-                                                            faceInfo.height,
-                                                            faceInfo.imgRect,
-                                                            faceInfo);
-                                                    Log.i("TIME", "Alive cost " + (System.currentTimeMillis() - time));
-                                                    Log.e(TAG, "AEYE_AliveDetect : " + ret);
-                                                } else {
-                                                    Log.e(TAG, "other alive check ");
-                                                    faceInfo.cutFaceImage();
-                                                    Message message2 = Message.obtain(activity.getHandler(),
-                                                            IDConstants.id_single_alive, faceInfo);
-                                                    message2.sendToTarget();
-                                                }
-
+                                        if (AEFacePack.getInstance().isAlivePose()) {
+                                            int actionIndex = activity.getHandler().getCurSide();
+                                            if (mDetectActionIndex != actionIndex) {
+                                                mDetectActionIndex = actionIndex;
+                                                mActionDetectStarted = false;
+                                                clearFrontFaceHint();
                                             }
+                                            // 首帧用于启动动作，不在动作开始前要求正脸。
+                                            if (mActionDetectStarted && !checkFrontFace(rect[0])) {
+                                                activity.notifyLightNormal();
+                                                activity.showFaceOut(true);
+                                                faceCount = 0;
+                                                checkAgain();
+                                                return;
+                                            }
+                                            long ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS(
+                                                    faceInfo.faceArr,
+                                                    faceInfo.width,
+                                                    faceInfo.height,
+                                                    faceInfo.imgRect,
+                                                    faceInfo);
+                                            mActionDetectStarted = true;
+                                            Log.i("TIME", "Alive cost " + (System.currentTimeMillis() - time));
+                                            Log.e(TAG, "AEYE_AliveDetect : " + ret);
                                         } else {
-                                            if (AEFacePack.getInstance().isAlivePose()) {
-                                                long ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS(
-                                                        faceInfo.faceArr,
-                                                        faceInfo.width,
-                                                        faceInfo.height,
-                                                        faceInfo.imgRect,
-                                                        faceInfo);
-//                                                Log.i("TIME", "Alive cost " + (System.currentTimeMillis() - time));
-                                                Log.d(TAG, "AEYE_AliveDetect : " + ret);
-                                            } else {
-                                                Log.e(TAG, "other alive check ");
-                                                faceInfo.cutFaceImage();
-                                                Message message2 = Message.obtain(activity.getHandler(),
-                                                        IDConstants.id_single_alive, faceInfo);
-                                                message2.sendToTarget();
-                                            }
+                                            Log.e(TAG, "other alive check ");
+                                            faceInfo.cutFaceImage();
+                                            Message message2 = Message.obtain(activity.getHandler(),
+                                                    IDConstants.id_single_alive, faceInfo);
+                                            message2.sendToTarget();
                                         }
 
                                     }
@@ -408,11 +414,13 @@ public class DecodeHandler extends Handler {
                     }
                 }else {
                     //有多个人脸：连续 20s 仍多人再失败，期间提示调整
+                    updateMaskState(false);
                     clearFrontFaceHint();
                     activity.notifyLightNormal();
                     activity.notifyMultiFace(true);
                 }
             } else { // 如果没找到 人脸 的 具体位置 就继续寻找
+                updateMaskState(false);
                 clearFrontFaceHint();
                 activity.notifyLightNormal();
                 activity.notifyMultiFace(false);
@@ -431,7 +439,11 @@ public class DecodeHandler extends Handler {
         int actionIndex = activity.getHandler().getCurSide();
         if (actionIndex != mLastAliveActionIndex) {
             mLastAliveActionIndex = actionIndex;
+            mFrontCheckDelayUntil = System.currentTimeMillis() + ACTION_FRONT_CHECK_DELAY_MS;
             clearFrontFaceHint();
+        }
+        if (System.currentTimeMillis() < mFrontCheckDelayUntil) {
+            return true;
         }
         boolean headPose = curPose == AEFaceAlive.POSE_FACE_SHAKE
                 || curPose == AEFaceAlive.POSE_FACE_UP
@@ -443,13 +455,11 @@ public class DecodeHandler extends Handler {
             return true;
         }
         boolean frontal;
-        if (curPose == AEFaceAlive.POSE_FACE_SHAKE) {
-            frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
-                    && Math.abs(pose[2]) < HEAD_OTHER_AXIS_LIMIT;
-        } else if (curPose == AEFaceAlive.POSE_FACE_UP
-                || curPose == AEFaceAlive.POSE_FACE_DOWN) {
-            frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
-                    && Math.abs(pose[1]) < HEAD_OTHER_AXIS_LIMIT;
+        if (headPose) {
+            // 目标动作方向不参与判断；非动作方向直接按当前角度判断，避免起始姿态影响触发和恢复。
+            float otherAxisAngle = curPose == AEFaceAlive.POSE_FACE_SHAKE
+                    ? Math.abs(pose[2]) : Math.abs(pose[1]);
+            frontal = otherAxisAngle < HEAD_OTHER_AXIS_LIMIT;
         } else {
             frontal = Math.abs(pose[0]) < FRONT_AXIS_LIMIT
                     && Math.abs(pose[1]) < FRONT_AXIS_LIMIT
@@ -458,12 +468,16 @@ public class DecodeHandler extends Handler {
         boolean showHint;
         if (!frontal) {
             mFrontFrames = 0;
-            if (headPose) {
-                mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, HEAD_HINT_ENTER_FRAMES);
-                showHint = mHeadNotFrontFrames >= HEAD_HINT_ENTER_FRAMES;
-            } else {
-                mHeadNotFrontFrames = 0;
+            if (mFrontHintRequested) {
+                // 已显示期间保持状态，不能因重新累计进入帧数而立即恢复动作文案。
                 showHint = true;
+            } else {
+                int enterFrames = headPose
+                        ? (curPose == AEFaceAlive.POSE_FACE_SHAKE
+                        ? SHAKE_HINT_ENTER_FRAMES : HEAD_HINT_ENTER_FRAMES)
+                        : FRONT_HINT_ENTER_FRAMES;
+                mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, enterFrames);
+                showHint = mHeadNotFrontFrames >= enterFrames;
             }
         } else if (mFrontHintRequested && ++mFrontFrames < FRONT_HINT_LEAVE_FRAMES) {
             mHeadNotFrontFrames = 0;
@@ -473,9 +487,10 @@ public class DecodeHandler extends Handler {
             mHeadNotFrontFrames = 0;
             showHint = false;
         }
-        if (showHint && !mFrontHintRequested) {
+        if (showHint != mFrontHintRequested) {
             Log.e(TAG, "checkFrontFace roll=" + pose[0] + ", yaw=" + pose[1]
-                    + ", pitch=" + pose[2] + ", frontal=false");
+                    + ", pitch=" + pose[2] + ", frontal=" + frontal
+                    + ", showHint=" + showHint);
         }
         mFrontHintRequested = showHint;
         activity.showFrontFaceHint(showHint);
@@ -491,26 +506,60 @@ public class DecodeHandler extends Handler {
         }
     }
 
-    private boolean checkFace(Bitmap bitmap, Rect rect, Bitmap src) {
-        Log.e(TAG, "checkFace count=" + count);
-//        count++;
-//        AEyeAlive.LiveResult liveResult = new AEyeAlive.LiveResult();
-////        int ret = AEyeAlive.getInstance().Quality(bitmap, rect, liveResult);
-//        byte[] rgb = RGBUtil.bitmap2BGR(bitmap);
-//        if (rgb == null || rgb.length == 0) {
-//            Log.e(TAG, "change error");
-//        }
-//        Log.e(TAG, "rgb size=" + rgb.length);
-//        byte[] temp = rgb.clone();
-//        int ret = AEyeAlive.getInstance().Quality(temp, bitmap.getWidth(), bitmap.getHeight(), liveResult);
-//        Log.e(TAG, "ret==-1=" + (ret == -1) + ",liveResult.score" + liveResult.score);
-////        String name = "sdk_out_" + count + "_" + ret + "_" + liveResult.score;
-////        String name2 = "sdk_out_" + count + "_rgb_" + "_" + ret + "_" + liveResult.score;
-////        if (!(ret == -1)) {
-////            BitmapUtils.saveBitmap(bitmap, name);
-////            BitmapUtils.saveBitmap(src, name2);
-////        }
-        return false;
+    private boolean checkFace(Rect rect) {
+        if (rect == null || faceInfo.faceArr == null) {
+            Log.e(TAG, "checkFace skipped: rect or image is null");
+            return false;
+        }
+        try {
+            float[] quality = AEFaceAlive.getInstance().AEYE_Alive_Quality(
+                    faceInfo.faceArr, faceInfo.width, faceInfo.height, rect);
+            if (quality == null) {
+                Log.e(TAG, "checkFace skipped: alive quality is null");
+                return false;
+            }
+            float mask = AEFaceAlive.getInstance().AEYE_Alive_Quality_Mask(quality);
+            int curPose = activity.getHandler().getCurPos();
+            boolean actionStage = curPose >= AEFaceAlive.POSE_MIN
+                    && curPose <= AEFaceAlive.POSE_EYE_BLINK;
+            float threshold = actionStage ? AEFaceAlive.ACTION_FACE_MASK_THRESHOLD : AEFaceAlive.FACE_MASK_THRESHOLD;
+            boolean hasMask = mask > threshold;
+            Log.e(TAG, "checkFace mask=" + mask + ", threshold=" + threshold
+                    + ", actionStage=" + actionStage + ", hasMask=" + hasMask);
+            return hasMask;
+        } catch (Exception e) {
+            Log.e(TAG, "checkFace error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** 连续多帧确认后才切换遮挡状态，避免阈值附近抖动导致提示闪烁。 */
+    private boolean updateMaskState(boolean detected) {
+        if (detected) {
+            maskClearFrames = 0;
+            maskHitFrames = Math.min(maskHitFrames + 1, MASK_ENTER_FRAMES);
+            if (lastMaskState != 1 && maskHitFrames >= MASK_ENTER_FRAMES) {
+                sendMaskState(true);
+            }
+        } else {
+            maskHitFrames = 0;
+            maskClearFrames = Math.min(maskClearFrames + 1, MASK_LEAVE_FRAMES);
+            if (lastMaskState == 1 && maskClearFrames >= MASK_LEAVE_FRAMES) {
+                sendMaskState(false);
+            } else if (lastMaskState == -1) {
+                lastMaskState = 0;
+            }
+        }
+        return lastMaskState == 1;
+    }
+
+    private void sendMaskState(boolean hasMask) {
+        int state = hasMask ? 1 : 0;
+        if (lastMaskState == state) {
+            return;
+        }
+        lastMaskState = state;
+        Message.obtain(activity.getHandler(), IDConstants.id_mask, hasMask).sendToTarget();
     }
 
     private void elseProcess(AEFaceInfo faceInfo, boolean haveFace,int quality) {
@@ -584,7 +633,7 @@ public class DecodeHandler extends Handler {
 
         int limitXrigntdiff = 32;
         int xChushu = 20;
-        int nearFaceWidth = 250;
+        int nearFaceWidth = 200;
         if(AEFacePack.getInstance().ismRoiCenterSwitch()){
             //增加人脸区域为中间位置检测
             limitXrigntdiff = 24;
@@ -593,7 +642,7 @@ public class DecodeHandler extends Handler {
         if(AEFacePack.getInstance().isLand()){
               limitXrigntdiff = 32;
               xChushu = 20;
-            nearFaceWidth=160;
+            nearFaceWidth=140;
         }
         Log.e(TAG, "facePosition  limitXrigntdiff=" + limitXrigntdiff
                 + ",xChushu=" + xChushu

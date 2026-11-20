@@ -44,6 +44,7 @@ import com.aeye.face.lightView.DecodeData;
 import com.aeye.face.lightView.LightCacheBean;
 import com.aeye.face.view.RecognizeActivity;
 import com.aeye.face.uitls.FLogUtil;
+import com.aeye.face.uitls.MBitmapUtil;
 import com.aeye.face.uitls.PictureManagerUtilsLight;
 import com.aeye.sdk.AEFaceAlive;
 import com.aeye.sdk.AEFaceDetect;
@@ -54,6 +55,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 解码、停止<BR/>
@@ -93,14 +96,25 @@ public class DecodeHandlerLight extends Handler {
 	private int mFarFlipCount = 0;
 	private static final int FAR_ENTER_FRAMES = 4;
 	private static final int FAR_LEAVE_FRAMES = 3;
-	private static final int FRONT_HINT_LEAVE_FRAMES = 2;
+	private static final int FRONT_HINT_ENTER_FRAMES = 3;
+	private static final int FRONT_HINT_LEAVE_FRAMES = 5;
 	private static final int HEAD_HINT_ENTER_FRAMES = 3;
-	private static final float FRONT_AXIS_LIMIT = 12.0f;
-	private static final float HEAD_OTHER_AXIS_LIMIT = 25.0f;
+	private static final int SHAKE_HINT_ENTER_FRAMES = 3;
+	private static final float FRONT_AXIS_LIMIT = 15.0f;
+	private static final float HEAD_OTHER_AXIS_LIMIT = 15.0f;
 	private int mFrontFrames = 0;
 	private int mHeadNotFrontFrames = 0;
 	private boolean mFrontHintRequested = false;
 	private int mLastAliveActionIndex = -1;
+	private static final long ACTION_FRONT_CHECK_DELAY_MS = 500L;
+	private long mFrontCheckDelayUntil = 0L;
+	private int mDetectActionIndex = -1;
+	private boolean mActionDetectStarted = false;
+	private static final int MASK_ENTER_FRAMES = 5;
+	private static final int MASK_LEAVE_FRAMES = 5;
+	private int lastMaskState = -1;
+	private int maskHitFrames = 0;
+	private int maskClearFrames = 0;
 	private int CfgLoseFace = 2;
 	private int CfgPicNum = 1;
 	private int CfgCapFace = 2;
@@ -133,6 +147,9 @@ public class DecodeHandlerLight extends Handler {
 	int[] qua = new int[]{0};
 	int mInsertframId = -1;
 	boolean isMotionAliveSuc = false;
+	private boolean mMotionFrontCaptured = false;
+	/** 颜色图片按采集顺序编码，避免多线程竞争图片数组。 */
+	private final ExecutorService mPictureExecutor = Executors.newSingleThreadExecutor();
 
 	/** 构造 */
 	public DecodeHandlerLight(RecognizeActivity activity) {
@@ -160,6 +177,12 @@ public class DecodeHandlerLight extends Handler {
 		mLastFaceFar = false;
 		mFarFlipCount = 0;
 		mLastAliveActionIndex = -1;
+		mDetectActionIndex = -1;
+		mActionDetectStarted = false;
+		lastMaskState = -1;
+		maskHitFrames = 0;
+		maskClearFrames = 0;
+		activity.showFaceMaskHint(false);
 		clearFrontFaceHint();
 
 		envLast = AEFaceQuality.QUALITY_OK;
@@ -182,7 +205,9 @@ public class DecodeHandlerLight extends Handler {
 		bestPos = 0;
 //		pointArrayList.clear();
 		mInsertframId = -1;
+		mMotionFrontCaptured = false;
 		if(activity.getAliveMode()== AEFaceParam.ALIVEMODE_MOTION_LIGHT){
+			PictureManagerUtilsLight.getPictureManager().resetMotionPictures();
 			isMotionAliveSuc  = false;
 		}else {
 			isMotionAliveSuc = true;
@@ -373,6 +398,65 @@ public class DecodeHandlerLight extends Handler {
 	}
 	//	static int captured = 0;
 //	static int captured1 = 0;
+	private boolean checkFaceMask(Rect rect) {
+		if (rect == null || faceInfo.faceArr == null) {
+			Log.e(TAG, "checkFaceMask skipped: rect or image is null");
+			return false;
+		}
+		try {
+			float[] quality = AEFaceAlive.getInstance().AEYE_Alive_QualityLight(
+					faceInfo.faceArr, faceInfo.width, faceInfo.height, rect);
+			if (quality == null) {
+				Log.e(TAG, "checkFaceMask skipped: alive quality is null");
+				return false;
+			}
+			float mask = AEFaceAlive.getInstance().AEYE_Alive_Quality_Mask(quality);
+			boolean actionStage = activity.getAliveMode() == AEFaceParam.ALIVEMODE_MOTION_LIGHT
+					&& !isMotionAliveSuc && activity.getLightHandler() != null;
+			if (actionStage) {
+				int curPose = activity.getLightHandler().getCurPos();
+				actionStage = curPose >= AEFaceAlive.POSE_MIN
+						&& curPose <= AEFaceAlive.POSE_EYE_BLINK;
+			}
+			float threshold = actionStage ? AEFaceAlive.ACTION_FACE_MASK_THRESHOLD : AEFaceAlive.FACE_MASK_THRESHOLD;
+			boolean hasMask = mask > threshold;
+			Log.e(TAG, "checkFaceMask mask=" + mask + ", threshold=" + threshold
+					+ ", actionStage=" + actionStage + ", hasMask=" + hasMask);
+			return hasMask;
+		} catch (Exception e) {
+			Log.e(TAG, "checkFaceMask error: " + e.getMessage());
+			return false;
+		}
+	}
+
+	private boolean updateMaskState(boolean detected) {
+		if (detected) {
+			maskClearFrames = 0;
+			maskHitFrames = Math.min(maskHitFrames + 1, MASK_ENTER_FRAMES);
+			if (lastMaskState != 1 && maskHitFrames >= MASK_ENTER_FRAMES) {
+				sendMaskState(true);
+			}
+		} else {
+			maskHitFrames = 0;
+			maskClearFrames = Math.min(maskClearFrames + 1, MASK_LEAVE_FRAMES);
+			if (lastMaskState == 1 && maskClearFrames >= MASK_LEAVE_FRAMES) {
+				sendMaskState(false);
+			} else if (lastMaskState == -1) {
+				lastMaskState = 0;
+			}
+		}
+		return lastMaskState == 1;
+	}
+
+	private void sendMaskState(boolean hasMask) {
+		int state = hasMask ? 1 : 0;
+		if (lastMaskState == state) {
+			return;
+		}
+		lastMaskState = state;
+		activity.showFaceMaskHint(hasMask);
+	}
+
 	/** 动作过程中按动作方向容错检查；进入闪光后要求完整正脸。 */
 	private boolean checkFrontFace(Rect rect) {
 		CaptureActivityHandlerLight lightHandler = activity.getLightHandler();
@@ -386,7 +470,11 @@ public class DecodeHandlerLight extends Handler {
 		int actionIndex = motionStage ? lightHandler.getCurSide() : 0;
 		if (actionIndex != mLastAliveActionIndex) {
 			mLastAliveActionIndex = actionIndex;
+			mFrontCheckDelayUntil = System.currentTimeMillis() + ACTION_FRONT_CHECK_DELAY_MS;
 			clearFrontFaceHint();
+		}
+		if (System.currentTimeMillis() < mFrontCheckDelayUntil) {
+			return true;
 		}
 		boolean headPose = motionStage && (curPose == AEFaceAlive.POSE_FACE_SHAKE
 				|| curPose == AEFaceAlive.POSE_FACE_UP
@@ -398,13 +486,10 @@ public class DecodeHandlerLight extends Handler {
 			return true;
 		}
 		boolean frontal;
-		if (motionStage && curPose == AEFaceAlive.POSE_FACE_SHAKE) {
-			frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
-					&& Math.abs(pose[2]) < HEAD_OTHER_AXIS_LIMIT;
-		} else if (motionStage && (curPose == AEFaceAlive.POSE_FACE_UP
-				|| curPose == AEFaceAlive.POSE_FACE_DOWN)) {
-			frontal = Math.abs(pose[0]) < HEAD_OTHER_AXIS_LIMIT
-					&& Math.abs(pose[1]) < HEAD_OTHER_AXIS_LIMIT;
+		if (headPose) {
+			float otherAxisAngle = curPose == AEFaceAlive.POSE_FACE_SHAKE
+					? Math.abs(pose[2]) : Math.abs(pose[1]);
+			frontal = otherAxisAngle < HEAD_OTHER_AXIS_LIMIT;
 		} else {
 			frontal = Math.abs(pose[0]) < FRONT_AXIS_LIMIT
 					&& Math.abs(pose[1]) < FRONT_AXIS_LIMIT
@@ -413,12 +498,15 @@ public class DecodeHandlerLight extends Handler {
 		boolean showHint;
 		if (!frontal) {
 			mFrontFrames = 0;
-			if (headPose) {
-				mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, HEAD_HINT_ENTER_FRAMES);
-				showHint = mHeadNotFrontFrames >= HEAD_HINT_ENTER_FRAMES;
-			} else {
-				mHeadNotFrontFrames = 0;
+			if (mFrontHintRequested) {
 				showHint = true;
+			} else {
+				int enterFrames = headPose
+						? (curPose == AEFaceAlive.POSE_FACE_SHAKE
+						? SHAKE_HINT_ENTER_FRAMES : HEAD_HINT_ENTER_FRAMES)
+						: FRONT_HINT_ENTER_FRAMES;
+				mHeadNotFrontFrames = Math.min(mHeadNotFrontFrames + 1, enterFrames);
+				showHint = mHeadNotFrontFrames >= enterFrames;
 			}
 		} else if (mFrontHintRequested && ++mFrontFrames < FRONT_HINT_LEAVE_FRAMES) {
 			mHeadNotFrontFrames = 0;
@@ -428,9 +516,10 @@ public class DecodeHandlerLight extends Handler {
 			mHeadNotFrontFrames = 0;
 			showHint = false;
 		}
-		if (showHint && !mFrontHintRequested) {
+		if (showHint != mFrontHintRequested) {
 			Log.e(TAG, "checkFrontFace roll=" + pose[0] + ", yaw=" + pose[1]
-					+ ", pitch=" + pose[2] + ", frontal=false");
+					+ ", pitch=" + pose[2] + ", frontal=" + frontal
+					+ ", showHint=" + showHint);
 		}
 		mFrontHintRequested = showHint;
 		activity.showFrontFaceHint(showHint);
@@ -443,6 +532,39 @@ public class DecodeHandlerLight extends Handler {
 		if (mFrontHintRequested) {
 			mFrontHintRequested = false;
 			activity.showFrontFaceHint(false);
+		}
+	}
+
+	private void captureMotionLightFrontPicture() {
+		if (activity.getAliveMode() != AEFaceParam.ALIVEMODE_MOTION_LIGHT
+				|| mMotionFrontCaptured) {
+			return;
+		}
+		appendMotionLightPicture();
+		mMotionFrontCaptured = true;
+	}
+
+	private void captureMotionLightActionPicture() {
+		if (activity.getAliveMode() != AEFaceParam.ALIVEMODE_MOTION_LIGHT) {
+			return;
+		}
+		// 首帧尚未取得正脸图时先补齐，保证后续动作图从 facePic2 开始。
+		captureMotionLightFrontPicture();
+		appendMotionLightPicture();
+	}
+
+	private void appendMotionLightPicture() {
+		Bitmap bitmap = null;
+		try {
+			AEFaceInfo captureInfo = faceInfo.clone();
+			bitmap = MBitmapUtil.getFullFaceImageWithAlive(captureInfo);
+			PictureManagerUtilsLight.getPictureManager().addMotionPicture(bitmap);
+		} catch (Exception e) {
+			Log.e(TAG, "captureMotionLightPicture error: " + e.getMessage());
+		} finally {
+			if (bitmap != null && !bitmap.isRecycled()) {
+				bitmap.recycle();
+			}
 		}
 	}
 
@@ -477,6 +599,7 @@ public class DecodeHandlerLight extends Handler {
 		faceInfo.faceArr = cvtSpace(faceInfo.imgByteA, faceInfo.imgWidth,
 				faceInfo.imgHeight, faceInfo.direction);
 		Rect[] rect = null;
+		boolean maskChecked = false;
 		if(!isMotionAliveSuc) {
 			rect = AEFaceDetect.getInstance().AEYE_FaceDetect(faceInfo.faceArr,
 					faceInfo.width, faceInfo.height);
@@ -484,17 +607,40 @@ public class DecodeHandlerLight extends Handler {
 				// 动作阶段过暗/过亮：不做动作判定
 			} else if(rect !=null && rect.length>0) {
 				faceInfo.imgRect = rect[0];
+				if (AEFacePack.getInstance().isAliveMask()) {
+					boolean hasFaceMask = updateMaskState(checkFaceMask(rect[0]));
+					maskChecked = true;
+					if (hasFaceMask) {
+						faceCount = 0;
+						aliveCount = 1;
+						activity.getLightHandler().restartDecode();
+						checkAgain();
+						return;
+					}
+				}
+				captureMotionLightFrontPicture();
+				int actionIndex = activity.getLightHandler().getCurSide();
+				if (mDetectActionIndex != actionIndex) {
+					mDetectActionIndex = actionIndex;
+					mActionDetectStarted = false;
+					clearFrontFaceHint();
+				}
 				AEFaceAlive.getInstance().AEYE_Alive_SetPose(activity.getPose());
 				long ret = -1;
-				if (checkFrontFace(rect[0])) {
+				// 首帧用于启动动作，不在动作开始前要求正脸。
+				if (!mActionDetectStarted || checkFrontFace(rect[0])) {
 					ret = AEFaceAlive.getInstance().AEYE_Alive_DetectVIS_Single(
 							faceInfo.faceArr,
 							faceInfo.width,
 							faceInfo.height,
 							faceInfo.imgRect,
 							faceInfo);
+					mActionDetectStarted = true;
 				}
 				Log.e(TAG, "AEYE_AliveDetect : " + ret);
+				if (ret == 0 || ret == 10) {
+					captureMotionLightActionPicture();
+				}
 				if (ret == 0) {
 					isMotionAliveSuc = true;
 					activity.setMotionAliveSuc();
@@ -531,6 +677,7 @@ public class DecodeHandlerLight extends Handler {
 			rect = takeRect;
 		}
 			if (rect != null && rect.length > 1) {
+				updateMaskState(false);
 				clearFrontFaceHint();
 				activity.notifyLightNormal();
 				activity.notifyMultiFace(true);
@@ -544,6 +691,17 @@ public class DecodeHandlerLight extends Handler {
 				activity.notifyMultiFace(false);
 				loseCount = 0;
 				faceInfo.faceNumber = rect.length;
+				if (!maskChecked && AEFacePack.getInstance().isAliveMask()) {
+					boolean hasFaceMask = updateMaskState(checkFaceMask(rect[0]));
+					if (hasFaceMask) {
+						faceCount = 0;
+						aliveCount = 1;
+						currentColorCount = 0;
+						activity.getLightHandler().restartDecode();
+						checkAgain();
+						return;
+					}
+				}
 				boolean inOval = isFaceInGuideOval(rect[0], faceInfo.width, faceInfo.height);
 				if (!inOval) {
 					clearFrontFaceHint();
@@ -583,12 +741,8 @@ public class DecodeHandlerLight extends Handler {
 							checkAgain();
 							return;
 						}
-						if (!checkFrontFace(rect[0])) {
-							currentColorCount = 0;
-							activity.getLightHandler().restartDecode();
-							checkAgain();
-							return;
-						}
+						// 动作已结束，闪光采集阶段不再检查正脸。
+						clearFrontFaceHint();
 
 						int quality = AEFaceQuality.QUALITY_OK;
 						if (quality == AEFaceQuality.QUALITY_OK || quality == RecognizeActivity.QUALITY_SIDE) {
@@ -702,6 +856,7 @@ public class DecodeHandlerLight extends Handler {
 					activity.setLightScanArcEnabled(inOval);
 				}
 			} else { // 如果没找到 人脸 的 具体位置 就继续寻找
+				updateMaskState(false);
 				clearFrontFaceHint();
 				activity.notifyLightNormal();
 				activity.notifyMultiFace(false);
@@ -962,14 +1117,33 @@ public class DecodeHandlerLight extends Handler {
 	 * 添加返回的图片
 	 */
 	private void setPicReturn() {
-		new Thread(new Runnable() {
+		final AEFaceInfo fullFrameInfo = faceInfo.clone();
+		final AEFaceInfo algorithmInfo = faceInfo.clone();
+		final int picIndex = currentColorIndex - 1;
+		mPictureExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				int index = currentColorIndex - 1;
-					FLogUtil.printLog("add pic curNum : " + PictureManagerUtilsLight.getPictureManager().getCurNum());
-						PictureManagerUtilsLight.getPictureManager().addOnePictureInfo(faceInfo, index);
+				if (activity.getAliveMode() == AEFaceParam.ALIVEMODE_LIGHT) {
+					Bitmap fullBitmap = null;
+					try {
+						fullBitmap = MBitmapUtil.getFull640(fullFrameInfo);
+						PictureManagerUtilsLight.getPictureManager().addColorFullPicture(fullBitmap);
+					} catch (Exception e) {
+						Log.e(TAG, "captureColorFullPicture error: " + e.getMessage());
+					} finally {
+						if (fullBitmap != null && !fullBitmap.isRecycled()) {
+							fullBitmap.recycle();
+						}
+					}
+				}
+				FLogUtil.printLog("add pic curNum : " + PictureManagerUtilsLight.getPictureManager().getCurNum());
+				PictureManagerUtilsLight.getPictureManager().addOnePictureInfo(algorithmInfo, picIndex);
 			}
-		}).start();
+		});
+	}
+
+	void destroy() {
+		mPictureExecutor.shutdownNow();
 	}
 
 	public static Bitmap rawByteArray2RGBABitmap2(byte[] data, int width, int height, int direction) {
@@ -1053,8 +1227,8 @@ public class DecodeHandlerLight extends Handler {
 	 * 人脸过小滞回：进入「请靠近一点」用较严阈值，离开用较宽阈值，并连续多帧确认。
 	 */
 	private boolean isFaceTooFar(int faceWidth) {
-		int enter = 320;
-		int leave = 330;
+		int enter = 260;
+		int leave = 270;
 		boolean wantFar = faceWidth < (mLastFaceFar ? leave : enter);
 		if (wantFar == mLastFaceFar) {
 			mFarFlipCount = 0;

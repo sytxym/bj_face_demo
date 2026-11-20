@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import com.aeye.android.data.AEFaceInfo;
+import com.aeye.android.uitls.BitmapUtils;
 import com.aeye.face.AEFacePack;
 
 import org.json.JSONArray;
@@ -22,6 +23,10 @@ public class PictureManagerUtilsLight {
     private ArrayList<String> mAlive = null;
     private ArrayList<String> mAliveSign = null;
     private Rect[] m_Faces = null;
+    /** 动作+炫彩：正脸及动作原图，与炫彩 images[] 分开保存。 */
+    private final ArrayList<String> mMotionPics = new ArrayList<>();
+    /** 纯炫彩：提交核验的完整预览帧 JPEG，不影响算法裁剪图。 */
+    private final ArrayList<String> mColorFullPics = new ArrayList<>();
 
     public static PictureManagerUtilsLight getPictureManager() {
         if (instance == null)
@@ -38,7 +43,7 @@ public class PictureManagerUtilsLight {
         mAliveSign = new ArrayList<>();
     }
 
-    public void setPicNum(int num) {
+    public synchronized void setPicNum(int num) {
         m_Pics = new String[num];
         m_PicSigns = new String[num];
         m_Faces = new Rect[num];
@@ -46,23 +51,31 @@ public class PictureManagerUtilsLight {
         m_MaxPicNum = num;
     }
 
-    public void resetPictureManager() {
+    public synchronized void resetPictureManager() {
         m_picNum = 0;
         m_Pics = new String[m_MaxPicNum];
         m_PicSigns = new String[m_MaxPicNum];
         m_Faces = new Rect[m_MaxPicNum];
         mAlive.clear();
         mAliveSign.clear();
+        mColorFullPics.clear();
     }
 
-    public void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
+    public synchronized void addOnePictureInfo(AEFaceInfo bitRect, int curPos) {
         Log.e("LIULU","add pic : "+curPos+", mPicNum : "+m_picNum+" ,maxPic : "+m_MaxPicNum);
-        if ((curPos <= m_picNum) && (m_picNum < m_MaxPicNum)) {
-            m_Faces[m_picNum] = bitRect.imgRect;
-            m_PicSigns[m_picNum] = SMUtil.BitmapSM2Sign(bitRect.faceBitmap);
-            m_Pics[m_picNum++] = SMUtil.DataSM4Encode(decryptKey, bitRect.faceBitmap);
-            FLogUtil.printLog("add pic success nums : "+m_picNum);
+        if (bitRect == null || bitRect.faceBitmap == null || bitRect.faceBitmap.isRecycled()
+                || m_Pics == null || m_PicSigns == null || m_Faces == null
+                || curPos < 0 || curPos > m_picNum || m_picNum < 0
+                || m_picNum >= m_MaxPicNum || m_picNum >= m_Pics.length) {
+            Log.w("LIULU", "skip invalid color picture");
+            return;
         }
+        int index = m_picNum;
+        m_Faces[index] = bitRect.imgRect;
+        m_PicSigns[index] = SMUtil.BitmapSM2Sign(bitRect.faceBitmap);
+        m_Pics[index] = SMUtil.DataSM4Encode(decryptKey, bitRect.faceBitmap);
+        m_picNum = index + 1;
+        FLogUtil.printLog("add pic success nums : "+m_picNum);
     }
 
 
@@ -71,6 +84,61 @@ public class PictureManagerUtilsLight {
     public void addAliveImage(Bitmap alive) {
         mAliveSign.add(SMUtil.BitmapSM2Sign(alive));
         mAlive.add(SMUtil.DataSM4Encode(decryptKey, alive));
+    }
+
+    /** 新动作会话开始时调用；进入炫彩阶段时不能清空。 */
+    public synchronized void resetMotionPictures() {
+        mMotionPics.clear();
+    }
+
+    /** 与纯动作一致，竖屏缩放为 480x640、横屏为 640x480，再编码 JPEG 90。 */
+    public synchronized void addMotionPicture(Bitmap bitmap) {
+        if (bitmap == null || bitmap.isRecycled()) {
+            return;
+        }
+        int actionCount = Math.max(0, Math.min(5, AEFacePack.getInstance().getAliveMotions()));
+        int maxCount = actionCount + 1;
+        if (mMotionPics.size() >= maxCount) {
+            return;
+        }
+        boolean portrait = bitmap.getHeight() > bitmap.getWidth();
+        int targetWidth = portrait ? 480 : 640;
+        int targetHeight = portrait ? 640 : 480;
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+        try {
+            mMotionPics.add(BitmapUtils.convertJpegToString(scaledBitmap, 90));
+            Log.i("FaceImageSize", "motion+color capture index=" + mMotionPics.size()
+                    + ", expected=" + maxCount + ", size=" + targetWidth + "x" + targetHeight);
+        } finally {
+            if (scaledBitmap != bitmap && !scaledBitmap.isRecycled()) {
+                scaledBitmap.recycle();
+            }
+        }
+    }
+
+    public synchronized JSONArray getMotionPicturesJson() {
+        JSONArray result = new JSONArray();
+        for (String picture : mMotionPics) {
+            result.put(picture);
+        }
+        return result;
+    }
+
+    public synchronized void addColorFullPicture(Bitmap bitmap) {
+        if (bitmap == null || bitmap.isRecycled() || mColorFullPics.size() >= 1) {
+            return;
+        }
+        mColorFullPics.add(BitmapUtils.convertJpegToString(bitmap, 90));
+        Log.i("FaceImageSize", "color full-frame capture index=" + mColorFullPics.size()
+                + ", expected=1, size=" + bitmap.getWidth() + "x" + bitmap.getHeight());
+    }
+
+    public synchronized JSONArray getColorFullPicturesJson() {
+        JSONArray result = new JSONArray();
+        for (String picture : mColorFullPics) {
+            result.put(picture);
+        }
+        return result;
     }
 
     public Rect getFaceRect() {
